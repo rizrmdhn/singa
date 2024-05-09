@@ -1,0 +1,47 @@
+dependencies {
+    implementation(libs.gson)
+    implementation(libs.coil.compose) //AsyncImage
+    implementation(libs.androidx.navigation.compose)
+
+    //lifeCycle
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.ktx.v270)
+
+    //retrofit
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
+    implementation(libs.logging.interceptor)
+
+    //coroutine support
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx) //viewModelScope
+    implementation(libs.androidx.lifecycle.livedata.ktx) //liveData
+
+
+    //room
+//    implementation("androidx.room:room-ktx:2.6.1")
+//    implementation("androidx.room:room-runtime:2.6.1")
+//    ksp("androidx.room:room-compiler:2.6.1")
+
+    //dataStore
+    implementation(libs.androidx.datastore.preferences)
+
+    // koin
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+
+//    // Testing
+//    testImplementation("androidx.arch.core:core-testing:2.2.0") // InstantTaskExecutorRule
+//    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0") //TestDispatcher
+//    testImplementation("org.mockito:mockito-core:5.2.0")
+//    testImplementation("org.mockito:mockito-inline:5.2.0")
+//
+//    // Test
+//    testImplementation("junit:junit:4.13.2")
+//    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+//    androidTestImplementation("androidx.test.ext:junit:1.1.5")
+//    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+//    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+//    androidTestImplementation("androidx.navigation:navigation-testing:2.7.7")
+}

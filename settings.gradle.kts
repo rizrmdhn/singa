@@ -21,4 +21,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "singa"
 include(":app")
- 
+include(":core")
