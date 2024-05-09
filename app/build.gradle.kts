@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
 }
 
+apply(from = "../shared_dependencies.gradle")
+
 android {
     namespace = "com.singa.asl"
     compileSdk = 34
