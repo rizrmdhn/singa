@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">singa</string>
+    <string name="onboarding_1_title">Welcome to ASL</string>
+    <string name="onboarding_1_desc">Learn American Sign Language with ease</string>
+    <string name="onboarding_2_title">Learn at your own pace</string>
+    <string name="onboarding_2_desc">Learn ASL at your own pace with our interactive lessons</string>
+    <string name="onboarding_3_title">Practice makes perfect</string>
+    <string name="onboarding_3_desc">Practice your ASL skills with our interactive quizzes</string>
 </resources>
