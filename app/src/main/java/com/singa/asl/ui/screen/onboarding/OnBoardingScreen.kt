@@ -24,7 +24,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.singa.asl.ui.components.OnBoardingIndicators
 import com.singa.asl.ui.components.OnBoardingItem
 import com.singa.asl.ui.components.OnBoardingItems
+import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.SingaTheme
 import kotlinx.coroutines.launch
 
@@ -83,7 +83,7 @@ fun OnBoardingContent(
                     }
                 },
                 colors = IconButtonDefaults.iconButtonColors(
-                    contentColor = Color(0xFF4BA6F8)
+                    contentColor = Color1
                 ),
             ) {
                 Icon(
@@ -98,7 +98,7 @@ fun OnBoardingContent(
                     onNavigateToWelcome()
                 },
                 colors = ButtonDefaults.textButtonColors(
-                    contentColor = Color(0xFF4BA6F8)
+                    contentColor = Color1
                 ),
                 modifier = Modifier
                     .align(Alignment.CenterEnd),
@@ -163,7 +163,7 @@ fun OnBoardingContent(
                 },
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
+                    containerColor = Color1,
                     contentColor = Color.White
                 ),
                 modifier = Modifier
