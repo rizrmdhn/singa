@@ -10,6 +10,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.singa.asl.ui.navigation.Screen
 import com.singa.asl.ui.screen.onboarding.OnBoardingScreen
+import com.singa.asl.ui.screen.welcome.WelcomeScreen
 import com.singa.asl.ui.theme.SingaTheme
 
 @Composable
@@ -24,9 +25,26 @@ fun MainApp(
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable(
-                    route = Screen.OnBoarding.route
+                     Screen.OnBoarding.route
                 ) {
-                    OnBoardingScreen()
+                    OnBoardingScreen(
+                        onNavigateToWelcome = {
+                            navController.navigate(Screen.Welcome.route)
+                        }
+                    )
+                }
+
+                composable(
+                    Screen.Welcome.route
+                ) {
+                    WelcomeScreen(
+                        onNavigateToLogin = {
+
+                        },
+                        onNavigateToGuest = {
+
+                        }
+                    )
                 }
             }
         }
