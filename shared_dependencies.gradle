@@ -17,6 +17,9 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx) //viewModelScope
     implementation(libs.androidx.lifecycle.livedata.ktx) //liveData
 
+    // Compose Splash Screen
+    implementation(libs.androidx.core.splashscreen)
+
 
     //room
 //    implementation("androidx.room:room-ktx:2.6.1")
