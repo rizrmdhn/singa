@@ -1,5 +1,6 @@
 package com.singa.asl.ui.components
 
+import android.content.res.Configuration
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -31,6 +32,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.singa.asl.R
+import com.singa.asl.ui.theme.SingaTheme
 
 class OnBoardingItems(
     val image: Int,
@@ -61,9 +63,6 @@ class OnBoardingItems(
 @Composable
 fun OnBoardingItem(
     items: OnBoardingItems,
-    size: Int,
-    currentPage: Int,
-    onClickNext: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -121,65 +120,25 @@ fun OnBoardingItem(
             modifier = Modifier.height(25.dp)
         )
 
-        // Bottom OnBoardingContent
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            // Indicators
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                repeat(size) {
-                    OnBoardingIndicators(isSelected = it == currentPage)
-                }
-            }
-
-            Spacer(
-                modifier = Modifier.height(50.dp)
-            )
-
-            Button(
-                onClick = {
-                    onClickNext()
-                },
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = Color.White
-                ),
-                modifier = Modifier
-                    .width(200.dp)
-                    .height(50.dp)
-            ) {
-                Text(
-                    text = "Continue",
-                    fontSize = 20.sp,
-                    color = Color.White
-                )
-                Icon(
-                    imageVector = Icons.Outlined.ArrowForward,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier
-                        .padding(start = 8.dp)
-                )
-            }
-        }
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun OnBoardingItemPreview() {
-    OnBoardingItem(
-        items = OnBoardingItems.getItems()[0],
-        size = OnBoardingItems.getItems().size,
-        currentPage = 0,
-        onClickNext = {}
-    )
+    SingaTheme {
+        OnBoardingItem(
+            items = OnBoardingItems.getItems()[0],
+        )
+    }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun OnBoardingItemDarkPreview() {
+    SingaTheme {
+        OnBoardingItem(
+            items = OnBoardingItems.getItems()[0],
+        )
+    }
 }
