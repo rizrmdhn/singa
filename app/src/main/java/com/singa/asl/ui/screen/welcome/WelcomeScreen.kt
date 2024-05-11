@@ -25,6 +25,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.singa.asl.R
+import com.singa.asl.ui.theme.Color1
+import com.singa.asl.ui.theme.Color5
 
 @Composable
 fun WelcomeScreen(
@@ -50,7 +52,7 @@ fun WelcomeContent(
             .fillMaxWidth()
             .fillMaxHeight()
             .background(
-                Color(0xFF4BA6F8)
+                Color1
             )
     ) {
         Image(
@@ -105,7 +107,7 @@ fun WelcomeContent(
                     onNavigateToLogin()
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4BA6F8),
+                    containerColor = Color1,
                     contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(20.dp),
@@ -125,8 +127,8 @@ fun WelcomeContent(
                     onNavigateToGuest()
                 },
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFFE5EEFF),
-                    contentColor = Color(0xFF4BA6F8)
+                    containerColor = Color5,
+                    contentColor = Color1
                 ),
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier
