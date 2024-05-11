@@ -23,6 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -41,13 +42,18 @@ import com.singa.asl.ui.theme.SingaTheme
 import kotlinx.coroutines.launch
 
 @Composable
-fun OnBoardingScreen() {
-    OnBoardingContent()
+fun OnBoardingScreen(
+    onNavigateToWelcome: () -> Unit
+) {
+    OnBoardingContent(
+        onNavigateToWelcome = onNavigateToWelcome
+    )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnBoardingContent(
+    onNavigateToWelcome: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val items = OnBoardingItems.getItems()
@@ -75,28 +81,30 @@ fun OnBoardingContent(
                             pageState.currentPage - 1
                         )
                     }
-                }
+                },
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = Color(0xFF4BA6F8)
+                ),
             ) {
                 Icon(
                     imageVector = Icons.Outlined.ArrowBack,
-                    contentDescription = null
+                    contentDescription = null,
                 )
             }
 
             // Skip Button
             TextButton(
                 onClick = {
-                    if (pageState.currentPage + 1 < items.size) scope.launch {
-                        pageState.scrollToPage(
-                            items.size - 1
-                        )
-                    }
+                    onNavigateToWelcome()
                 },
-                modifier = Modifier.align(Alignment.CenterEnd),
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = Color(0xFF4BA6F8)
+                ),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd),
             ) {
                 Text(
                     text = "Skip",
-                    color = MaterialTheme.colorScheme.onBackground
                 )
             }
         }
@@ -148,6 +156,10 @@ fun OnBoardingContent(
                             pageState.currentPage + 1
                         )
                     }
+
+                    if (pageState.currentPage + 1 == items.size) {
+                        onNavigateToWelcome()
+                    }
                 },
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
@@ -179,7 +191,9 @@ fun OnBoardingContent(
 @Composable
 fun OnboardingScreenPreview() {
     SingaTheme {
-        OnBoardingScreen()
+        OnBoardingScreen(
+            onNavigateToWelcome = {}
+        )
     }
 }
 
@@ -187,6 +201,8 @@ fun OnboardingScreenPreview() {
 @Composable
 fun OnboardingScreenDarkPreview() {
     SingaTheme {
-        OnBoardingScreen()
+        OnBoardingScreen(
+            onNavigateToWelcome = {}
+        )
     }
 }
