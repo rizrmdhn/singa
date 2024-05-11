@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
@@ -17,7 +18,8 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun OnBoardingIndicators(
-    isSelected: Boolean
+    isSelected: Boolean,
+    onTapped: () -> Unit
 ) {
     val width = animateDpAsState(
         targetValue = if (isSelected) 25.dp else 10.dp,
@@ -34,6 +36,9 @@ fun OnBoardingIndicators(
             .background(
                 color = if (isSelected) MaterialTheme.colorScheme.primary else Color(0XFFF8E2E7)
             )
+            .clickable {
+                onTapped()
+            }
     ) {
 
     }
