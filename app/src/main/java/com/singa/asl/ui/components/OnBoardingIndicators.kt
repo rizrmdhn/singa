@@ -9,12 +9,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.singa.asl.ui.theme.Color1
+import com.singa.asl.ui.theme.Color4
 
 @Composable
 fun OnBoardingIndicators(
@@ -34,7 +34,7 @@ fun OnBoardingIndicators(
             .width(width.value)
             .clip(CircleShape)
             .background(
-                color = if (isSelected) MaterialTheme.colorScheme.primary else Color(0XFFF8E2E7)
+                color = if (isSelected) Color1 else Color4
             )
             .clickable {
                 onTapped()
