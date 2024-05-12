@@ -1,5 +1,6 @@
 package com.singa.asl.ui.screen.history
 
+import android.content.res.Configuration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,15 +10,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.singa.asl.ui.components.CardItem
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 
-@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun HistoryScreen() {
+    HistoryContent()
+}
+
+@Composable
+fun HistoryContent() {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -38,4 +42,16 @@ fun HistoryScreen() {
             }
         }
     }
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
+@Composable
+fun HistoryScreenPreview() {
+    HistoryContent()
+}
+
+@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+fun HistoryScreenDarkPreview() {
+    HistoryContent()
 }
