@@ -15,3 +15,5 @@ val Color2 = Color(0xFF99CDEF)
 val Color3 = Color(0xFFB0E7FC)
 val Color4 = Color(0xFFD5F4FC)
 val Color5 = Color(0xFFE5EEFF)
+
+val ColorBackgroundWhite = Color(0xFFFCFEFF)
