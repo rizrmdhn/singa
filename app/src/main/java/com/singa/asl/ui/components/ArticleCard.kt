@@ -27,10 +27,12 @@ import com.singa.asl.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ArticleCard() {
+fun ArticleCard(
+    onClickArticle: () -> Unit
+) {
     Card(
         modifier = Modifier.padding(vertical = 8.dp),
-        onClick = { /*TODO*/ },
+        onClick = onClickArticle,
         colors = CardDefaults.cardColors(
             containerColor = Color(0xFFF6F6F6),
             contentColor = Color.Black

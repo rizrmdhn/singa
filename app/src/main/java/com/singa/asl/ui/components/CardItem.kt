@@ -32,19 +32,24 @@ import com.singa.asl.ui.theme.Color3
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CardItem(){
+fun CardItem(
+    onClickCard: () -> Unit
+) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = Color.Transparent
         ),
-        onClick = { },
+        onClick = onClickCard,
         border = BorderStroke(1.dp, color = Color1),
         modifier = Modifier.padding(vertical = 10.dp)
     ) {
         Row(
             Modifier
                 .fillMaxWidth()
-                .padding(10.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
             Row {
                 Surface(
                     color = Color3,

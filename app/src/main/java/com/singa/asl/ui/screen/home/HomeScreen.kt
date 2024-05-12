@@ -33,8 +33,12 @@ fun HomeContent() {
             shape = RoundedCornerShape(topStartPercent = 8, topEndPercent = 8)
         ) {
             Column(Modifier.padding(16.dp)) {
-                ArticleCard()
-                ArticleCard()
+                ArticleCard(
+                    onClickArticle = { /*TODO*/ }
+                )
+                ArticleCard(
+                    onClickArticle = { /*TODO*/ }
+                )
             }
         }
     }

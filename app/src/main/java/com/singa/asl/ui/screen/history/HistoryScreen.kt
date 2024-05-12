@@ -38,7 +38,9 @@ fun HistoryContent() {
     ) {
         LazyColumn(Modifier.padding(16.dp)) {
             items(2) {
-                CardItem()
+                CardItem(
+                    onClickCard = { /*TODO*/ }
+                )
             }
         }
     }
