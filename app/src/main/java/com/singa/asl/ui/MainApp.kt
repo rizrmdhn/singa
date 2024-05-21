@@ -22,8 +22,10 @@ import com.singa.asl.ui.components.FloatingButton
 import com.singa.asl.ui.components.ModalNavigation
 import com.singa.asl.ui.components.TopBar
 import com.singa.asl.ui.navigation.Screen
+import com.singa.asl.ui.screen.conversation.ConversationScreen
 import com.singa.asl.ui.screen.history.HistoryScreen
 import com.singa.asl.ui.screen.home.HomeScreen
+import com.singa.asl.ui.screen.message.MessageScreen
 import com.singa.asl.ui.screen.onboarding.OnBoardingScreen
 import com.singa.asl.ui.screen.welcome.WelcomeScreen
 import com.singa.asl.ui.theme.Color1
@@ -38,9 +40,15 @@ fun MainApp(
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-    val isDisabled = navBackStackEntry?.destination?.route in listOf(
+    val isDisabledBottom = navBackStackEntry?.destination?.route in listOf(
         Screen.OnBoarding.route,
-        Screen.Welcome.route
+        Screen.Welcome.route,
+        Screen.Conversation.route
+    )
+
+    val isDisabledTopBar = navBackStackEntry?.destination?.route in listOf(
+        Screen.OnBoarding.route,
+        Screen.Welcome.route,
     )
 
     //modal sheet
@@ -54,17 +62,17 @@ fun MainApp(
     SingaTheme {
         Scaffold(
             topBar = {
-                if (!isDisabled) {
+                if (!isDisabledTopBar) {
                     TopBar(navBackStackEntry = navBackStackEntry)
                 }
             },
             bottomBar = {
-                if (!isDisabled) {
+                if (!isDisabledBottom) {
                     BottomBar(navController = navController, navBackStackEntry = navBackStackEntry)
                 }
             },
             floatingActionButton = {
-                if (!isDisabled) {
+                if (!isDisabledBottom) {
                     FloatingButton(
                         modalButtonNavigation = {
                             showBottomSheet.value = true
@@ -73,7 +81,7 @@ fun MainApp(
                 }
             },
             floatingActionButtonPosition = FabPosition.Center,
-            containerColor = if (!isDisabled) Color1 else Color.White,
+            containerColor = if (!isDisabledTopBar) Color1 else Color.White,
         ) { innerPadding ->
             NavHost(
                 navController = navController,
@@ -108,7 +116,15 @@ fun MainApp(
                 }
 
                 composable(Screen.Message.route) {
-                    HomeScreen()
+                    MessageScreen(
+                        onNavigateConversation ={
+                            navController.navigate(Screen.Conversation.route)
+                        }
+                    )
+                }
+
+                composable(Screen.Conversation.route) {
+                    ConversationScreen()
                 }
 
                 composable(Screen.History.route) {

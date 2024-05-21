@@ -33,6 +33,7 @@ import com.singa.asl.ui.theme.Color3
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CardItem(
+    image:Int,
     onClickCard: () -> Unit
 ) {
     Card(
@@ -56,7 +57,7 @@ fun CardItem(
                     shape = RoundedCornerShape(10.dp),
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.baseline_library_books_24),
+                        painter = painterResource(id = image),
                         contentDescription = "logo",
                         modifier = Modifier.padding(10.dp),
                         tint = Color1
