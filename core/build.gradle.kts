@@ -1,10 +1,12 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 val appMode: Boolean = gradleLocalProperties(rootDir, providers).getProperty("APP_MODE") == "dev"
+val apiUrl: String = gradleLocalProperties(rootDir, providers).getProperty("API_URL") ?: "https://api.singa.com/"
 
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("kotlin-parcelize")
 }
 
 apply(from = "../shared_dependencies.gradle")
@@ -16,9 +18,12 @@ android {
     defaultConfig {
         minSdk = 27
 
+
+
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
+        buildConfigField("String", "BASE_URL", "\"$apiUrl\"")
         buildConfigField("Boolean", "APP_MODE", "$appMode")
     }
 

@@ -43,9 +43,27 @@ import com.singa.core.domain.model.FormItem
 
 @Composable
 fun LoginScreen(
+    email: String,
+    isEmailError: Boolean,
+    emailError: String,
+    onChangeEmail: (String) -> Unit,
+    password: String,
+    isPasswordError: Boolean,
+    passwordError: String,
+    onChangePassword: (String) -> Unit,
+    onLogin: () -> Unit,
     navigateToRegister: () -> Unit
 ) {
     LoginContent(
+        email = email,
+        isEmailError = isEmailError,
+        emailError = emailError,
+        onChangeEmail = onChangeEmail,
+        password = password,
+        isPasswordError = isPasswordError,
+        passwordError = passwordError,
+        onChangePassword = onChangePassword,
+        onLogin = onLogin,
         navigateToRegister = navigateToRegister
     )
 }
@@ -53,6 +71,15 @@ fun LoginScreen(
 @Composable
 fun LoginContent(
     modifier: Modifier = Modifier,
+    email: String,
+    isEmailError: Boolean,
+    emailError: String,
+    onChangeEmail: (String) -> Unit,
+    password: String,
+    isPasswordError: Boolean,
+    passwordError: String,
+    onChangePassword: (String) -> Unit,
+    onLogin: () -> Unit,
     navigateToRegister: () -> Unit,
 ) {
     var showPassword by remember {
@@ -63,8 +90,9 @@ fun LoginContent(
         FormItem(
             title = stringResource(R.string.email),
             placeholder = stringResource(R.string.enter_your_email),
-            value = "",
+            value = email,
             onValueChange = {
+                onChangeEmail(it)
             },
             leadingIcon = {
                 Icon(
@@ -73,8 +101,8 @@ fun LoginContent(
                     tint = Color1
                 )
             },
-            isError = false,
-            errorMessage = "",
+            isError = isEmailError,
+            errorMessage = emailError,
             shape = RoundedCornerShape(10.dp),
             visualTransformation = VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
@@ -88,8 +116,9 @@ fun LoginContent(
         FormItem(
             title = stringResource(R.string.password),
             placeholder = stringResource(R.string.enter_your_password),
-            value = "",
+            value = password,
             onValueChange = {
+                onChangePassword(it)
             },
             shape = RoundedCornerShape(10.dp),
             leadingIcon = {
@@ -114,8 +143,8 @@ fun LoginContent(
                     )
                 }
             },
-            isError = false,
-            errorMessage = "",
+            isError = isPasswordError,
+            errorMessage = passwordError,
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             colors = TextFieldDefaults.colors(
@@ -142,7 +171,7 @@ fun LoginContent(
 
         FormComp(
             formData = formList,
-            onClickButton = { /*TODO*/ },
+            onClickButton = onLogin,
             isLoading = false,
             buttonText = "Login",
         )
@@ -175,6 +204,15 @@ fun LoginContent(
 @Composable
 fun LoginScreenPreview() {
     LoginScreen(
+        email = "",
+        onChangeEmail = {},
+        password = "",
+        onChangePassword = {},
+        onLogin = {},
+        isEmailError = false,
+        emailError = "",
+        isPasswordError = false,
+        passwordError = "",
         navigateToRegister = {}
     )
 }
@@ -183,6 +221,15 @@ fun LoginScreenPreview() {
 @Composable
 fun LoginScreenDarkPreview() {
     LoginScreen(
+        email = "",
+        onChangeEmail = {},
+        password = "",
+        onChangePassword = {},
+        onLogin = {},
+        isEmailError = false,
+        emailError = "",
+        isPasswordError = false,
+        passwordError = "",
         navigateToRegister = {}
     )
 }

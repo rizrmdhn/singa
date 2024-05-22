@@ -1,8 +1,10 @@
 package com.singa.asl.common
 
-import com.singa.core.common.UiText
 
 data class ValidationState(
-    val emailError: UiText? = null,
-    val passwordError: UiText? = null,
+    val nameError: String? = null,
+    val emailError: String? = null,
+    val passwordError: String? = null,
+    val confirmPasswordError: String? = null,
+    val avatarError: String? = null
 )

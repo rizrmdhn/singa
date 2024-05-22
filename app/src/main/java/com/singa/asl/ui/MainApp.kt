@@ -1,5 +1,6 @@
 package com.singa.asl.ui
 
+import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -7,6 +8,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -35,12 +37,18 @@ import com.singa.asl.ui.screen.welcome.WelcomeScreen
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.SingaTheme
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainApp(
     navController: NavHostController = rememberNavController(),
+    viewModel: MainAppViewModel = koinViewModel()
 ) {
+    val isSecondLaunch by viewModel.isSecondLaunch.collectAsState()
+    val authUser by viewModel.authUser.collectAsState()
+    val email by viewModel.email.collectAsState()
+    val password by viewModel.password.collectAsState()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Home.route
@@ -67,7 +75,6 @@ fun MainApp(
     )
 
     val showBottomSheet = remember { mutableStateOf(false) }
-
 
     SingaTheme {
         Scaffold(
@@ -111,7 +118,13 @@ fun MainApp(
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = Screen.OnBoarding.route,
+                startDestination = if (authUser == null && !isSecondLaunch) {
+                    Screen.OnBoarding.route
+                } else if (authUser == null) {
+                    Screen.Welcome.route
+                } else {
+                    Screen.Home.route
+                },
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable(
@@ -128,6 +141,17 @@ fun MainApp(
                     Screen.Login.route
                 ) {
                     LoginScreen(
+                        email = email,
+                        isEmailError = viewModel.validationState.emailError != null,
+                        emailError = viewModel.validationState.emailError ?: "",
+                        onChangeEmail = viewModel::onChangeEmail,
+                        password = password,
+                        isPasswordError = viewModel.validationState.passwordError != null,
+                        passwordError = viewModel.validationState.passwordError ?: "",
+                        onChangePassword = viewModel::onChangePassword,
+                        onLogin = {
+                            Log.d("LoginScreen", "onLogin: $email $password")
+                        },
                         navigateToRegister = {
                             navController.navigate(Screen.Register.route)
                         }
