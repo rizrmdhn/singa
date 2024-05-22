@@ -1,6 +1,7 @@
 package com.singa.asl.ui.components
 
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
@@ -13,6 +14,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -33,14 +35,16 @@ import java.util.Locale
 @Composable
 fun TopBar(
     currentRoute: String?,
-    navigateToProfile: () -> Unit
+    navigateToProfile: () -> Unit,
+    navigateBack: () -> Unit
 ) {
     when (currentRoute) {
         Screen.Home.route -> TopBarProfile(
-            currentRoute,
-            navigateToProfile
+            navigateToProfile,
         )
+
         else -> TopBarLeftIcon(
+            navigateBack = navigateBack,
             route = currentRoute.toString()
                 .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
         )
@@ -49,10 +53,18 @@ fun TopBar(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TopBarLeftIcon(route: String) {
-
+fun TopBarLeftIcon(
+    route: String,
+    navigateBack: () -> Unit
+) {
     val colorPaint: Color =
         if (route == "login" || route == "register") Color.Black else Color.White
+
+    val listOfShowBackButton = listOf(
+        Screen.Conversation.route,
+    )
+
+    val showBackButton = listOfShowBackButton.contains(route.lowercase())
 
     CenterAlignedTopAppBar(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -68,12 +80,19 @@ fun TopBarLeftIcon(route: String) {
             )
         },
         navigationIcon = {
-            Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = "",
-                tint = colorPaint,
-                modifier = Modifier.size(40.dp)
-            )
+            if (showBackButton) {
+                IconButton(
+                    onClick = {
+                        navigateBack()
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = "back",
+                        tint = colorPaint
+                    )
+                }
+            }
         }
     )
 }
@@ -81,7 +100,6 @@ fun TopBarLeftIcon(route: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarProfile(
-    route: String,
     navigateToProfile: () -> Unit
 ) {
     TopAppBar(

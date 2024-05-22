@@ -19,6 +19,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -37,6 +38,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.LifecycleOwner
 import com.singa.asl.R
 import com.singa.asl.ui.theme.Color1
+import com.singa.asl.ui.theme.Color2
 import java.util.concurrent.Executors
 
 @Composable
@@ -97,15 +99,14 @@ fun RealtimeCameraContent(
                     .align(Alignment.BottomCenter)
                     .absolutePadding(bottom = 16.dp)
                     .padding(16.dp)
-                    .size(50.dp)
                     .background(
                         color = Color1,
                         shape = RoundedCornerShape(20.dp)
                     )
                     .border(
-                        width = 2.dp,
-                        color = Color.White,
-                        shape = RoundedCornerShape(20.dp)
+                        width = 3.dp,
+                        color = Color2,
+                        shape = MaterialTheme.shapes.medium
                     )
             ) {
                 IconButton(
@@ -134,6 +135,11 @@ fun RealtimeCameraContent(
                     .background(
                         color = Color1,
                         shape = RoundedCornerShape(20.dp)
+                    )
+                    .border(
+                        width = 3.dp,
+                        color = Color2,
+                        shape = MaterialTheme.shapes.medium
                     )
             ) {
                 IconButton(

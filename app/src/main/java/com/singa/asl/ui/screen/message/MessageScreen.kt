@@ -18,7 +18,9 @@ import com.singa.asl.ui.theme.ColorBackgroundWhite
 
 
 @Composable
-fun MessageScreen(onNavigateConversation: () -> Unit) {
+fun MessageScreen(
+    onNavigateConversation: () -> Unit
+) {
     MessageContent(onNavigateConversation)
 }
 

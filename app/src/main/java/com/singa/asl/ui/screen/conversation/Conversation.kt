@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -46,7 +47,8 @@ fun ConversationContent() {
             .padding(20.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White,
-        )
+        ),
+        shape = RoundedCornerShape(20.dp),
     ) {
         Column {
             //lazyColumn
@@ -107,8 +109,10 @@ fun ConversationCard(
                 containerColor = Color(if (person == "You") 0xFF7DBDFA else 0xFFF6F9F8),
                 contentColor = if (person == "You") Color.White else Color.Black
             ),
-            border = BorderStroke(1.5.dp, Color(if (person == "You") 0xFF2E8CE0 else 0xFFD9D9D9))
-        ) {
+            border = BorderStroke(
+                1.5.dp, Color(if (person == "You") 0xFF2E8CE0 else 0xFFD9D9D9)
+            ),
+            ) {
             Column(Modifier.padding(8.dp)) {
                 Text(text = "is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.")
             }
@@ -128,7 +132,7 @@ fun ConversationAction() {
             border = BorderStroke(3.dp, Color2),
             shape = shapes.medium
         ) {
-            Row(Modifier.padding(8.dp)){
+            Row(Modifier.padding(8.dp)) {
                 IconButton(onClick = { /*TODO*/ }) {
                     Icon(
                         painter = painterResource(id = R.drawable.fluent_video_16_filled),
