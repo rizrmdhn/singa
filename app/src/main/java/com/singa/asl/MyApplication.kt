@@ -1,6 +1,9 @@
 package com.singa.asl
 
 import android.app.Application
+import com.singa.asl.di.useCaseModule
+import com.singa.asl.di.viewModelModule
+import com.singa.core.di.networkModule
 import com.singa.core.di.preferencesModule
 import com.singa.core.di.repositoryModule
 import org.koin.android.ext.koin.androidContext
@@ -17,7 +20,10 @@ class MyApplication : Application() {
             modules(
                 listOf(
                     preferencesModule,
-                    repositoryModule
+                    networkModule,
+                    repositoryModule,
+                    useCaseModule,
+                    viewModelModule
                 )
             )
         }

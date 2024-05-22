@@ -15,3 +15,10 @@ val Color2 = Color(0xFF99CDEF)
 val Color3 = Color(0xFFB0E7FC)
 val Color4 = Color(0xFFD5F4FC)
 val Color5 = Color(0xFFE5EEFF)
+
+val PlaceholderFormText = Color(0xFF9B99A8)
+val AuthBackground = Color(0xFFEEF4FC)
+
+val ColorBackgroundWhite = Color(0xFFFCFEFF)
+
+val Color5 = Color(0xFFE5EEFF)

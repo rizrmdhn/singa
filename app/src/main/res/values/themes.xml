@@ -3,6 +3,12 @@
 
     <style name="Theme.Singa" parent="android:Theme.Material.Light.NoActionBar"/>
 
+
+    <style name="Theme.MySplashScreen" parent="Theme.SplashScreen">
+        <item name="android:windowActionBar">false</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="windowSplashScreenBackground">@color/blue</item>
+
     <style name="Theme.AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
 
     </style>
