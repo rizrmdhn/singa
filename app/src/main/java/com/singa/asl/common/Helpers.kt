@@ -10,10 +10,12 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
-import com.singa.core.BuildConfig
+import com.singa.asl.BuildConfig
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 import java.io.InputStream
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
@@ -29,6 +31,61 @@ object Helpers {
 //    fun convertStringToClassifciations(result: String): List<Classifications> {
 //        return parseJson(result)
 //    }
+
+    fun createVideoFile(): File {
+        val videoFileName = "MP4_$timeStamp.mp4"
+        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
+        return File.createTempFile(videoFileName, ".mp4", storageDir)
+    }
+
+    fun createImageFromBitmap(context: Context, bitmap: Bitmap): String? {
+        // Define the directory to save the image
+        val storageDir: File? = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+
+        // Generate a unique filename
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+        val imageFileName = "JPEG_${timeStamp}_"
+
+        // Create the file
+        val imageFile: File? = try {
+            File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+            )
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
+        }
+
+        // If the file was created successfully, save the bitmap to it
+        if (imageFile != null) {
+            try {
+                FileOutputStream(imageFile).use { out ->
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                    out.flush()
+                }
+                return imageFile.absolutePath
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+        return null
+    }
+
+    fun createImageFile(): File {
+        val imageFileName = "JPEG_$timeStamp.jpg"
+        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile(imageFileName, ".jpg", storageDir)
+    }
+
+    fun getUri(context: Context): Uri? {
+        return  FileProvider.getUriForFile(
+            context,
+            "${BuildConfig.APPLICATION_ID}.fileprovider",
+            createVideoFile()
+        )
+    }
 
     fun uriToBlob(context: Context, uri: Uri): ByteArray? {
         val contentResolver: ContentResolver = context.contentResolver
@@ -110,7 +167,7 @@ object Helpers {
         if (imageFile.parentFile?.exists() == false) imageFile.parentFile?.mkdir()
         return FileProvider.getUriForFile(
             context,
-            "${BuildConfig.LIBRARY_PACKAGE_NAME}.fileprovider",
+            "${BuildConfig.APPLICATION_ID}.fileprovider",
             imageFile
         )
     }

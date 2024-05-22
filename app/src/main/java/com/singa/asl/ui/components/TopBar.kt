@@ -1,7 +1,6 @@
 package com.singa.asl.ui.components
 
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
@@ -10,7 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -58,10 +57,12 @@ fun TopBarLeftIcon(
     navigateBack: () -> Unit
 ) {
     val colorPaint: Color =
-        if (route == "login" || route == "register") Color.Black else Color.White
+        if (route == Screen.Login.route || route == "register") Color.Black else Color.White
 
     val listOfShowBackButton = listOf(
         Screen.Conversation.route,
+        Screen.Login.route,
+        Screen.Register.route,
     )
 
     val showBackButton = listOfShowBackButton.contains(route.lowercase())
@@ -87,7 +88,7 @@ fun TopBarLeftIcon(
                     }
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "back",
                         tint = colorPaint
                     )

@@ -26,7 +26,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.singa.asl.R
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color3
 

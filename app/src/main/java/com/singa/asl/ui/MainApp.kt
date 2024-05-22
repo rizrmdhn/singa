@@ -25,9 +25,11 @@ import com.singa.asl.ui.navigation.Screen
 import com.singa.asl.ui.screen.conversation.ConversationScreen
 import com.singa.asl.ui.screen.history.HistoryScreen
 import com.singa.asl.ui.screen.home.HomeScreen
+import com.singa.asl.ui.screen.login.LoginScreen
 import com.singa.asl.ui.screen.message.MessageScreen
 import com.singa.asl.ui.screen.onboarding.OnBoardingScreen
 import com.singa.asl.ui.screen.realtime_camera.RealtimeCameraScreen
+import com.singa.asl.ui.screen.register.RegisterScreen
 import com.singa.asl.ui.screen.web_view.WebViewScreen
 import com.singa.asl.ui.screen.welcome.WelcomeScreen
 import com.singa.asl.ui.theme.Color1
@@ -48,7 +50,9 @@ fun MainApp(
         Screen.Welcome.route,
         Screen.WebView.route,
         Screen.RealtimeCamera.route,
-        Screen.Conversation.route
+        Screen.Conversation.route,
+        Screen.Login.route,
+        Screen.Register.route,
     )
 
     val isDisabledTopBar = navBackStackEntry?.destination?.route in listOf(
@@ -121,11 +125,31 @@ fun MainApp(
                 }
 
                 composable(
+                    Screen.Login.route
+                ) {
+                    LoginScreen(
+                        navigateToRegister = {
+                            navController.navigate(Screen.Register.route)
+                        }
+                    )
+                }
+
+                composable(
+                    Screen.Register.route
+                ) {
+                    RegisterScreen(
+                        navigateToLogin = {
+                            navController.navigate(Screen.Login.route)
+                        }
+                    )
+                }
+
+                composable(
                     Screen.Welcome.route
                 ) {
                     WelcomeScreen(
                         onNavigateToLogin = {
-                            navController.navigate(Screen.WebView.route)
+                            navController.navigate(Screen.Login.route)
                         },
                         onNavigateToGuest = {
                             navController.navigate(Screen.Home.route)
