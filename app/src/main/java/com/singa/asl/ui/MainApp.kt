@@ -22,11 +22,11 @@ import com.singa.asl.ui.components.FloatingButton
 import com.singa.asl.ui.components.ModalNavigation
 import com.singa.asl.ui.components.TopBar
 import com.singa.asl.ui.navigation.Screen
-import com.singa.asl.ui.screen.conversation.ConversationScreen
 import com.singa.asl.ui.screen.history.HistoryScreen
 import com.singa.asl.ui.screen.home.HomeScreen
-import com.singa.asl.ui.screen.message.MessageScreen
 import com.singa.asl.ui.screen.onboarding.OnBoardingScreen
+import com.singa.asl.ui.screen.realtime_camera.RealtimeCameraScreen
+import com.singa.asl.ui.screen.web_view.WebViewScreen
 import com.singa.asl.ui.screen.welcome.WelcomeScreen
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
@@ -39,16 +39,13 @@ fun MainApp(
 ) {
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Home.route
 
-    val isDisabledBottom = navBackStackEntry?.destination?.route in listOf(
+    val isDisabled = navBackStackEntry?.destination?.route in listOf(
         Screen.OnBoarding.route,
         Screen.Welcome.route,
-        Screen.Conversation.route
-    )
-
-    val isDisabledTopBar = navBackStackEntry?.destination?.route in listOf(
-        Screen.OnBoarding.route,
-        Screen.Welcome.route,
+        Screen.WebView.route,
+        Screen.RealtimeCamera.route
     )
 
     //modal sheet
@@ -62,17 +59,30 @@ fun MainApp(
     SingaTheme {
         Scaffold(
             topBar = {
-                if (!isDisabledTopBar) {
-                    TopBar(navBackStackEntry = navBackStackEntry)
+                if (!isDisabled) {
+                    TopBar(
+                        currentRoute = currentRoute,
+                        navigateToProfile = {
+                            navController.navigate(Screen.Profile.route)
+                        }
+                    )
                 }
             },
             bottomBar = {
-                if (!isDisabledBottom) {
-                    BottomBar(navController = navController, navBackStackEntry = navBackStackEntry)
+                if (!isDisabled) {
+                    BottomBar(
+                        currentRoute = currentRoute,
+                        navigateToScreen = {
+                            navController.navigate(it) {
+                                popUpTo(navController.graph.startDestinationId)
+                                launchSingleTop = true
+                            }
+                        }
+                    )
                 }
             },
             floatingActionButton = {
-                if (!isDisabledBottom) {
+                if (!isDisabled) {
                     FloatingButton(
                         modalButtonNavigation = {
                             showBottomSheet.value = true
@@ -81,11 +91,11 @@ fun MainApp(
                 }
             },
             floatingActionButtonPosition = FabPosition.Center,
-            containerColor = if (!isDisabledTopBar) Color1 else Color.White,
+            containerColor = if (!isDisabled) Color1 else Color.White,
         ) { innerPadding ->
             NavHost(
                 navController = navController,
-                startDestination = Screen.OnBoarding.route,
+                startDestination = Screen.RealtimeCamera.route,
                 modifier = Modifier.padding(innerPadding)
             ) {
                 composable(
@@ -103,7 +113,7 @@ fun MainApp(
                 ) {
                     WelcomeScreen(
                         onNavigateToLogin = {
-
+                            navController.navigate(Screen.WebView.route)
                         },
                         onNavigateToGuest = {
                             navController.navigate(Screen.Home.route)
@@ -116,15 +126,7 @@ fun MainApp(
                 }
 
                 composable(Screen.Message.route) {
-                    MessageScreen(
-                        onNavigateConversation ={
-                            navController.navigate(Screen.Conversation.route)
-                        }
-                    )
-                }
-
-                composable(Screen.Conversation.route) {
-                    ConversationScreen()
+                    HomeScreen()
                 }
 
                 composable(Screen.History.route) {
@@ -135,6 +137,17 @@ fun MainApp(
                     HomeScreen()
                 }
 
+                composable(Screen.WebView.route) {
+                    WebViewScreen()
+                }
+
+                composable(
+                    Screen.RealtimeCamera.route
+                ) {
+                    RealtimeCameraScreen()
+                }
+
+
             }
             if (showBottomSheet.value) {
                 ModalBottomSheet(
@@ -142,7 +155,15 @@ fun MainApp(
                     containerColor = ColorBackgroundWhite,
                     sheetState = sheetState
                 ) {
-                    ModalNavigation()
+                    ModalNavigation(
+                        navigateToRealtimeCamera = {
+                            navController.navigate(Screen.RealtimeCamera.route)
+                            showBottomSheet.value = false
+                        },
+                        navigateToConversation = {
+//                            navController.navigate(Screen.MessageCamera.route)
+                        }
+                    )
                 }
             }
         }

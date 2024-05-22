@@ -1,5 +1,11 @@
 package com.singa.asl.ui.components
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -18,24 +24,50 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.singa.asl.R
 import com.singa.asl.ui.theme.Color1
 
 @Composable
-fun ModalNavigation() {
+fun ModalNavigation(
+    context: Context = LocalContext.current,
+    navigateToRealtimeCamera: () -> Unit,
+    navigateToConversation: () -> Unit
+) {
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (it) {
+            navigateToRealtimeCamera()
+        } else {
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     Column(
         Modifier
             .fillMaxHeight(0.3f)
             .fillMaxWidth()
-            .padding(12.dp)) {
+            .padding(12.dp)
+    ) {
         Button(
             onClick = {
-//                      navContorller
+                val permissionCheckResult =
+                    ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.CAMERA
+                    )
+                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                    navigateToRealtimeCamera()
+                } else {
+                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                }
             },
             shape = RoundedCornerShape(20),
             colors = ButtonDefaults.buttonColors(
@@ -61,14 +93,14 @@ fun ModalNavigation() {
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedButton(
             onClick = {
-//                      navContorller
+                navigateToConversation()
             },
             shape = RoundedCornerShape(20),
             colors = ButtonDefaults.outlinedButtonColors(
                 containerColor = Color.White,
                 contentColor = Color1,
 
-            ),
+                ),
             border = BorderStroke(2.dp, Color1),
             modifier = Modifier
                 .fillMaxWidth()

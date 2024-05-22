@@ -11,24 +11,22 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavBackStackEntry
-import androidx.navigation.NavHostController
 import com.singa.asl.R
-import com.singa.asl.ui.navigation.Screen
 import com.singa.asl.ui.navigation.itemNavigation
 import com.singa.asl.ui.theme.Color1
 
 
 @Composable
 fun BottomBar(
-    navController: NavHostController, navBackStackEntry: NavBackStackEntry?
+    currentRoute: String?,
+    navigateToScreen: (String) -> Unit
 ) {
     NavigationBar(
         containerColor = colorResource(id = R.color.white)
     ) {
         itemNavigation.forEach { items ->
             val isSelected =
-                items.title == (navBackStackEntry?.destination?.route ?: Screen.Home.route)
+                items.title == currentRoute
             NavigationBarItem(
                 modifier = Modifier.padding(vertical = 20.dp),
                 selected = isSelected,
@@ -38,10 +36,7 @@ fun BottomBar(
                     indicatorColor = Color.White
                 ),
                 onClick = {
-                    navController.navigate(items.title) {
-                        popUpTo(navController.graph.startDestinationId)
-                        launchSingleTop = true
-                    }
+                    navigateToScreen( items.title)
                 },
                 icon = {
                     if (items.title != "WhiteSpace") {
