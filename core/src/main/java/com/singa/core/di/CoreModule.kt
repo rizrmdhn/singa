@@ -1,5 +1,6 @@
 package com.singa.core.di
 
+import android.util.Log
 import com.singa.core.BuildConfig
 import com.singa.core.data.SingaRepository
 import com.singa.core.data.source.local.LocalDataSource

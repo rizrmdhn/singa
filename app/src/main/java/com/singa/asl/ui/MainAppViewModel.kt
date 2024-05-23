@@ -147,7 +147,8 @@ class MainAppViewModel(
             singaUseCase.login(email.value, password.value).collect {
                 when (it) {
                     is Resource.Success -> {
-                        Log.d("MainAppViewModel", "onLogin: Success")
+                        singaUseCase.saveAccessToken(it.data.accessToken)
+                        singaUseCase.saveRefreshToken(it.data.refreshToken)
                         getAuthUser()
                         navigateToHome()
                         _loginIsLoading.value = false
@@ -158,17 +159,27 @@ class MainAppViewModel(
                         _alertDialogMessage.value = it.message
                         _alertDialog.value = true
                         _loginIsLoading.value = false
-                        Log.d("MainAppViewModel", "onLogin: ${it.message}")
                     }
 
                     is Resource.Loading -> {
-                        Log.d("MainAppViewModel", "onLogin: Loading")
                     }
 
                     is Resource.ValidationError -> {
                         _loginIsLoading.value = false
                         it.errors.forEach { (key, value) ->
-                            Log.d("MainAppViewModel", "onLogin: $key: $value")
+                            when (key) {
+                                "email" -> {
+                                    _validationState.value = validationState.copy(
+                                        emailError = value
+                                    )
+                                }
+
+                                "password" -> {
+                                    _validationState.value = validationState.copy(
+                                        passwordError = value
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -178,6 +189,14 @@ class MainAppViewModel(
 
     fun dismissAlertDialog() {
         _alertDialog.value = false
+    }
+
+    fun cleanEmail() {
+        _email.value = ""
+    }
+
+    fun cleanPassword() {
+        _password.value = ""
     }
 
     fun cleanValidationState() {

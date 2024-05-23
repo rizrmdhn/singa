@@ -38,16 +38,17 @@ import com.singa.asl.ui.screen.welcome.WelcomeScreen
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.SingaTheme
+import com.singa.core.domain.model.User
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainApp(
     navController: NavHostController = rememberNavController(),
+    authUser: User?,
     viewModel: MainAppViewModel = koinViewModel()
 ) {
     val isSecondLaunch by viewModel.isSecondLaunch.collectAsState()
-    val authUser by viewModel.authUser.collectAsState()
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
 
@@ -87,6 +88,7 @@ fun MainApp(
             topBar = {
                 if (!isDisabledTopBar) {
                     TopBar(
+                        avatarUrl = authUser?.avatar ?: "",
                         currentRoute = currentRoute,
                         navigateToProfile = {
                             navController.navigate(Screen.Profile.route)
@@ -163,6 +165,9 @@ fun MainApp(
                         },
                         navigateToRegister = {
                             navController.navigate(Screen.Register.route)
+                            viewModel.cleanEmail()
+                            viewModel.cleanPassword()
+                            viewModel.cleanValidationState()
                         }
                     )
                 }

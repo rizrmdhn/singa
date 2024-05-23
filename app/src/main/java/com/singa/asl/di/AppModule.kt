@@ -1,5 +1,6 @@
 package com.singa.asl.di
 
+import com.singa.asl.MainActivityViewModel
 import com.singa.asl.ui.MainAppViewModel
 import com.singa.asl.ui.screen.onboarding.OnBoardingScreenViewModel
 import com.singa.core.domain.usecase.SingaInteractor
@@ -14,4 +15,5 @@ val useCaseModule = module {
 val viewModelModule = module {
     viewModel { OnBoardingScreenViewModel(get()) }
     viewModel { MainAppViewModel(get()) }
+    viewModel { MainActivityViewModel(get()) }
 }

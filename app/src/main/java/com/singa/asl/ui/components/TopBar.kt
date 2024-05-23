@@ -2,6 +2,8 @@ package com.singa.asl.ui.components
 
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -25,6 +27,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import com.singa.asl.R
 import com.singa.asl.ui.navigation.Screen
 import com.singa.asl.ui.theme.Color1
@@ -34,11 +39,13 @@ import java.util.Locale
 @Composable
 fun TopBar(
     currentRoute: String?,
+    avatarUrl: String,
     navigateToProfile: () -> Unit,
     navigateBack: () -> Unit
 ) {
     when (currentRoute) {
         Screen.Home.route -> TopBarProfile(
+            avatarUrl =  avatarUrl,
             navigateToProfile,
         )
 
@@ -101,6 +108,7 @@ fun TopBarLeftIcon(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarProfile(
+    avatarUrl: String,
     navigateToProfile: () -> Unit
 ) {
     TopAppBar(
@@ -136,13 +144,53 @@ fun TopBarProfile(
                     navigateToProfile()
                 }
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.boy_1),
+                SubcomposeAsyncImage(
+                    model = avatarUrl,
                     contentDescription = "profile",
                     modifier = Modifier
                         .size(30.dp)
                         .padding(top = 10.dp)
-                )
+                ) {
+                    when (this.painter.state) {
+                        is AsyncImagePainter.State.Loading -> {
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        shimmerBrush(
+                                            targetValue = 1300f,
+                                            showShimmer = true
+                                        )
+                                    )
+                                    .size(30.dp)
+                                    .padding(top = 10.dp)
+                            )
+                        }
+
+                        is AsyncImagePainter.State.Success -> {
+                            SubcomposeAsyncImageContent()
+                        }
+
+                        is AsyncImagePainter.State.Error -> {
+                            Image(
+                                painter = painterResource(id = R.drawable.boy_1),
+                                contentDescription = "profile",
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .padding(top = 10.dp)
+                            )
+                        }
+
+                        is AsyncImagePainter.State.Empty -> {
+                            Image(
+                                painter = painterResource(id = R.drawable.boy_1),
+                                contentDescription = "profile",
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .padding(top = 10.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
     )

@@ -28,7 +28,7 @@ fun BottomBar(
             val isSelected =
                 items.title == currentRoute
             NavigationBarItem(
-                modifier = Modifier.padding(vertical = 20.dp),
+                modifier = Modifier.padding(vertical = 5.dp),
                 selected = isSelected,
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = Color1,
