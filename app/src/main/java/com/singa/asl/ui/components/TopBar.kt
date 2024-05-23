@@ -47,14 +47,14 @@ fun TopBar(
     when (currentRoute) {
         Screen.Home.route -> TopBarProfile(
             name = name,
-            avatarUrl =  avatarUrl,
+            avatarUrl = avatarUrl,
             navigateToProfile,
         )
 
         else -> TopBarLeftIcon(
             navigateBack = navigateBack,
+            // replace second parameter to uppercase
             route = currentRoute.toString()
-                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
         )
     }
 }
@@ -78,6 +78,15 @@ fun TopBarLeftIcon(
 
     val showBackButton = listOfShowBackButton.contains(route.lowercase())
 
+    val modifiedText = route
+        .replace("_", " ")
+        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+        .split(" ").joinToString(" ") {
+            it.replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase(Locale.getDefault()) else char.toString() }
+        }
+
+
+
     CenterAlignedTopAppBar(
         modifier = Modifier.padding(horizontal = 16.dp),
         colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
@@ -85,7 +94,7 @@ fun TopBarLeftIcon(
         ),
         title = {
             Text(
-                text = route,
+                text = modifiedText,
                 fontWeight = FontWeight.Bold,
                 color = colorPaint,
                 fontSize = 28.sp
