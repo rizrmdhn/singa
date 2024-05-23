@@ -36,6 +36,7 @@ fun BottomBar(
                     indicatorColor = Color.White
                 ),
                 onClick = {
+                    if(items.title == "WhiteSpace") return@NavigationBarItem
                     navigateToScreen( items.title)
                 },
                 icon = {
