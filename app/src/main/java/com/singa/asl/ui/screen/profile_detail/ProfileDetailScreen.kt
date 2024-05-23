@@ -1,6 +1,18 @@
 package com.singa.asl.ui.screen.profile_detail
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
 import android.graphics.drawable.Icon
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
+import android.widget.Gallery
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,15 +36,24 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.singa.asl.R
 import com.singa.asl.ui.components.InputForm
 import com.singa.asl.ui.navigation.Screen
@@ -41,7 +62,6 @@ import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.ColorDanger
 
-@Preview(showBackground = true, showSystemUi = true, backgroundColor = 0xFF4BA6F8)
 @Composable
 fun ProfileDetailScreen() {
     ProfileDetailContent()
@@ -49,6 +69,31 @@ fun ProfileDetailScreen() {
 
 @Composable
 fun ProfileDetailContent() {
+    var imageUri by remember {
+        mutableStateOf<Uri>(Uri.EMPTY)
+    }
+    val context = LocalContext.current
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri ->
+        if(uri !== null){
+            imageUri = uri
+        }
+    }
+
+
+    val galleryPermission = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (it) {
+            launcher.launch("image/*")
+        } else {
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
     Box(Modifier.fillMaxWidth()) {
         Card(
             modifier = Modifier
@@ -71,11 +116,21 @@ fun ProfileDetailContent() {
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(Modifier.padding(16.dp)) {
-                    InputForm(title = "Username", icon = R.drawable.baseline_people_alt_24, value = "", onChange = {})
-                    InputForm(title = "Email", icon = R.drawable.baseline_email_24, value = "", onChange = {})
+                    InputForm(
+                        title = "Username",
+                        icon = R.drawable.baseline_people_alt_24,
+                        value = "",
+                        onChange = {})
+                    InputForm(
+                        title = "Email",
+                        icon = R.drawable.baseline_email_24,
+                        value = "",
+                        onChange = {})
                 }
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
@@ -96,14 +151,17 @@ fun ProfileDetailContent() {
                 .offset(y = 30.dp),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background),
-                contentDescription = "profile",
-                modifier = Modifier
-                    .size(180.dp)
-                    .clip(RoundedCornerShape(20.dp)),
-                contentScale = ContentScale.FillBounds
-            )
+            imageUri.let { uri ->
+                SubcomposeAsyncImage(
+                    model = imageUri,
+                    loading = {},
+                    contentDescription = "profile",
+                    modifier = Modifier
+                        .size(180.dp)
+                        .clip(RoundedCornerShape(20.dp)),
+                    contentScale = ContentScale.FillBounds
+                )
+            }
         }
         Box(
             Modifier.offset(x = 180.dp, y = 92.dp)
@@ -116,7 +174,9 @@ fun ProfileDetailContent() {
                     containerColor = Color1,
                     contentColor = Color.White
                 ),
-                onClick = { /*TODO*/ }
+                onClick = {
+                    galleryPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
             ) {
                 Icon(
                     imageVector = Icons.Default.Edit,

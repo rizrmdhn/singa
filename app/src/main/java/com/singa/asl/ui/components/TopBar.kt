@@ -63,6 +63,8 @@ fun TopBarLeftIcon(
         Screen.Conversation.route,
         Screen.Login.route,
         Screen.Register.route,
+        Screen.ProfileDetail.route,
+        Screen.ChangePassword.route
     )
 
     val showBackButton = listOfShowBackButton.contains(route.lowercase())

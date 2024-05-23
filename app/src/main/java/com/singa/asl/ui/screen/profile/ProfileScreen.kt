@@ -38,14 +38,23 @@ import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.ColorBluePastelBackground
 import com.singa.asl.ui.theme.ColorDanger
 
-@Preview(showBackground = true, showSystemUi = true, backgroundColor = 0xFF4BA6F8)
+
 @Composable
-fun ProfileScreen() {
-    ProfileContent()
+fun ProfileScreen(
+    onNavigateToDetail: () -> Unit,
+    onNavigateToPassword:()->Unit
+) {
+    ProfileContent(
+        onNavigateToDetail = onNavigateToDetail,
+        onNavigateToPassword = onNavigateToPassword
+    )
 }
 
 @Composable
-fun ProfileContent() {
+fun ProfileContent(
+    onNavigateToDetail: () -> Unit,
+    onNavigateToPassword:()->Unit
+) {
     Box(Modifier.fillMaxWidth()) {
         Card(
             modifier = Modifier
@@ -65,13 +74,13 @@ fun ProfileContent() {
                 ButtonAction(
                     image = R.drawable.baseline_people_alt_24,
                     text = "Detail Users",
-                    onNavigate = {}
+                    onNavigate = onNavigateToDetail
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 ButtonAction(
                     image = R.drawable.baseline_lock_24,
                     text = "Change Password",
-                    onNavigate = {}
+                    onNavigate = onNavigateToPassword
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(

@@ -33,6 +33,7 @@ import com.singa.asl.ui.screen.login.LoginScreen
 import com.singa.asl.ui.screen.message.MessageScreen
 import com.singa.asl.ui.screen.onboarding.OnBoardingScreen
 import com.singa.asl.ui.screen.profile.ProfileScreen
+import com.singa.asl.ui.screen.profile_detail.ProfileDetailScreen
 import com.singa.asl.ui.screen.realtime_camera.RealtimeCameraScreen
 import com.singa.asl.ui.screen.register.RegisterScreen
 import com.singa.asl.ui.screen.web_view.WebViewScreen
@@ -64,6 +65,8 @@ fun MainApp(
         Screen.Conversation.route,
         Screen.Login.route,
         Screen.Register.route,
+        Screen.ProfileDetail.route,
+        Screen.ChangePassword.route
     )
 
     val isDisabledTopBar = navBackStackEntry?.destination?.route in listOf(
@@ -202,7 +205,21 @@ fun MainApp(
                 }
 
                 composable(Screen.Profile.route) {
-//                    ProfileScreen()
+                    ProfileScreen(
+                        onNavigateToDetail = {
+                            navController.navigate(Screen.ProfileDetail.route)
+                        },
+                        onNavigateToPassword = {
+                            navController.navigate(Screen.ChangePassword.route)
+                        }
+                    )
+                }
+
+                composable(Screen.ProfileDetail.route){
+                    ProfileDetailScreen()
+                }
+
+                composable(Screen.ChangePassword.route){
                     ChangePasswordScreen()
                 }
 
