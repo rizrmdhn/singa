@@ -11,6 +11,7 @@ import com.singa.core.domain.model.User
 import com.singa.core.domain.repository.ISingaRepository
 import com.singa.core.utils.DataMapper
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -217,7 +218,7 @@ class SingaRepository(
     override fun updateToken(): Flow<Resource<RefreshToken>> {
         return flow {
             emit(Resource.Loading())
-            val token = getRefreshToken().toString()
+            val token = getRefreshToken().first()
             val body = JsonObject().apply {
                 addProperty("token", token)
             }.toString()

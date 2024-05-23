@@ -46,7 +46,7 @@ interface ApiService {
     ): GenericSuccessResponse
 
     @Headers("Content-Type: application/json")
-    @POST("update-token")
+    @POST("refresh")
     suspend fun updateToken(
         @Body body: RequestBody
     ): Response<GenericResponse<UpdateTokenResponse>>
