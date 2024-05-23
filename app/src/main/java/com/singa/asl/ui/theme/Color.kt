@@ -20,3 +20,5 @@ val PlaceholderFormText = Color(0xFF9B99A8)
 val AuthBackground = Color(0xFFEEF4FC)
 
 val ColorBackgroundWhite = Color(0xFFFCFEFF)
+
+val Color5 = Color(0xFFE5EEFF)
