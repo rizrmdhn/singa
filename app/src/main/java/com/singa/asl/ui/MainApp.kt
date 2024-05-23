@@ -25,12 +25,16 @@ import com.singa.asl.ui.components.ModalNavigation
 import com.singa.asl.ui.components.PopupAlertDialog
 import com.singa.asl.ui.components.TopBar
 import com.singa.asl.ui.navigation.Screen
+import com.singa.asl.ui.screen.change_password.ChangePasswordScreen
 import com.singa.asl.ui.screen.conversation.ConversationScreen
 import com.singa.asl.ui.screen.history.HistoryScreen
+import com.singa.asl.ui.screen.history_detail.HistoryDetailScreen
 import com.singa.asl.ui.screen.home.HomeScreen
 import com.singa.asl.ui.screen.login.LoginScreen
 import com.singa.asl.ui.screen.message.MessageScreen
 import com.singa.asl.ui.screen.onboarding.OnBoardingScreen
+import com.singa.asl.ui.screen.profile.ProfileScreen
+import com.singa.asl.ui.screen.profile_detail.ProfileDetailScreen
 import com.singa.asl.ui.screen.realtime_camera.RealtimeCameraScreen
 import com.singa.asl.ui.screen.register.RegisterScreen
 import com.singa.asl.ui.screen.web_view.WebViewScreen
@@ -68,6 +72,8 @@ fun MainApp(
         Screen.Conversation.route,
         Screen.Login.route,
         Screen.Register.route,
+        Screen.ProfileDetail.route,
+        Screen.ChangePassword.route
     )
 
     val isDisabledTopBar = navBackStackEntry?.destination?.route in listOf(
@@ -208,11 +214,27 @@ fun MainApp(
                 }
 
                 composable(Screen.History.route) {
-                    HistoryScreen()
+//                    HistoryScreen()
+                    HistoryDetailScreen()
                 }
 
                 composable(Screen.Profile.route) {
-                    HomeScreen()
+                    ProfileScreen(
+                        onNavigateToDetail = {
+                            navController.navigate(Screen.ProfileDetail.route)
+                        },
+                        onNavigateToPassword = {
+                            navController.navigate(Screen.ChangePassword.route)
+                        }
+                    )
+                }
+
+                composable(Screen.ProfileDetail.route){
+                    ProfileDetailScreen()
+                }
+
+                composable(Screen.ChangePassword.route){
+                    ChangePasswordScreen()
                 }
 
                 composable(Screen.WebView.route) {
