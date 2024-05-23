@@ -24,4 +24,6 @@
     <string name="register">Register</string>
     <string name="already_have_an_account">Already have an account?</string>
     <string name="login">Login</string>
+    <string name="enter_your_name">Enter your name</string>
+    <string name="name">Name</string>
 </resources>

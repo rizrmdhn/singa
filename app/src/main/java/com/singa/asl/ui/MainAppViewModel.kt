@@ -19,16 +19,18 @@ class MainAppViewModel(
     private val singaUseCase: SingaUseCase
 ) : ViewModel() {
     private val _authUser: MutableStateFlow<User?> = MutableStateFlow(null)
-    val authUser: MutableStateFlow<User?> get() = _authUser
-
-    private val _isSecondLaunch: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isSecondLaunch: MutableStateFlow<Boolean> get() = _isSecondLaunch
 
     private val _loginIsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val loginIsLoading get() = _loginIsLoading.value
 
+    private val _registerIsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val registerIsLoading get() = _registerIsLoading.value
+
     private val _validationState = mutableStateOf(ValidationState().copy())
     val validationState: ValidationState get() = _validationState.value
+
+    private val _name: MutableStateFlow<String> = MutableStateFlow("")
+    val name: MutableStateFlow<String> get() = _name
 
     private val _email: MutableStateFlow<String> = MutableStateFlow("")
     val email: MutableStateFlow<String> get() = _email
@@ -46,16 +48,7 @@ class MainAppViewModel(
     val alertDialog: MutableStateFlow<Boolean> get() = _alertDialog
 
     init {
-        checkSecondLaunch()
         getAuthUser()
-    }
-
-    private fun checkSecondLaunch() {
-        viewModelScope.launch {
-            singaUseCase.getIsSecondLaunch().collect {
-                _isSecondLaunch.value = it
-            }
-        }
     }
 
     private fun getAuthUser() {
@@ -80,6 +73,26 @@ class MainAppViewModel(
                 }
             }
         }
+    }
+
+    fun onChangeName(name: String) {
+        _validationState.value = if (name.isBlank()) {
+            validationState.copy(
+                nameError = "Name is required"
+            )
+        } else if (!FormValidators.nameLength(name)) {
+            validationState.copy(
+                nameError = "Name must be at least 3 characters"
+            )
+        } else if (!FormValidators.isNameValid(name)) {
+            validationState.copy(
+                nameError = "Name is invalid"
+            )
+        } else {
+            validationState.copy(nameError = null)
+        }
+
+        _name.value = name
     }
 
     fun onChangeEmail(email: String) {
@@ -151,6 +164,10 @@ class MainAppViewModel(
                         getAuthUser()
                         navigateToHome()
                         _loginIsLoading.value = false
+                        cleanName()
+                        cleanEmail()
+                        cleanPassword()
+                        cleanValidationState()
                     }
 
                     is Resource.Error -> {
@@ -161,6 +178,7 @@ class MainAppViewModel(
                     }
 
                     is Resource.Loading -> {
+                        _loginIsLoading.value = true
                     }
 
                     is Resource.ValidationError -> {
@@ -186,8 +204,97 @@ class MainAppViewModel(
         }
     }
 
+    fun onRegister(
+        navigateToLogin: () -> Unit
+    ) {
+        if (email.value.isBlank() || password.value.isBlank() || name.value.isBlank()) {
+            _validationState.value = validationState.copy(
+                nameError = "Name is required",
+                emailError = "Email is required",
+                passwordError = "Password is required"
+            )
+            return
+        }
+
+        if (!FormValidators.isNameValid(name.value)) {
+            _validationState.value = validationState.copy(
+                nameError = "Name is invalid"
+            )
+        }
+
+        if (!FormValidators.isEmailValid(email.value)) {
+            _validationState.value = validationState.copy(
+                emailError = "Email is invalid"
+            )
+        }
+
+        if (!FormValidators.isPasswordValid(password.value)) {
+            _validationState.value = validationState.copy(
+                passwordError = "Password must be at least 8 characters"
+            )
+        }
+
+
+        if (validationState.emailError != null || validationState.passwordError != null) {
+            return
+        }
+
+        viewModelScope.launch {
+            _registerIsLoading.value = true
+            singaUseCase.register(name.value, email.value, password.value).collect {
+                when (it) {
+                    is Resource.Success -> {
+                        navigateToLogin()
+                        _registerIsLoading.value = false
+                        _alertDialogTitle.value = "Success"
+                        _alertDialogMessage.value = it.data
+                        _alertDialog.value = true
+                        cleanName()
+                        cleanEmail()
+                        cleanPassword()
+                        cleanValidationState()
+                    }
+
+                    is Resource.Error -> {
+                        _alertDialogTitle.value = "Error"
+                        _alertDialogMessage.value = it.message
+                        _alertDialog.value = true
+                        _registerIsLoading.value = false
+                    }
+
+                    is Resource.Loading -> {
+                        _registerIsLoading.value = true
+                    }
+
+                    is Resource.ValidationError -> {
+                        _registerIsLoading.value = false
+                        it.errors.forEach { (key, value) ->
+                            when (key) {
+                                "email" -> {
+                                    _validationState.value = validationState.copy(
+                                        emailError = value
+                                    )
+                                }
+
+                                "password" -> {
+                                    _validationState.value = validationState.copy(
+                                        passwordError = value
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     fun dismissAlertDialog() {
         _alertDialog.value = false
+    }
+
+    fun cleanName() {
+        _name.value = ""
     }
 
     fun cleanEmail() {

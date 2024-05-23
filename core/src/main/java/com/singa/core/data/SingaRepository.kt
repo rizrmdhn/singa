@@ -24,10 +24,11 @@ class SingaRepository(
     private val localDataSource: LocalDataSource
 ) : ISingaRepository {
 
-    override fun register(email: String, password: String): Flow<Resource<String>> {
+    override fun register(name: String, email: String, password: String): Flow<Resource<String>> {
         return flow {
             emit(Resource.Loading())
             val body = JsonObject().apply {
+                addProperty("name", name)
                 addProperty("email", email)
                 addProperty("password", password)
             }.toString()
@@ -47,8 +48,9 @@ class SingaRepository(
                     }
 
                     is ApiResponse.ValidationError -> {
-                      val validationErrors = it.errors
-                        val parcelableErrors = DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
                         emit(Resource.ValidationError(parcelableErrors))
                     }
                 }
@@ -57,33 +59,33 @@ class SingaRepository(
     }
 
     override fun guest(): Flow<Resource<Token>> {
-       return flow {
-           emit(Resource.Loading())
-           remoteDataSource.guest().collect {
-               when (it) {
-                   is ApiResponse.Success -> {
-                       val token = DataMapper.mapLoginResponseToModel(it.data.data)
-                       emit(Resource.Success(token))
-                   }
+        return flow {
+            emit(Resource.Loading())
+            remoteDataSource.guest().collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        val token = DataMapper.mapLoginResponseToModel(it.data.data)
+                        emit(Resource.Success(token))
+                    }
 
-                   is ApiResponse.Empty -> {
-                       emit(Resource.Error("Empty Data"))
-                   }
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
 
-                   is ApiResponse.Error -> {
-                       emit(Resource.Error(it.errorMessage))
-                   }
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
 
-                   is ApiResponse.ValidationError -> {
-                       val validationErrors = it.errors
-                       val parcelableErrors =
-                           DataMapper.mapResponseValidationErrorToModel(validationErrors)
-                       emit(Resource.ValidationError(parcelableErrors))
-                   }
-               }
-           }
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
 
-       }
+        }
     }
 
     override fun login(email: String, password: String): Flow<Resource<Token>> {
@@ -141,7 +143,7 @@ class SingaRepository(
                                 when (it) {
                                     is Resource.Success -> {
                                         saveAccessToken(it.data.token)
-                                        getMe().collect {newUser ->
+                                        getMe().collect { newUser ->
                                             emit(newUser)
                                         }
                                     }
@@ -257,7 +259,8 @@ class SingaRepository(
             val requestName = name.toRequestBody("text/plain".toMediaTypeOrNull())
             val requestPassword = password.toRequestBody("text/plain".toMediaTypeOrNull())
             val requestAvatar = avatar.asRequestBody("image/*".toMediaTypeOrNull())
-            val requestIsSignUser = isSignUser.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val requestIsSignUser =
+                isSignUser.toString().toRequestBody("text/plain".toMediaTypeOrNull())
             val multipartBody = MultipartBody.Part.createFormData(
                 "avatar",
                 avatar.name,

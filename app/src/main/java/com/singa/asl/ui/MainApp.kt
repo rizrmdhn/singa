@@ -54,6 +54,7 @@ fun MainApp(
     onLogout: () -> Unit,
     viewModel: MainAppViewModel = koinViewModel()
 ) {
+    val name by viewModel.name.collectAsState()
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
 
@@ -172,10 +173,10 @@ fun MainApp(
                             }
                         },
                         navigateToRegister = {
-                            navController.navigate(Screen.Register.route)
                             viewModel.cleanEmail()
                             viewModel.cleanPassword()
                             viewModel.cleanValidationState()
+                            navController.navigate(Screen.Register.route)
                         }
                     )
                 }
@@ -184,7 +185,29 @@ fun MainApp(
                     Screen.Register.route
                 ) {
                     RegisterScreen(
+                        name = name,
+                        isNameError = viewModel.validationState.nameError != null,
+                        nameError = viewModel.validationState.nameError ?: "",
+                        onNameEmail = viewModel::onChangeName,
+                        email = email,
+                        isEmailError = viewModel.validationState.emailError != null,
+                        emailError = viewModel.validationState.emailError ?: "",
+                        onChangeEmail = viewModel::onChangeEmail,
+                        password = password,
+                        isPasswordError = viewModel.validationState.passwordError != null,
+                        passwordError = viewModel.validationState.passwordError ?: "",
+                        onChangePassword = viewModel::onChangePassword,
+                        isRegisterLoading = viewModel.registerIsLoading,
+                        onRegister = {
+                            viewModel.onRegister {
+                                navController.navigate(Screen.Login.route)
+                            }
+                        },
                         navigateToLogin = {
+                            viewModel.cleanName()
+                            viewModel.cleanEmail()
+                            viewModel.cleanPassword()
+                            viewModel.cleanValidationState()
                             navController.navigate(Screen.Login.route)
                         }
                     )

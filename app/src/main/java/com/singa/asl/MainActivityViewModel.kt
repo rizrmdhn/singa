@@ -30,6 +30,8 @@ class MainActivityViewModel(
         checkSecondLaunch()
     }
 
+
+
     private fun checkSecondLaunch() {
         viewModelScope.launch {
             singaUseCase.getIsSecondLaunch().collect {

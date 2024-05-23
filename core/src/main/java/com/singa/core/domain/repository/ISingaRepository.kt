@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 interface ISingaRepository {
-    fun register(email: String, password: String): Flow<Resource<String>>
+    fun register(name: String, email: String, password: String): Flow<Resource<String>>
 
     fun login(email: String, password: String): Flow<Resource<Token>>
 

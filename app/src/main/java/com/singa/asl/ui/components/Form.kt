@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -54,7 +55,7 @@ fun FormComp(
                 modifier = Modifier
                     .padding(8.dp)
             )
-            (if (data.colors != null)  data.colors else TextFieldDefaults.colors())?.let { colors ->
+            (if (data.colors != null) data.colors else TextFieldDefaults.colors())?.let { colors ->
                 TextField(
                     placeholder = {
                         Text(
@@ -119,13 +120,18 @@ fun FormComp(
                 RoundedCornerShape(12.dp)
             )
             .background(
-                Color1
+                if (isLoading) {
+                    Color1.copy(alpha = 0.7f)
+                } else {
+                    Color1
+                }
             )
     ) {
         if (isLoading) {
             CircularProgressIndicator(
                 color = MaterialTheme.colorScheme.background,
             )
+            Spacer(modifier = Modifier.width(16.dp))
         }
         Text(
             text = buttonText,
