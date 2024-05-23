@@ -2,6 +2,7 @@ package com.singa.core.domain.usecase
 
 import com.singa.core.domain.repository.ISingaRepository
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 
 class SingaInteractor(
     private val singaRepository: ISingaRepository
@@ -16,7 +17,17 @@ class SingaInteractor(
 
     override fun getMe() = singaRepository.getMe()
 
-    override fun updateMe(name: String, email: String, avatar: String) = singaRepository.updateMe(name, email, avatar)
+    override fun updateMe(
+        name: String,
+        password: String,
+        avatar: File,
+        isSignUser: Boolean
+    ) = singaRepository.updateMe(
+        name,
+        password,
+        avatar,
+        isSignUser
+    )
 
     override fun updateToken(refreshToken: String) = singaRepository.updateToken(refreshToken)
 

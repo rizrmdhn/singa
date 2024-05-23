@@ -126,14 +126,13 @@ fun FormComp(
             CircularProgressIndicator(
                 color = MaterialTheme.colorScheme.background,
             )
-        } else {
-            Text(
-                text = buttonText,
-                color = MaterialTheme.colorScheme.background,
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleLarge,
-            )
         }
+        Text(
+            text = buttonText,
+            color = MaterialTheme.colorScheme.background,
+            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.titleLarge,
+        )
     }
 }
 

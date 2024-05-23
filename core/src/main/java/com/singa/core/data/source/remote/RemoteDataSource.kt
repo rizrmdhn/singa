@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import org.json.JSONException
 import org.json.JSONObject
@@ -31,14 +32,17 @@ class RemoteDataSource(
                 if (response.isSuccessful) {
                     response.body()?.let {
                         emit(ApiResponse.Success(it))
-                    } ?: emit(ApiResponse.Empty)
+                    }
                 } else {
                     val errorBody = response.errorBody()?.string()
                     val errorResponse = Gson().fromJson(errorBody, SchemaErrorResponse::class.java)
+                    val normalErrorResponse =
+                        Gson().fromJson(errorBody, GenericResponse::class.java)
                     if (response.code() == 422) {
                         emit(ApiResponse.ValidationError(errorResponse.errors))
-                    } else {
-                        emit(ApiResponse.Error(errorResponse.message, response.code()))
+                    }
+                    if (response.code() != 200 || response.code() != 201) {
+                        emit(ApiResponse.Error(normalErrorResponse.meta.message, response.code()))
                     }
                 }
             } catch (e: Exception) {
@@ -69,7 +73,12 @@ class RemoteDataSource(
                     val response = exception.response()
                     try {
                         val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
-                        emit(ApiResponse.Error(jsonObject.optString("message"), response?.code() ?: 0))
+                        emit(
+                            ApiResponse.Error(
+                                jsonObject.optString("message"),
+                                response?.code() ?: 0
+                            )
+                        )
                     } catch (e1: JSONException) {
                         e1.printStackTrace()
                     } catch (e1: IOException) {
@@ -89,14 +98,17 @@ class RemoteDataSource(
                 if (response.isSuccessful) {
                     response.body()?.let {
                         emit(ApiResponse.Success(it))
-                    } ?: emit(ApiResponse.Empty)
+                    }
                 } else {
                     val errorBody = response.errorBody()?.string()
                     val errorResponse = Gson().fromJson(errorBody, SchemaErrorResponse::class.java)
+                    val normalErrorResponse =
+                        Gson().fromJson(errorBody, GenericResponse::class.java)
                     if (response.code() == 422) {
                         emit(ApiResponse.ValidationError(errorResponse.errors))
-                    } else {
-                        emit(ApiResponse.Error(errorResponse.message, response.code()))
+                    }
+                    if (response.code() != 200 || response.code() != 201) {
+                        emit(ApiResponse.Error(normalErrorResponse.meta.message, response.code()))
                     }
                 }
             } catch (e: Exception) {
@@ -127,7 +139,12 @@ class RemoteDataSource(
                     val response = exception.response()
                     try {
                         val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
-                        emit(ApiResponse.Error(jsonObject.optString("message"), response?.code() ?: 0))
+                        emit(
+                            ApiResponse.Error(
+                                jsonObject.optString("message"),
+                                response?.code() ?: 0
+                            )
+                        )
                     } catch (e1: JSONException) {
                         e1.printStackTrace()
                     } catch (e1: IOException) {
@@ -155,7 +172,12 @@ class RemoteDataSource(
                     val response = exception.response()
                     try {
                         val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
-                        emit(ApiResponse.Error(jsonObject.optString("message"), response?.code() ?: 0))
+                        emit(
+                            ApiResponse.Error(
+                                jsonObject.optString("message"),
+                                response?.code() ?: 0
+                            )
+                        )
                     } catch (e1: JSONException) {
                         e1.printStackTrace()
                     } catch (e1: IOException) {
@@ -175,14 +197,17 @@ class RemoteDataSource(
                 if (response.isSuccessful) {
                     response.body()?.let {
                         emit(ApiResponse.Success(it))
-                    } ?: emit(ApiResponse.Empty)
+                    }
                 } else {
                     val errorBody = response.errorBody()?.string()
                     val errorResponse = Gson().fromJson(errorBody, SchemaErrorResponse::class.java)
+                    val normalErrorResponse =
+                        Gson().fromJson(errorBody, GenericResponse::class.java)
                     if (response.code() == 422) {
                         emit(ApiResponse.ValidationError(errorResponse.errors))
-                    } else {
-                        emit(ApiResponse.Error(errorResponse.message, response.code()))
+                    }
+                    if (response.code() != 200 || response.code() != 201) {
+                        emit(ApiResponse.Error(normalErrorResponse.meta.message, response.code()))
                     }
                 }
             } catch (e: Exception) {
@@ -191,7 +216,12 @@ class RemoteDataSource(
                     val response = exception.response()
                     try {
                         val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
-                        emit(ApiResponse.Error(jsonObject.optString("message"), response?.code() ?: 0))
+                        emit(
+                            ApiResponse.Error(
+                                jsonObject.optString("message"),
+                                response?.code() ?: 0
+                            )
+                        )
                     } catch (e1: JSONException) {
                         e1.printStackTrace()
                     } catch (e1: IOException) {
@@ -204,21 +234,34 @@ class RemoteDataSource(
         }.flowOn(Dispatchers.IO)
     }
 
-    fun updateMe(body: RequestBody): Flow<ApiResponse<GenericResponse<UpdateUserResponse>>> {
+    fun updateMe(
+        name: RequestBody?,
+        password: RequestBody?,
+        isSignUser: RequestBody?,
+        avatar: MultipartBody.Part?
+    ): Flow<ApiResponse<GenericResponse<UpdateUserResponse>>> {
         return flow {
             try {
-                val response = apiService.updateMe(body)
+                val response = apiService.updateMe(
+                    avatar,
+                    name,
+                    password,
+                    isSignUser
+                )
                 if (response.isSuccessful) {
                     response.body()?.let {
                         emit(ApiResponse.Success(it))
-                    } ?: emit(ApiResponse.Empty)
+                    }
                 } else {
                     val errorBody = response.errorBody()?.string()
                     val errorResponse = Gson().fromJson(errorBody, SchemaErrorResponse::class.java)
+                    val normalErrorResponse =
+                        Gson().fromJson(errorBody, GenericResponse::class.java)
                     if (response.code() == 422) {
                         emit(ApiResponse.ValidationError(errorResponse.errors))
-                    } else {
-                        emit(ApiResponse.Error(errorResponse.message, response.code()))
+                    }
+                    if (response.code() != 200 || response.code() != 201) {
+                        emit(ApiResponse.Error(normalErrorResponse.meta.message, response.code()))
                     }
                 }
             } catch (e: Exception) {
@@ -227,7 +270,12 @@ class RemoteDataSource(
                     val response = exception.response()
                     try {
                         val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
-                        emit(ApiResponse.Error(jsonObject.optString("message"), response?.code() ?: 0))
+                        emit(
+                            ApiResponse.Error(
+                                jsonObject.optString("message"),
+                                response?.code() ?: 0
+                            )
+                        )
                     } catch (e1: JSONException) {
                         e1.printStackTrace()
                     } catch (e1: IOException) {

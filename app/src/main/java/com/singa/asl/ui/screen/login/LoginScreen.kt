@@ -51,6 +51,7 @@ fun LoginScreen(
     isPasswordError: Boolean,
     passwordError: String,
     onChangePassword: (String) -> Unit,
+    isLoginLoading: Boolean,
     onLogin: () -> Unit,
     navigateToRegister: () -> Unit
 ) {
@@ -63,6 +64,7 @@ fun LoginScreen(
         isPasswordError = isPasswordError,
         passwordError = passwordError,
         onChangePassword = onChangePassword,
+        isLoginLoading = isLoginLoading,
         onLogin = onLogin,
         navigateToRegister = navigateToRegister
     )
@@ -79,6 +81,7 @@ fun LoginContent(
     isPasswordError: Boolean,
     passwordError: String,
     onChangePassword: (String) -> Unit,
+    isLoginLoading: Boolean,
     onLogin: () -> Unit,
     navigateToRegister: () -> Unit,
 ) {
@@ -172,7 +175,7 @@ fun LoginContent(
         FormComp(
             formData = formList,
             onClickButton = onLogin,
-            isLoading = false,
+            isLoading = isLoginLoading,
             buttonText = "Login",
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -213,6 +216,7 @@ fun LoginScreenPreview() {
         emailError = "",
         isPasswordError = false,
         passwordError = "",
+        isLoginLoading = true,
         navigateToRegister = {}
     )
 }
@@ -230,6 +234,7 @@ fun LoginScreenDarkPreview() {
         emailError = "",
         isPasswordError = false,
         passwordError = "",
+        isLoginLoading = false,
         navigateToRegister = {}
     )
 }
