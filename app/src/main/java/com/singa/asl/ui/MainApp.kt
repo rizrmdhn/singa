@@ -50,9 +50,10 @@ import org.koin.androidx.compose.koinViewModel
 fun MainApp(
     navController: NavHostController = rememberNavController(),
     authUser: User?,
+    isSecondLaunch: Boolean,
+    onLogout: () -> Unit,
     viewModel: MainAppViewModel = koinViewModel()
 ) {
-    val isSecondLaunch by viewModel.isSecondLaunch.collectAsState()
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
 
@@ -94,6 +95,7 @@ fun MainApp(
             topBar = {
                 if (!isDisabledTopBar) {
                     TopBar(
+                        name = authUser?.name ?: "",
                         avatarUrl = authUser?.avatar ?: "",
                         currentRoute = currentRoute,
                         navigateToProfile = {
@@ -220,6 +222,11 @@ fun MainApp(
 
                 composable(Screen.Profile.route) {
                     ProfileScreen(
+                        avatarUrl = authUser?.avatar ?: "",
+                        onLogout = {
+                            onLogout()
+                            navController.navigate(Screen.Welcome.route)
+                        },
                         onNavigateToDetail = {
                             navController.navigate(Screen.ProfileDetail.route)
                         },
@@ -229,11 +236,11 @@ fun MainApp(
                     )
                 }
 
-                composable(Screen.ProfileDetail.route){
+                composable(Screen.ProfileDetail.route) {
                     ProfileDetailScreen()
                 }
 
-                composable(Screen.ChangePassword.route){
+                composable(Screen.ChangePassword.route) {
                     ChangePasswordScreen()
                 }
 

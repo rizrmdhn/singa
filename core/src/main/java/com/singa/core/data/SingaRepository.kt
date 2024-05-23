@@ -1,5 +1,6 @@
 package com.singa.core.data
 
+import android.util.Log
 import com.google.gson.JsonObject
 import com.singa.core.data.source.local.LocalDataSource
 import com.singa.core.data.source.remote.RemoteDataSource
@@ -136,31 +137,25 @@ class SingaRepository(
                     is ApiResponse.Error -> {
                         // if error code is 401, then get refresh token to update token
                         if (it.errorCode == 401) {
-                            var refreshToken: String? = null
-                            getRefreshToken().collect {token ->
-                                refreshToken = token
-                            }
-                            refreshToken?.let { it1 ->
-                                updateToken(it1).collect {
-                                    when (it) {
-                                        is Resource.Success -> {
-                                            saveAccessToken(it.data.token)
-                                            getMe().collect {newUser ->
-                                                emit(newUser)
-                                            }
+                            updateToken().collect {
+                                when (it) {
+                                    is Resource.Success -> {
+                                        saveAccessToken(it.data.token)
+                                        getMe().collect {newUser ->
+                                            emit(newUser)
                                         }
+                                    }
 
-                                        is Resource.Error -> {
-                                            emit(Resource.Error(it.message))
-                                        }
+                                    is Resource.Error -> {
+                                        emit(Resource.Error(it.message))
+                                    }
 
-                                        is Resource.ValidationError -> {
-                                            emit(Resource.ValidationError(it.errors))
-                                        }
+                                    is Resource.ValidationError -> {
+                                        emit(Resource.ValidationError(it.errors))
+                                    }
 
-                                        is Resource.Loading -> {
-                                            emit(Resource.Loading())
-                                        }
+                                    is Resource.Loading -> {
+                                        emit(Resource.Loading())
                                     }
                                 }
                             }
@@ -183,7 +178,16 @@ class SingaRepository(
     override fun logout(): Flow<Resource<String>> {
         return flow {
             emit(Resource.Loading())
-            remoteDataSource.logout().collect {
+            var token: String? = null
+            getRefreshToken().collect {
+                token = it
+            }
+            Log.d("SingaRepository", "logout: $token")
+            val body = JsonObject().apply {
+                addProperty("refreshToken", token)
+            }.toString()
+                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+            remoteDataSource.logout(body).collect {
                 when (it) {
                     is ApiResponse.Success -> {
                         emit(Resource.Success(it.data.meta.message))
@@ -208,18 +212,19 @@ class SingaRepository(
         }
     }
 
-    override fun updateToken(refreshToken: String): Flow<Resource<RefreshToken>> {
+    override fun updateToken(): Flow<Resource<RefreshToken>> {
         return flow {
             emit(Resource.Loading())
+            val token = getRefreshToken().toString()
             val body = JsonObject().apply {
-                addProperty("token", refreshToken)
+                addProperty("token", token)
             }.toString()
                 .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
             remoteDataSource.updateToken(body).collect {
                 when (it) {
                     is ApiResponse.Success -> {
-                        val token = DataMapper.mapRefreshTokenResponseToModel(it.data.data)
-                        emit(Resource.Success(token))
+                        val tokenResponse = DataMapper.mapRefreshTokenResponseToModel(it.data.data)
+                        emit(Resource.Success(tokenResponse))
                     }
 
                     is ApiResponse.Empty -> {

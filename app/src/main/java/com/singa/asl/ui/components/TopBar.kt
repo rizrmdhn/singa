@@ -39,12 +39,14 @@ import java.util.Locale
 @Composable
 fun TopBar(
     currentRoute: String?,
+    name: String,
     avatarUrl: String,
     navigateToProfile: () -> Unit,
     navigateBack: () -> Unit
 ) {
     when (currentRoute) {
         Screen.Home.route -> TopBarProfile(
+            name = name,
             avatarUrl =  avatarUrl,
             navigateToProfile,
         )
@@ -110,6 +112,7 @@ fun TopBarLeftIcon(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarProfile(
+    name: String,
     avatarUrl: String,
     navigateToProfile: () -> Unit
 ) {
@@ -127,7 +130,7 @@ fun TopBarProfile(
                     color = Color(0xFFD5F4FC)
                 )
                 Text(
-                    text = "John Doe",
+                    text = "Welcome, $name",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White
@@ -176,9 +179,6 @@ fun TopBarProfile(
                             Image(
                                 painter = painterResource(id = R.drawable.boy_1),
                                 contentDescription = "profile",
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .padding(top = 10.dp)
                             )
                         }
 
@@ -186,9 +186,6 @@ fun TopBarProfile(
                             Image(
                                 painter = painterResource(id = R.drawable.boy_1),
                                 contentDescription = "profile",
-                                modifier = Modifier
-                                    .size(30.dp)
-                                    .padding(top = 10.dp)
                             )
                         }
                     }

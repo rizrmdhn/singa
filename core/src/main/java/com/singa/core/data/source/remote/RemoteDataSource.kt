@@ -157,10 +157,12 @@ class RemoteDataSource(
         }.flowOn(Dispatchers.IO)
     }
 
-    fun logout(): Flow<ApiResponse<GenericSuccessResponse>> {
+    fun logout(
+        body: RequestBody
+    ): Flow<ApiResponse<GenericSuccessResponse>> {
         return flow {
             try {
-                val response = apiService.logout()
+                val response = apiService.logout(body)
                 if (response.meta.status == "error") {
                     emit(ApiResponse.Error(response.meta.message, response.meta.code))
                 } else {

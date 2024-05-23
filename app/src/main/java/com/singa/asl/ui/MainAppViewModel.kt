@@ -59,7 +59,6 @@ class MainAppViewModel(
     }
 
     private fun getAuthUser() {
-        Log.d("MainAppViewModel", "getAuthUser")
         viewModelScope.launch {
             singaUseCase.getMe().collect {
                 when (it) {

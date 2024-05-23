@@ -1,6 +1,7 @@
 package com.singa.asl.ui.screen.profile
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -32,7 +33,11 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import com.singa.asl.R
+import com.singa.asl.ui.components.shimmerBrush
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.ColorBluePastelBackground
@@ -41,10 +46,14 @@ import com.singa.asl.ui.theme.ColorDanger
 
 @Composable
 fun ProfileScreen(
+    avatarUrl: String,
+    onLogout: () -> Unit,
     onNavigateToDetail: () -> Unit,
-    onNavigateToPassword:()->Unit
+    onNavigateToPassword: () -> Unit
 ) {
     ProfileContent(
+        avatarUrl = avatarUrl,
+        onLogout = onLogout,
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToPassword = onNavigateToPassword
     )
@@ -52,10 +61,14 @@ fun ProfileScreen(
 
 @Composable
 fun ProfileContent(
+    avatarUrl: String,
+    onLogout: () -> Unit,
     onNavigateToDetail: () -> Unit,
-    onNavigateToPassword:()->Unit
+    onNavigateToPassword: () -> Unit
 ) {
-    Box(Modifier.fillMaxWidth()) {
+    Box(
+        Modifier.fillMaxWidth()
+    ) {
         Card(
             modifier = Modifier
                 .fillMaxSize()
@@ -70,21 +83,29 @@ fun ProfileContent(
                 topEnd = 40.dp,
             )
         ) {
-            Column(Modifier.padding(top = 140.dp)) {
+            Column(
+                Modifier.padding(top = 140.dp)
+            ) {
                 ButtonAction(
                     image = R.drawable.baseline_people_alt_24,
                     text = "Detail Users",
                     onNavigate = onNavigateToDetail
                 )
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 ButtonAction(
                     image = R.drawable.baseline_lock_24,
                     text = "Change Password",
                     onNavigate = onNavigateToPassword
                 )
+
                 Spacer(modifier = Modifier.height(16.dp))
+
                 Button(
-                    onClick = { /*TODO*/ },
+                    onClick = {
+                        onLogout()
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
@@ -95,7 +116,11 @@ fun ProfileContent(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(text = "Logout", fontSize = 24.sp, color = Color.White)
+                    Text(
+                        text = "Logout",
+                        fontSize = 24.sp,
+                        color = Color.White
+                    )
                 }
             }
         }
@@ -105,24 +130,65 @@ fun ProfileContent(
                 .offset(y = 30.dp),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_background),
+            SubcomposeAsyncImage(
+                model = avatarUrl,
                 contentDescription = "profile",
                 modifier = Modifier
                     .size(180.dp)
                     .clip(RoundedCornerShape(20.dp)),
-                contentScale = ContentScale.FillBounds
-            )
+            ) {
+                when (this.painter.state) {
+                    is AsyncImagePainter.State.Loading -> {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    shimmerBrush(
+                                        targetValue = 1300f,
+                                        showShimmer = true
+                                    )
+                                )
+                                .size(180.dp)
+                                .clip(RoundedCornerShape(20.dp)),
+                        )
+                    }
+
+                    is AsyncImagePainter.State.Success -> {
+                        SubcomposeAsyncImageContent()
+                    }
+
+                    is AsyncImagePainter.State.Error -> {
+                        Image(
+                            painter = painterResource(id = R.drawable.boy_1),
+                            contentDescription = "profile",
+                            modifier = Modifier
+                                .size(180.dp)
+                                .clip(RoundedCornerShape(20.dp)),
+                            contentScale = ContentScale.FillBounds
+                        )
+                    }
+
+                    is AsyncImagePainter.State.Empty -> {
+                        Image(
+                            painter = painterResource(id = R.drawable.boy_1),
+                            contentDescription = "profile",
+                            modifier = Modifier
+                                .size(180.dp)
+                                .clip(RoundedCornerShape(20.dp)),
+                            contentScale = ContentScale.FillBounds
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
 @Composable
 fun ButtonAction(
-    image:Int,
-    text:String,
+    image: Int,
+    text: String,
     onNavigate: () -> Unit
-){
+) {
     Button(
         onClick = onNavigate,
         modifier = Modifier

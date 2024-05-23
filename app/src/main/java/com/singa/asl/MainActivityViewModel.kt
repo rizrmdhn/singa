@@ -11,24 +11,77 @@ import kotlinx.coroutines.launch
 
 class MainActivityViewModel(
     private val singaUseCase: SingaUseCase
-): ViewModel() {
+) : ViewModel() {
     private val _authUser: MutableStateFlow<Resource<User>> = MutableStateFlow(Resource.Loading())
     val authUser: MutableStateFlow<Resource<User>> get() = _authUser
+
+    private val _isSecondLaunch: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isSecondLaunch: MutableStateFlow<Boolean> get() = _isSecondLaunch
 
     private val _isScreenReady: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isScreenReady: MutableStateFlow<Boolean> get() = _isScreenReady
 
-    private val _initialScreen: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    val initialScreen: MutableStateFlow<Boolean> get() = _initialScreen
+    private val _logoutIsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val logoutIsLoading: MutableStateFlow<Boolean> get() = _logoutIsLoading
+
 
     init {
         getAuthUser()
+        checkSecondLaunch()
+    }
+
+    private fun checkSecondLaunch() {
+        viewModelScope.launch {
+            singaUseCase.getIsSecondLaunch().collect {
+                _isSecondLaunch.value = it
+            }
+        }
+    }
+
+    private fun removeAccessToken() {
+        viewModelScope.launch {
+            singaUseCase.removeAccessToken()
+        }
+    }
+
+    private fun removeRefreshToken() {
+        viewModelScope.launch {
+            singaUseCase.removeRefreshToken()
+        }
     }
 
     private fun getAuthUser() {
         viewModelScope.launch {
             singaUseCase.getMe().collect {
                 _authUser.value = it
+            }
+        }
+    }
+
+    fun logout() {
+        viewModelScope.launch {
+            removeAccessToken()
+            removeRefreshToken()
+            singaUseCase.logout().collect {
+                when (it) {
+                    is Resource.Success -> {
+                        _logoutIsLoading.value = false
+                        _authUser.value = Resource.Loading()
+                    }
+
+                    is Resource.Error -> {
+                        _logoutIsLoading.value = false
+                    }
+
+                    is Resource.Loading -> {
+                        _logoutIsLoading.value = true
+                    }
+
+                    is Resource.ValidationError -> {
+                        _logoutIsLoading.value = false
+                        return@collect
+                    }
+                }
             }
         }
     }

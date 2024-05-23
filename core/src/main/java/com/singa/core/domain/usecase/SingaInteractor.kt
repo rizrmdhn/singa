@@ -29,7 +29,7 @@ class SingaInteractor(
         isSignUser
     )
 
-    override fun updateToken(refreshToken: String) = singaRepository.updateToken(refreshToken)
+    override fun updateToken() = singaRepository.updateToken()
 
     override fun getAccessToken() = singaRepository.getAccessToken()
 

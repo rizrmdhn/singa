@@ -25,7 +25,7 @@ interface ISingaRepository {
         isSignUser: Boolean
     ): Flow<Resource<User>>
 
-    fun updateToken(refreshToken: String): Flow<Resource<RefreshToken>>
+    fun updateToken(): Flow<Resource<RefreshToken>>
 
     fun getAccessToken(): Flow<String>
 

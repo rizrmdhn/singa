@@ -41,7 +41,9 @@ interface ApiService {
 
     @Headers("Content-Type: application/json")
     @POST("logout")
-    suspend fun logout(): GenericSuccessResponse
+    suspend fun logout(
+        @Body body: RequestBody
+    ): GenericSuccessResponse
 
     @Headers("Content-Type: application/json")
     @POST("update-token")

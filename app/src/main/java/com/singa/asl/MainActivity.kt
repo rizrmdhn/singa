@@ -24,6 +24,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val isScreenReady by viewModels.isScreenReady.collectAsState()
+            val isSecondLaunch by viewModels.isSecondLaunch.collectAsState()
 
             splashScreen.setKeepOnScreenCondition {
                 !isScreenReady
@@ -38,27 +39,31 @@ class MainActivity : ComponentActivity() {
                     is Resource.Success -> {
                         viewModels.setScreenReady()
                         MainApp(
+                            onLogout = viewModels::logout,
                             authUser = state.data,
+                            isSecondLaunch = isSecondLaunch
                         )
                     }
 
                     is Resource.Error -> {
                         viewModels.setScreenReady()
                         MainApp(
+                            onLogout = viewModels::logout,
                             authUser = null,
+                            isSecondLaunch = isSecondLaunch
                         )
                     }
 
                     is Resource.ValidationError -> {
                         viewModels.setScreenReady()
                         MainApp(
+                            onLogout = viewModels::logout,
                             authUser = null,
+                            isSecondLaunch = isSecondLaunch
                         )
                     }
                 }
             }
-
-
         }
     }
 }
