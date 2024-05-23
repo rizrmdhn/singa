@@ -22,11 +22,14 @@ import com.singa.asl.ui.components.FloatingButton
 import com.singa.asl.ui.components.ModalNavigation
 import com.singa.asl.ui.components.TopBar
 import com.singa.asl.ui.navigation.Screen
+import com.singa.asl.ui.screen.change_password.ChangePasswordScreen
 import com.singa.asl.ui.screen.conversation.ConversationScreen
 import com.singa.asl.ui.screen.history.HistoryScreen
+import com.singa.asl.ui.screen.history_detail.HistoryDetailScreen
 import com.singa.asl.ui.screen.home.HomeScreen
 import com.singa.asl.ui.screen.message.MessageScreen
 import com.singa.asl.ui.screen.onboarding.OnBoardingScreen
+import com.singa.asl.ui.screen.profile.ProfileScreen
 import com.singa.asl.ui.screen.welcome.WelcomeScreen
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
@@ -128,11 +131,13 @@ fun MainApp(
                 }
 
                 composable(Screen.History.route) {
-                    HistoryScreen()
+//                    HistoryScreen()
+                    HistoryDetailScreen()
                 }
 
                 composable(Screen.Profile.route) {
-                    HomeScreen()
+//                    ProfileScreen()
+                    ChangePasswordScreen()
                 }
 
             }

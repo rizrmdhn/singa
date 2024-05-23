@@ -12,4 +12,7 @@
     <string name="articles_desc">is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text</string>
     <string name="upload_video">Upload Video</string>
     <string name="start_a_conversation">Start a Conversation</string>
+    <string name="transcript_text">
+    is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry\'s standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.
+    </string>
 </resources>
