@@ -17,6 +17,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowForward
 import androidx.compose.material3.Button
@@ -40,13 +41,16 @@ import com.singa.asl.ui.components.OnBoardingItems
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.SingaTheme
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun OnBoardingScreen(
-    onNavigateToWelcome: () -> Unit
+    onNavigateToWelcome: () -> Unit,
+    viewModel: OnBoardingScreenViewModel = koinViewModel()
 ) {
     OnBoardingContent(
-        onNavigateToWelcome = onNavigateToWelcome
+        onNavigateToWelcome = onNavigateToWelcome,
+        setIsSecondLaunch = viewModel::setIsSecondLaunch
     )
 }
 
@@ -54,6 +58,7 @@ fun OnBoardingScreen(
 @Composable
 fun OnBoardingContent(
     onNavigateToWelcome: () -> Unit,
+    setIsSecondLaunch: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val items = OnBoardingItems.getItems()
@@ -87,7 +92,7 @@ fun OnBoardingContent(
                 ),
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                     contentDescription = null,
                 )
             }
@@ -96,6 +101,7 @@ fun OnBoardingContent(
             TextButton(
                 onClick = {
                     onNavigateToWelcome()
+                    setIsSecondLaunch()
                 },
                 colors = ButtonDefaults.textButtonColors(
                     contentColor = Color1

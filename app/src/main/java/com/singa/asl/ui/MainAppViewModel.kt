@@ -1,5 +1,6 @@
 package com.singa.asl.ui
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,6 +24,9 @@ class MainAppViewModel(
     private val _isSecondLaunch: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isSecondLaunch: MutableStateFlow<Boolean> get() = _isSecondLaunch
 
+    private val _loginIsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val loginIsLoading get() = _loginIsLoading.value
+
     private val _validationState = mutableStateOf(ValidationState().copy())
     val validationState: ValidationState get() = _validationState.value
 
@@ -31,6 +35,15 @@ class MainAppViewModel(
 
     private val _password: MutableStateFlow<String> = MutableStateFlow("")
     val password: MutableStateFlow<String> get() = _password
+
+    private val _alertDialogTitle: MutableStateFlow<String> = MutableStateFlow("")
+    val alertDialogTitle: MutableStateFlow<String> get() = _alertDialogTitle
+
+    private val _alertDialogMessage: MutableStateFlow<String> = MutableStateFlow("")
+    val alertDialogMessage: MutableStateFlow<String> get() = _alertDialogMessage
+
+    private val _alertDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val alertDialog: MutableStateFlow<Boolean> get() = _alertDialog
 
     init {
         checkSecondLaunch()
@@ -46,6 +59,7 @@ class MainAppViewModel(
     }
 
     private fun getAuthUser() {
+        Log.d("MainAppViewModel", "getAuthUser")
         viewModelScope.launch {
             singaUseCase.getMe().collect {
                 when (it) {
@@ -101,7 +115,72 @@ class MainAppViewModel(
         _password.value = password
     }
 
-    fun updateValidationState(validationState: ValidationState) {
-        _validationState.value = validationState
+    fun onLogin(
+        navigateToHome: () -> Unit,
+    ) {
+        if (email.value.isBlank() || password.value.isBlank()) {
+            _validationState.value = validationState.copy(
+                emailError = "Email is required",
+                passwordError = "Password is required"
+            )
+            return
+        }
+
+        if (!FormValidators.isEmailValid(email.value)) {
+            _validationState.value = validationState.copy(
+                emailError = "Email is invalid"
+            )
+        }
+
+        if (!FormValidators.isPasswordValid(password.value)) {
+            _validationState.value = validationState.copy(
+                passwordError = "Password must be at least 8 characters"
+            )
+        }
+
+        if (validationState.emailError != null || validationState.passwordError != null) {
+            return
+        }
+
+        viewModelScope.launch {
+            _loginIsLoading.value = true
+            singaUseCase.login(email.value, password.value).collect {
+                when (it) {
+                    is Resource.Success -> {
+                        Log.d("MainAppViewModel", "onLogin: Success")
+                        getAuthUser()
+                        navigateToHome()
+                        _loginIsLoading.value = false
+                    }
+
+                    is Resource.Error -> {
+                        _alertDialogTitle.value = "Error"
+                        _alertDialogMessage.value = it.message
+                        _alertDialog.value = true
+                        _loginIsLoading.value = false
+                        Log.d("MainAppViewModel", "onLogin: ${it.message}")
+                    }
+
+                    is Resource.Loading -> {
+                        Log.d("MainAppViewModel", "onLogin: Loading")
+                    }
+
+                    is Resource.ValidationError -> {
+                        _loginIsLoading.value = false
+                        it.errors.forEach { (key, value) ->
+                            Log.d("MainAppViewModel", "onLogin: $key: $value")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun dismissAlertDialog() {
+        _alertDialog.value = false
+    }
+
+    fun cleanValidationState() {
+        _validationState.value = ValidationState().copy()
     }
 }

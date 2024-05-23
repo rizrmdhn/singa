@@ -6,12 +6,16 @@ import com.singa.core.data.source.remote.response.GetMeResponse
 import com.singa.core.data.source.remote.response.LoginResponse
 import com.singa.core.data.source.remote.response.UpdateTokenResponse
 import com.singa.core.data.source.remote.response.UpdateUserResponse
+import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.GET
 import retrofit2.http.Headers
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 
 
 interface ApiService {
@@ -32,7 +36,7 @@ interface ApiService {
     ): Response<GenericResponse<LoginResponse>>
 
     @Headers("Content-Type: application/json")
-    @POST("users/me")
+    @GET("users/me")
     suspend fun getMe(): GenericResponse<GetMeResponse>
 
     @Headers("Content-Type: application/json")
@@ -46,9 +50,13 @@ interface ApiService {
     ): Response<GenericResponse<UpdateTokenResponse>>
 
     @Headers("Content-Type: application/json")
+    @Multipart
     @PUT("users/me")
     suspend fun updateMe(
-        @Body body: RequestBody
+        @Part avatar: MultipartBody.Part?,
+        @Part("name") name: RequestBody?,
+        @Part("password") password: RequestBody?,
+        @Part("isSignUser") isSignUser: RequestBody?,
     ): Response<GenericResponse<UpdateUserResponse>>
 }
 

@@ -5,6 +5,7 @@ import com.singa.core.domain.model.RefreshToken
 import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.User
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 
 interface SingaUseCase {
     fun register(email: String, password: String): Flow<Resource<String>>
@@ -17,7 +18,12 @@ interface SingaUseCase {
 
     fun getMe(): Flow<Resource<User>>
 
-    fun updateMe(name: String, email: String, avatar: String): Flow<Resource<User>>
+    fun updateMe(
+        name: String,
+        password: String,
+        avatar: File,
+        isSignUser: Boolean
+    ): Flow<Resource<User>>
 
     fun updateToken(refreshToken: String): Flow<Resource<RefreshToken>>
 

@@ -1,5 +1,6 @@
 package com.singa.core.data
 
+import com.google.gson.JsonObject
 import com.singa.core.data.source.local.LocalDataSource
 import com.singa.core.data.source.remote.RemoteDataSource
 import com.singa.core.data.source.remote.network.ApiResponse
@@ -10,8 +11,12 @@ import com.singa.core.domain.repository.ISingaRepository
 import com.singa.core.utils.DataMapper
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 
 class SingaRepository(
     private val remoteDataSource: RemoteDataSource,
@@ -21,11 +26,11 @@ class SingaRepository(
     override fun register(email: String, password: String): Flow<Resource<String>> {
         return flow {
             emit(Resource.Loading())
-            val body = MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("email", email)
-                .addFormDataPart("password", password)
-                .build()
+            val body = JsonObject().apply {
+                addProperty("email", email)
+                addProperty("password", password)
+            }.toString()
+                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
             remoteDataSource.register(body).collect {
                 when (it) {
                     is ApiResponse.Success -> {
@@ -83,11 +88,11 @@ class SingaRepository(
     override fun login(email: String, password: String): Flow<Resource<Token>> {
         return flow {
             emit(Resource.Loading())
-            val body = MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("email", email)
-                .addFormDataPart("password", password)
-                .build()
+            val body = JsonObject().apply {
+                addProperty("email", email)
+                addProperty("password", password)
+            }.toString()
+                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
             remoteDataSource.login(body).collect {
                 when (it) {
                     is ApiResponse.Success -> {
@@ -206,10 +211,10 @@ class SingaRepository(
     override fun updateToken(refreshToken: String): Flow<Resource<RefreshToken>> {
         return flow {
             emit(Resource.Loading())
-            val body = MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("refresh_token", refreshToken)
-                .build()
+            val body = JsonObject().apply {
+                addProperty("token", refreshToken)
+            }.toString()
+                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
             remoteDataSource.updateToken(body).collect {
                 when (it) {
                     is ApiResponse.Success -> {
@@ -236,16 +241,29 @@ class SingaRepository(
         }
     }
 
-    override fun updateMe(name: String, email: String, avatar: String): Flow<Resource<User>> {
+    override fun updateMe(
+        name: String,
+        password: String,
+        avatar: File,
+        isSignUser: Boolean
+    ): Flow<Resource<User>> {
         return flow {
             emit(Resource.Loading())
-            val body = MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("name", name)
-                .addFormDataPart("email", email)
-                .addFormDataPart("avatar", avatar)
-                .build()
-            remoteDataSource.updateMe(body).collect {
+            val requestName = name.toRequestBody("text/plain".toMediaTypeOrNull())
+            val requestPassword = password.toRequestBody("text/plain".toMediaTypeOrNull())
+            val requestAvatar = avatar.asRequestBody("image/*".toMediaTypeOrNull())
+            val requestIsSignUser = isSignUser.toString().toRequestBody("text/plain".toMediaTypeOrNull())
+            val multipartBody = MultipartBody.Part.createFormData(
+                "avatar",
+                avatar.name,
+                requestAvatar
+            )
+            remoteDataSource.updateMe(
+                requestName,
+                requestPassword,
+                requestIsSignUser,
+                multipartBody
+            ).collect {
                 when (it) {
                     is ApiResponse.Success -> {
                         val user = DataMapper.mapUpdateUserResponseToModel(it.data.data)

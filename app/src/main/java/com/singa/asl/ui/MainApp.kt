@@ -22,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import com.singa.asl.ui.components.BottomBar
 import com.singa.asl.ui.components.FloatingButton
 import com.singa.asl.ui.components.ModalNavigation
+import com.singa.asl.ui.components.PopupAlertDialog
 import com.singa.asl.ui.components.TopBar
 import com.singa.asl.ui.navigation.Screen
 import com.singa.asl.ui.screen.change_password.ChangePasswordScreen
@@ -53,6 +54,11 @@ fun MainApp(
     val authUser by viewModel.authUser.collectAsState()
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
+
+    val alertDialog by viewModel.alertDialog.collectAsState()
+    val alertDialogTitle by viewModel.alertDialogTitle.collectAsState()
+    val alertDialogMessage by viewModel.alertDialogMessage.collectAsState()
+
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: Screen.Home.route
@@ -155,8 +161,11 @@ fun MainApp(
                         isPasswordError = viewModel.validationState.passwordError != null,
                         passwordError = viewModel.validationState.passwordError ?: "",
                         onChangePassword = viewModel::onChangePassword,
+                        isLoginLoading = viewModel.loginIsLoading,
                         onLogin = {
-                            Log.d("LoginScreen", "onLogin: $email $password")
+                            viewModel.onLogin {
+                                navController.navigate(Screen.Home.route)
+                            }
                         },
                         navigateToRegister = {
                             navController.navigate(Screen.Register.route)
@@ -241,6 +250,16 @@ fun MainApp(
 
 
             }
+
+            if (alertDialog) {
+                PopupAlertDialog(
+                    title = alertDialogTitle,
+                    text = alertDialogMessage,
+                    onDismissRequest = viewModel::dismissAlertDialog,
+                    confirmButton = viewModel::dismissAlertDialog
+                )
+            }
+
             if (showBottomSheet.value) {
                 ModalBottomSheet(
                     onDismissRequest = { showBottomSheet.value = false },
