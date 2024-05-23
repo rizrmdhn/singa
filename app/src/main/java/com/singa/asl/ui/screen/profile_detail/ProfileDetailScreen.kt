@@ -1,10 +1,10 @@
-package com.singa.asl.ui.screen.profile
+package com.singa.asl.ui.screen.profile_detail
 
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,15 +12,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,19 +34,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.singa.asl.R
+import com.singa.asl.ui.components.InputForm
+import com.singa.asl.ui.navigation.Screen
+import com.singa.asl.ui.screen.profile.ButtonAction
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
-import com.singa.asl.ui.theme.ColorBluePastelBackground
 import com.singa.asl.ui.theme.ColorDanger
 
 @Preview(showBackground = true, showSystemUi = true, backgroundColor = 0xFF4BA6F8)
 @Composable
-fun ProfileScreen() {
-    ProfileContent()
+fun ProfileDetailScreen() {
+    ProfileDetailContent()
 }
 
 @Composable
-fun ProfileContent() {
+fun ProfileDetailContent() {
     Box(Modifier.fillMaxWidth()) {
         Card(
             modifier = Modifier
@@ -61,19 +64,16 @@ fun ProfileContent() {
                 topEnd = 40.dp,
             )
         ) {
-            Column(Modifier.padding(top = 140.dp)) {
-                ButtonAction(
-                    image = R.drawable.baseline_people_alt_24,
-                    text = "Detail Users",
-                    onNavigate = {}
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                ButtonAction(
-                    image = R.drawable.baseline_lock_24,
-                    text = "Change Password",
-                    onNavigate = {}
-                )
-                Spacer(modifier = Modifier.height(16.dp))
+            Column(
+                Modifier
+                    .padding(top = 140.dp)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(Modifier.padding(16.dp)) {
+                    InputForm(title = "Username", icon = R.drawable.baseline_people_alt_24, value = "", onChange = {})
+                    InputForm(title = "Email", icon = R.drawable.baseline_email_24, value = "", onChange = {})
+                }
                 Button(
                     onClick = { /*TODO*/ },
                     modifier = Modifier
@@ -81,12 +81,12 @@ fun ProfileContent() {
                         .height(60.dp)
                         .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = ColorDanger,
+                        containerColor = Color1,
                         contentColor = Color.Black
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(text = "Logout", fontSize = 24.sp, color = Color.White)
+                    Text(text = "Save", fontSize = 24.sp, color = Color.White)
                 }
             }
         }
@@ -105,51 +105,28 @@ fun ProfileContent() {
                 contentScale = ContentScale.FillBounds
             )
         }
-    }
-}
-
-@Composable
-fun ButtonAction(
-    image:Int,
-    text:String,
-    onNavigate: () -> Unit
-){
-    Button(
-        onClick = onNavigate,
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(80.dp)
-            .padding(horizontal = 16.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = ColorBluePastelBackground,
-            contentColor = Color.Black
-        ),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+        Box(
+            Modifier.offset(x = 180.dp, y = 92.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+            IconButton(
+                modifier = Modifier
+                    .size(48.dp)
+                    .offset(x = 76.dp, y = 76.dp),
+                colors = IconButtonDefaults.iconButtonColors(
+                    containerColor = Color1,
+                    contentColor = Color.White
+                ),
+                onClick = { /*TODO*/ }
             ) {
                 Icon(
-                    painter = painterResource(id = image),
-                    contentDescription = "People",
-                    tint = Color1,
-                    modifier = Modifier.size(32.dp)
+                    imageVector = Icons.Default.Edit,
+                    contentDescription = "",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp)
                 )
-                Spacer(modifier = Modifier.width(16.dp))
-                Text(text = text, fontSize = 20.sp)
             }
-            Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
-                contentDescription = "Arrow Right",
-                modifier = Modifier.size(32.dp),
-                tint = Color1
-            )
         }
+
     }
 }
