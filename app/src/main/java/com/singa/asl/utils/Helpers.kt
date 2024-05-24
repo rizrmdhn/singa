@@ -1,4 +1,4 @@
-package com.singa.asl.common
+package com.singa.asl.utils
 
 import android.content.ContentResolver
 import android.content.ContentValues
@@ -28,14 +28,43 @@ object Helpers {
     private const val MAXIMAL_SIZE = 1000000
     private val timeStamp: String = SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(Date())
 
-//    fun convertStringToClassifciations(result: String): List<Classifications> {
-//        return parseJson(result)
-//    }
-
-    fun createVideoFile(): File {
+    private fun createVideoFile(): File {
         val videoFileName = "MP4_$timeStamp.mp4"
         val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
         return File.createTempFile(videoFileName, ".mp4", storageDir)
+    }
+
+    fun uriToFile(imageUri: Uri, context: Context): File {
+        val myFile = createCustomTempFile(context)
+        val inputStream = context.contentResolver.openInputStream(imageUri) as InputStream
+        val outputStream = FileOutputStream(myFile)
+        val buffer = ByteArray(1024)
+        var length: Int
+        while (inputStream.read(buffer).also { length = it } > 0) outputStream.write(buffer, 0, length)
+        outputStream.close()
+        inputStream.close()
+        return myFile
+    }
+
+    fun File.reduceFileImage(): File {
+        val file  = this
+        val bitmap = BitmapFactory.decodeFile(file.path)
+        var compressQuality = 100
+        var streamLength: Int
+        do {
+            val bmpStream = ByteArrayOutputStream()
+            bitmap?.compress(Bitmap.CompressFormat.JPEG, compressQuality, bmpStream)
+            val bmpPicByteArray = bmpStream.toByteArray()
+            streamLength = bmpPicByteArray.size
+            compressQuality -= 5
+        } while (streamLength > MAXIMAL_SIZE)
+        bitmap?.compress(Bitmap.CompressFormat.JPEG, compressQuality, FileOutputStream(file))
+        return file
+    }
+
+    private fun createCustomTempFile(context: Context): File {
+        val filesDir = context.externalCacheDir
+        return File.createTempFile(timeStamp, ".jpg", filesDir)
     }
 
     fun createImageFromBitmap(context: Context, bitmap: Bitmap): String? {

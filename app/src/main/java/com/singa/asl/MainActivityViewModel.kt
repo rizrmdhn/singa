@@ -1,12 +1,18 @@
 package com.singa.asl
 
+import android.content.Context
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.singa.asl.common.ValidationState
+import com.singa.asl.utils.Helpers
+import com.singa.asl.utils.Helpers.reduceFileImage
 import com.singa.core.data.Resource
 import com.singa.core.domain.model.User
 import com.singa.core.domain.usecase.SingaUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 
 class MainActivityViewModel(
     private val singaUseCase: SingaUseCase
@@ -99,6 +105,84 @@ class MainActivityViewModel(
                     is Resource.ValidationError -> {
                         showAlert("Error", "Something went wrong")
                         _logoutIsLoading.value = false
+                        return@collect
+                    }
+                }
+            }
+        }
+    }
+
+    fun updateUser(
+        context: Context,
+        uri: Uri,
+        name: String,
+        password: String,
+        isSignUser: Boolean,
+        updateValidationState: (validationState: ValidationState) -> Unit,
+        setUpdateIsLoading: (status: Boolean) -> Unit
+    ) {
+        var avatar: File? = null
+        if (uri != Uri.EMPTY) {
+            avatar = Helpers.uriToFile(uri, context).reduceFileImage()
+        }
+
+        viewModelScope.launch {
+            singaUseCase.updateMe(
+                name = name,
+                password = password,
+                avatar = avatar,
+                isSignUser = isSignUser
+            ).collect {
+                when (it) {
+                    is Resource.Success -> {
+                        setUpdateIsLoading(false)
+                        _authUser.value = Resource.Success(it.data)
+                        showAlert("Success", "Update success")
+                    }
+
+                    is Resource.Empty -> {
+                        setUpdateIsLoading(false)
+                        showAlert("Error", "Something went wrong")
+                    }
+
+                    is Resource.Error -> {
+                        setUpdateIsLoading(false)
+                        showAlert("Error", it.message ?: "Something went wrong")
+                    }
+
+                    is Resource.Loading -> {
+                        setUpdateIsLoading(true)
+                    }
+
+                    is Resource.ValidationError -> {
+                        setUpdateIsLoading(false)
+                        it.errors.forEach { (msg, _, field) ->
+                            when (field) {
+                                "name" -> {
+                                    updateValidationState(
+                                        ValidationState(
+                                            nameError = msg
+                                        )
+                                    )
+                                }
+
+                                "password" -> {
+                                    updateValidationState(
+                                        ValidationState(
+                                            passwordError = msg
+                                        )
+                                    )
+                                }
+
+                                "avatar" -> {
+                                    showAlert("Error", msg)
+                                }
+
+                                "isSignUser" -> {
+                                    showAlert("Error", msg)
+                                }
+                            }
+                        }
                         return@collect
                     }
                 }

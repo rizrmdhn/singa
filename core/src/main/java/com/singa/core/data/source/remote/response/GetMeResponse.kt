@@ -16,8 +16,8 @@ data class GetMeResponse(
 	@field:SerializedName("id")
 	val id: Int,
 
-	@field:SerializedName("avatar")
-	val avatar: String? = null,
+	@field:SerializedName("avatarUrl")
+	val avatarUrl: String? = null,
 
 	@field:SerializedName("email")
 	val email: String? = null,

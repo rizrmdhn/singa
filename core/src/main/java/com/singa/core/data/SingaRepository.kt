@@ -250,23 +250,28 @@ class SingaRepository(
     }
 
     override fun updateMe(
-        name: String,
-        password: String,
-        avatar: File,
-        isSignUser: Boolean
+        name: String?,
+        password: String?,
+        avatar: File?,
+        isSignUser: Boolean?
     ): Flow<Resource<User>> {
         return flow {
             emit(Resource.Loading())
-            val requestName = name.toRequestBody("text/plain".toMediaTypeOrNull())
-            val requestPassword = password.toRequestBody("text/plain".toMediaTypeOrNull())
-            val requestAvatar = avatar.asRequestBody("image/*".toMediaTypeOrNull())
+            val requestName = name?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val requestPassword = password?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val requestAvatar = avatar?.asRequestBody("image/*".toMediaTypeOrNull())
             val requestIsSignUser =
                 isSignUser.toString().toRequestBody("text/plain".toMediaTypeOrNull())
-            val multipartBody = MultipartBody.Part.createFormData(
-                "avatar",
-                avatar.name,
-                requestAvatar
-            )
+
+            val multipartBody = requestAvatar?.let {
+                MultipartBody.Part.createFormData(
+                    "avatar",
+                    avatar.name,
+                    it
+                )
+            }
+
+            Log.d("updateMe", "avatar: ${avatar?.name}, multipartBody: $multipartBody")
             remoteDataSource.updateMe(
                 requestName,
                 requestPassword,

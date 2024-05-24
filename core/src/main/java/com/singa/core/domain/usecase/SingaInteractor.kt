@@ -19,10 +19,10 @@ class SingaInteractor(
     override fun getMe() = singaRepository.getMe()
 
     override fun updateMe(
-        name: String,
-        password: String,
-        avatar: File,
-        isSignUser: Boolean
+        name: String?,
+        password: String?,
+        avatar: File?,
+        isSignUser: Boolean?
     ) = singaRepository.updateMe(
         name,
         password,

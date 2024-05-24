@@ -1,5 +1,8 @@
 package com.singa.asl.ui
 
+import android.content.Context
+import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -13,11 +16,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.singa.asl.common.ValidationState
 import com.singa.asl.ui.components.BottomBar
 import com.singa.asl.ui.components.FloatingButton
 import com.singa.asl.ui.components.ModalNavigation
@@ -54,16 +59,27 @@ fun MainApp(
         navigateToWelcome: () -> Unit,
     ) -> Unit,
     logoutIsLoading: Boolean,
+    onUpdateProfile: (
+        context: Context,
+        uri: Uri,
+        name: String,
+        password: String,
+        isSignUser: Boolean,
+        updateValidationState: (validationState: ValidationState) -> Unit,
+        setUpdateIsLoading: (status: Boolean) -> Unit
+    ) -> Unit,
     alertDialog: Boolean,
     alertDialogTitle: String,
     alertDialogMessage: String,
     showDialog: (String, String) -> Unit,
     hideDialog: () -> Unit,
+    context: Context = LocalContext.current,
     viewModel: MainAppViewModel = koinViewModel()
 ) {
     val name by viewModel.name.collectAsState()
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
+    val isSignUser by viewModel.isSignUser.collectAsState()
 
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -272,7 +288,24 @@ fun MainApp(
                 }
 
                 composable(Screen.ProfileDetail.route) {
-                    ProfileDetailScreen()
+                    ProfileDetailScreen(
+                        avatarUrl = authUser?.avatar ?: "",
+                        name = authUser?.name ?: "",
+                        email = authUser?.email ?: "",
+                        onChangeName = viewModel::onChangeName,
+                        onChangeEmail = viewModel::onChangeEmail,
+                        onUpdate = { uri, setLoadingState ->
+                            onUpdateProfile(
+                                context,
+                                uri,
+                                name,
+                                password,
+                                isSignUser,
+                                viewModel::updateValidationState,
+                                setLoadingState
+                            )
+                        }
+                    )
                 }
 
                 composable(Screen.ChangePassword.route) {

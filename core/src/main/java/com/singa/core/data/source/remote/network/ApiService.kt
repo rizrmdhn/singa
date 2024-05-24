@@ -51,7 +51,6 @@ interface ApiService {
         @Body body: RequestBody
     ): Response<GenericResponse<UpdateTokenResponse>>
 
-    @Headers("Content-Type: application/json")
     @Multipart
     @PUT("users/me")
     suspend fun updateMe(

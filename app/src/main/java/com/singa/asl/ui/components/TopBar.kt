@@ -1,6 +1,7 @@
 package com.singa.asl.ui.components
 
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -186,7 +188,7 @@ fun TopBarProfile(
 
                         is AsyncImagePainter.State.Error -> {
                             Image(
-                                painter = painterResource(id = R.drawable.boy_1),
+                                imageVector = Icons.Default.Info,
                                 contentDescription = "profile",
                             )
                         }

@@ -19,10 +19,10 @@ interface SingaUseCase {
     fun getMe(): Flow<Resource<User>>
 
     fun updateMe(
-        name: String,
-        password: String,
-        avatar: File,
-        isSignUser: Boolean
+        name: String?,
+        password: String?,
+        avatar: File?,
+        isSignUser: Boolean?
     ): Flow<Resource<User>>
 
     fun updateToken(): Flow<Resource<RefreshToken>>

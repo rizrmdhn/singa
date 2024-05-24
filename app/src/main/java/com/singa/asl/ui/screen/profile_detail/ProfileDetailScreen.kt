@@ -1,10 +1,16 @@
 package com.singa.asl.ui.screen.profile_detail
 
 import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +32,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,34 +44,80 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
+import coil.compose.rememberAsyncImagePainter
 import com.singa.asl.R
 import com.singa.asl.ui.components.InputForm
+import com.singa.asl.ui.components.shimmerBrush
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun ProfileDetailScreen() {
-    ProfileDetailContent()
+fun ProfileDetailScreen(
+    context: Context = LocalContext.current,
+    avatarUrl: String,
+    name: String,
+    onChangeName: (String) -> Unit,
+    email: String,
+    onChangeEmail: (String) -> Unit,
+    onUpdate: (
+        uri: Uri,
+        setIsLoading: (Boolean) -> Unit,
+    ) -> Unit,
+    viewModel: ProfileDetailScreenViewModels = koinViewModel()
+) {
+    val uri by viewModel.uri.collectAsState()
+    val isUpdateProfileLoading by viewModel.isUpdateProfileLoading.collectAsState()
+
+    ProfileDetailContent(
+        context = context,
+        uri = uri,
+        setUri = viewModel::setUri,
+        avatarUrl = avatarUrl,
+        name = name,
+        onChangeName = onChangeName,
+        email = email,
+        onChangeEmail = onChangeEmail,
+        onUpdate = {
+            onUpdate(
+                uri,
+                viewModel::setIsUpdateProfileLoading
+            )
+        },
+        isUpdateProfileLoading = isUpdateProfileLoading
+    )
 }
 
 @Composable
-fun ProfileDetailContent() {
-    var imageUri by remember {
-        mutableStateOf<Uri>(Uri.EMPTY)
-    }
-    val context = LocalContext.current
-
+fun ProfileDetailContent(
+    context: Context,
+    uri: Uri,
+    setUri: (Uri) -> Unit,
+    avatarUrl: String,
+    name: String,
+    onChangeName: (String) -> Unit,
+    email: String,
+    onChangeEmail: (String) -> Unit,
+    onUpdate: () -> Unit,
+    isUpdateProfileLoading: Boolean
+) {
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
-    ) { uri ->
-        if(uri !== null){
-            imageUri = uri
+    ) {
+        if (it != null) {
+            setUri(it)
+        } else {
+            Toast.makeText(context, "Image not found", Toast.LENGTH_SHORT).show()
+            setUri(Uri.EMPTY)
         }
     }
-
 
     val galleryPermission = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -74,6 +128,8 @@ fun ProfileDetailContent() {
             Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
         }
     }
+
+
 
 
     Box(Modifier.fillMaxWidth()) {
@@ -99,20 +155,21 @@ fun ProfileDetailContent() {
             ) {
                 Column(Modifier.padding(16.dp)) {
                     InputForm(
-                        title = "Username",
+                        title = "Name",
                         icon = R.drawable.baseline_people_alt_24,
-                        value = "",
-                        onChange = {})
+                        value = name,
+                        onChange = onChangeName
+                    )
                     InputForm(
                         title = "Email",
                         icon = R.drawable.baseline_email_24,
-                        value = "",
-                        onChange = {})
+                        value = email,
+                        onChange = onChangeEmail
+                    )
                 }
                 Button(
-                    onClick = {
-
-                    },
+                    enabled = !isUpdateProfileLoading,
+                    onClick = onUpdate,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
@@ -123,7 +180,20 @@ fun ProfileDetailContent() {
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(text = "Save", fontSize = 24.sp, color = Color.White)
+                    if (isUpdateProfileLoading) {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    shimmerBrush(
+                                        targetValue = 1300f,
+                                        showShimmer = true
+                                    )
+                                )
+                                .fillMaxSize()
+                        )
+                    } else {
+                        Text(text = "Save", fontSize = 24.sp, color = Color.White)
+                    }
                 }
             }
         }
@@ -133,16 +203,54 @@ fun ProfileDetailContent() {
                 .offset(y = 30.dp),
             contentAlignment = Alignment.Center
         ) {
-            imageUri.let { uri ->
-                SubcomposeAsyncImage(
-                    model = imageUri,
-                    loading = {},
-                    contentDescription = "profile",
-                    modifier = Modifier
-                        .size(180.dp)
-                        .clip(RoundedCornerShape(20.dp)),
-                    contentScale = ContentScale.FillBounds
-                )
+            SubcomposeAsyncImage(
+                model = if (uri != Uri.EMPTY) uri else avatarUrl,
+                contentDescription = "profile",
+                modifier = Modifier
+                    .size(180.dp)
+                    .clip(RoundedCornerShape(20.dp)),
+            ) {
+                when (this.painter.state) {
+                    is AsyncImagePainter.State.Loading -> {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    shimmerBrush(
+                                        targetValue = 1300f,
+                                        showShimmer = true
+                                    )
+                                )
+                                .size(180.dp)
+                                .clip(RoundedCornerShape(20.dp)),
+                        )
+                    }
+
+                    is AsyncImagePainter.State.Success -> {
+                        SubcomposeAsyncImageContent()
+                    }
+
+                    is AsyncImagePainter.State.Error -> {
+                        Image(
+                            painter = painterResource(id = R.drawable.boy_1),
+                            contentDescription = "profile",
+                            modifier = Modifier
+                                .size(180.dp)
+                                .clip(RoundedCornerShape(20.dp)),
+                            contentScale = ContentScale.FillBounds
+                        )
+                    }
+
+                    is AsyncImagePainter.State.Empty -> {
+                        Image(
+                            painter = painterResource(id = R.drawable.boy_1),
+                            contentDescription = "profile",
+                            modifier = Modifier
+                                .size(180.dp)
+                                .clip(RoundedCornerShape(20.dp)),
+                            contentScale = ContentScale.FillBounds
+                        )
+                    }
+                }
             }
         }
         Box(
@@ -157,7 +265,28 @@ fun ProfileDetailContent() {
                     contentColor = Color.White
                 ),
                 onClick = {
-                    galleryPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    val permissionCheckResult =
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.READ_MEDIA_IMAGES
+                            )
+                        } else {
+                            ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.READ_EXTERNAL_STORAGE
+                            )
+                        }
+                    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
+                        launcher.launch("image/*")
+                    } else {
+                        // Request a permission
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            galleryPermission.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                        } else {
+                            galleryPermission.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                        }
+                    }
                 }
             ) {
                 Icon(

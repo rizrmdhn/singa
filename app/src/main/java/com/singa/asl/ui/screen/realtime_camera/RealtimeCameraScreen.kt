@@ -54,7 +54,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LifecycleOwner
 import com.singa.asl.R
-import com.singa.asl.common.Helpers
+import com.singa.asl.utils.Helpers
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
 import java.io.File

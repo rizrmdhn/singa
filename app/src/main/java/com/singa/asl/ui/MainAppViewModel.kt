@@ -1,5 +1,6 @@
 package com.singa.asl.ui
 
+import android.net.Uri
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -31,6 +32,9 @@ class MainAppViewModel(
 
     private val _password: MutableStateFlow<String> = MutableStateFlow("")
     val password: MutableStateFlow<String> get() = _password
+
+    private val _isSignUser: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isSignUser: MutableStateFlow<Boolean> get() = _isSignUser
 
 
     fun onChangeName(name: String) {
@@ -83,6 +87,10 @@ class MainAppViewModel(
         }
 
         _password.value = password
+    }
+
+    fun onSignUser() {
+        _isSignUser.value = !_isSignUser.value
     }
 
     fun onLogin(
@@ -272,6 +280,14 @@ class MainAppViewModel(
 
     fun cleanPassword() {
         _password.value = ""
+    }
+
+    fun cleanSignUser() {
+        _isSignUser.value = false
+    }
+
+    fun updateValidationState(validationState: ValidationState) {
+        _validationState.value = validationState
     }
 
     fun cleanValidationState() {
