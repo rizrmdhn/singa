@@ -251,6 +251,7 @@ class SingaRepository(
 
     override fun updateMe(
         name: String?,
+        email: String?,
         password: String?,
         confirmPassword: String?,
         avatar: File?,
@@ -259,6 +260,7 @@ class SingaRepository(
         return flow {
             emit(Resource.Loading())
             val requestName = name?.toRequestBody("text/plain".toMediaTypeOrNull())
+            val requestEmail = email?.toRequestBody("text/plain".toMediaTypeOrNull())
             val requestPassword = password?.toRequestBody("text/plain".toMediaTypeOrNull())
             val requestConfirmPassword =
                 confirmPassword?.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -274,9 +276,9 @@ class SingaRepository(
                 )
             }
 
-            Log.d("updateMe", "avatar: ${avatar?.name}, multipartBody: $multipartBody")
             remoteDataSource.updateMe(
                 requestName,
+                requestEmail,
                 requestPassword,
                 requestConfirmPassword,
                 requestIsSignUser,

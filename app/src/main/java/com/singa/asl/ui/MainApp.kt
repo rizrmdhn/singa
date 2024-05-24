@@ -63,6 +63,7 @@ fun MainApp(
         context: Context,
         uri: Uri?,
         name: String,
+        email: String,
         password: String,
         confirmPassword: String,
         isSignUser: Boolean,
@@ -292,8 +293,8 @@ fun MainApp(
                         avatarUrl = authUser?.avatar ?: "",
                         logoutIsLoading = logoutIsLoading,
                         onLogout = {
-                           if (authUser?.accountType == "guest") {
-                               it("Logout", "You are currently logged in as a guest, do you want to logout?")
+                           if (authUser?.email == null) {
+                               it("Logout", "Are you sure you want to logout?. make sure you update your email and password first otherwise you will lose your account")
                            } else {
                                  it("Logout", "Are you sure you want to logout?")
                            }
@@ -334,6 +335,7 @@ fun MainApp(
                                 context,
                                 uri,
                                 name,
+                                email,
                                 password,
                                 confirmPassword,
                                 isSignUser,
@@ -370,6 +372,7 @@ fun MainApp(
                                 context,
                                 Uri.EMPTY,
                                 name,
+                                email,
                                 password,
                                 confirmPassword,
                                 isSignUser,

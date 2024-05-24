@@ -242,6 +242,7 @@ class RemoteDataSource(
 
     fun updateMe(
         name: RequestBody?,
+        email: RequestBody?,
         password: RequestBody?,
         confirmPassword: RequestBody?,
         isSignUser: RequestBody?,
@@ -252,6 +253,7 @@ class RemoteDataSource(
                 val response = apiService.updateMe(
                     avatar,
                     name,
+                    email,
                     confirmPassword,
                     password,
                     isSignUser

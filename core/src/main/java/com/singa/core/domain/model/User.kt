@@ -9,7 +9,6 @@ data class User(
     val name: String,
     val email: String? = null,
     val avatar: String? = null,
-    val accountType: String,
     val isSignUser: Boolean,
     val createdAt: String,
     val updatedAt: String

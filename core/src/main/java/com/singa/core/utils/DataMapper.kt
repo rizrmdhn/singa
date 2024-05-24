@@ -37,7 +37,6 @@ object DataMapper {
         name = data.name,
         email = data.email,
         avatar = data.avatarUrl,
-        accountType = data.accountType,
         isSignUser = data.isSignUser,
         createdAt = data.createdAt,
         updatedAt = data.updatedAt
@@ -57,7 +56,6 @@ object DataMapper {
         name = data.name,
         email = data.email,
         avatar = data.avatarUrl,
-        accountType = data.accountType,
         isSignUser = data.isSignUser,
         createdAt = data.createdAt,
         updatedAt = data.updatedAt

@@ -19,9 +19,6 @@ data class GetMeResponse(
 	@field:SerializedName("avatarUrl")
 	val avatarUrl: String? = null,
 
-	@field:SerializedName("accountType")
-	val accountType: String,
-
 	@field:SerializedName("email")
 	val email: String? = null,
 

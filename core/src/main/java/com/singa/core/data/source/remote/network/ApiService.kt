@@ -56,6 +56,7 @@ interface ApiService {
     suspend fun updateMe(
         @Part avatar: MultipartBody.Part?,
         @Part("name") name: RequestBody?,
+        @Part("email") email: RequestBody?,
         @Part("password") password: RequestBody?,
         @Part("password_confirmation") confirmPassword: RequestBody?,
         @Part("isSignUser") isSignUser: RequestBody?,

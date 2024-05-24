@@ -20,6 +20,7 @@ interface ISingaRepository {
 
     fun updateMe(
         name: String?,
+        email: String?,
         password: String?,
         confirmPassword: String?,
         avatar: File?,

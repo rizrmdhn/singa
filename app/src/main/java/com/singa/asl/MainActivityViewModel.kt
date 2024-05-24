@@ -117,6 +117,7 @@ class MainActivityViewModel(
         context: Context,
         uri: Uri?,
         name: String,
+        email: String,
         password: String,
         confirmPassword: String,
         isSignUser: Boolean,
@@ -132,6 +133,7 @@ class MainActivityViewModel(
         viewModelScope.launch {
             singaUseCase.updateMe(
                 name = name,
+                email = email,
                 password = password,
                 confirmPassword = confirmPassword,
                 avatar = avatar,

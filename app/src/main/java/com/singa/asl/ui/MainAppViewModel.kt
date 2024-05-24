@@ -129,7 +129,7 @@ class MainAppViewModel(
             singaUseCase.guest().collect {
                 when (it) {
                     is Resource.Success -> {
-                        showDialog("Success", "Login success")
+                        showDialog("Success", "Login as guest success make sure to update your email and password to secure your account")
                         singaUseCase.saveAccessToken(it.data.accessToken)
                         singaUseCase.saveRefreshToken(it.data.refreshToken)
                         getAuthUser()

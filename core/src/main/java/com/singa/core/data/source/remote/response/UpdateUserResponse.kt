@@ -13,9 +13,6 @@ data class UpdateUserResponse(
 	@field:SerializedName("avatarUrl")
 	val avatarUrl: String,
 
-	@field:SerializedName("accountType")
-	val accountType: String,
-
 	@field:SerializedName("name")
 	val name: String,
 
