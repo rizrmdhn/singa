@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -52,7 +51,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -61,10 +59,8 @@ import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.singa.asl.R
 import com.singa.asl.ui.components.FormComp
-import com.singa.asl.ui.components.InputForm
 import com.singa.asl.ui.components.shimmerBrush
 import com.singa.asl.ui.theme.Color1
-import com.singa.asl.ui.theme.Color4
 import com.singa.asl.ui.theme.Color5
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.ColorBluePastelBackground

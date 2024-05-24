@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -40,7 +39,6 @@ import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.singa.asl.R
 import com.singa.asl.ui.components.ConfirmationDialog
-import com.singa.asl.ui.components.PopupAlertDialog
 import com.singa.asl.ui.components.shimmerBrush
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
