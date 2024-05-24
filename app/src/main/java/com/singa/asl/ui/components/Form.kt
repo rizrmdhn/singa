@@ -83,13 +83,13 @@ fun FormComp(
                     },
                     visualTransformation = data.visualTransformation,
                     trailingIcon = {
-                        data.trailingIcon?.invoke()
                         Row(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .padding(8.dp)
                         ) {
+                            data.trailingIcon?.invoke()
                             if (data.isError) {
                                 Icon(
                                     imageVector = Icons.Filled.Info,

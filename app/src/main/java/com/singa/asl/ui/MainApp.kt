@@ -61,11 +61,13 @@ fun MainApp(
     logoutIsLoading: Boolean,
     onUpdateProfile: (
         context: Context,
-        uri: Uri,
+        uri: Uri?,
         name: String,
         password: String,
+        confirmPassword: String,
         isSignUser: Boolean,
         updateValidationState: (validationState: ValidationState) -> Unit,
+        clearChangePasswordForm: () -> Unit,
         setUpdateIsLoading: (status: Boolean) -> Unit
     ) -> Unit,
     alertDialog: Boolean,
@@ -79,6 +81,7 @@ fun MainApp(
     val name by viewModel.name.collectAsState()
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
+    val confirmPassword by viewModel.confirmPassword.collectAsState()
     val isSignUser by viewModel.isSignUser.collectAsState()
 
 
@@ -319,8 +322,10 @@ fun MainApp(
                                 uri,
                                 name,
                                 password,
+                                confirmPassword,
                                 isSignUser,
                                 viewModel::updateValidationState,
+                                viewModel::clearPasswordAndConfirmPassword,
                                 setLoadingState
                             )
                         }
@@ -328,7 +333,39 @@ fun MainApp(
                 }
 
                 composable(Screen.ChangePassword.route) {
-                    ChangePasswordScreen()
+                    ChangePasswordScreen(
+                        password = password,
+                        onChangePassword = viewModel::onChangePassword,
+                        isPasswordError = viewModel.validationState.passwordError != null,
+                        passwordError = viewModel.validationState.passwordError ?: "",
+                        confirmPassword = confirmPassword,
+                        onChangeConfirmPassword = viewModel::onChangeConfirmPassword,
+                        isConfirmPasswordError = viewModel.validationState.confirmPasswordError != null,
+                        confirmPasswordError = viewModel.validationState.confirmPasswordError ?: "",
+                        onUpdatePassword = { setLoadingState ->
+                            if (password != confirmPassword) {
+                                viewModel.updateValidationState(
+                                    ValidationState(
+                                        passwordError = "Password not match",
+                                        confirmPasswordError = "Password not match"
+                                    )
+                                )
+                                return@ChangePasswordScreen
+                            }
+
+                            onUpdateProfile(
+                                context,
+                                Uri.EMPTY,
+                                name,
+                                password,
+                                confirmPassword,
+                                isSignUser,
+                                viewModel::updateValidationState,
+                                viewModel::clearPasswordAndConfirmPassword,
+                                setLoadingState
+                            )
+                        }
+                    )
                 }
 
                 composable(Screen.WebView.route) {

@@ -21,6 +21,7 @@ interface SingaUseCase {
     fun updateMe(
         name: String?,
         password: String?,
+        confirmPassword: String?,
         avatar: File?,
         isSignUser: Boolean?
     ): Flow<Resource<User>>

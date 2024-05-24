@@ -32,6 +32,9 @@ class MainAppViewModel(
     private val _password: MutableStateFlow<String> = MutableStateFlow("")
     val password: MutableStateFlow<String> get() = _password
 
+    private val _confirmPassword: MutableStateFlow<String> = MutableStateFlow("")
+    val confirmPassword: MutableStateFlow<String> get() = _confirmPassword
+
     private val _isSignUser: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isSignUser: MutableStateFlow<Boolean> get() = _isSignUser
 
@@ -86,6 +89,26 @@ class MainAppViewModel(
         }
 
         _password.value = password
+    }
+
+    fun onChangeConfirmPassword(confirmPassword: String) {
+        _validationState.value = if (confirmPassword.isBlank()) {
+            validationState.copy(
+                confirmPasswordError = "Confirm Password is required"
+            )
+        } else if (!FormValidators.isPasswordValid(confirmPassword)) {
+            validationState.copy(
+                confirmPasswordError = "Confirm Password must be at least 8 characters"
+            )
+        } else if (confirmPassword != password.value) {
+            validationState.copy(
+                confirmPasswordError = "Confirm Password must be same as Password"
+            )
+        } else {
+            validationState.copy(confirmPasswordError = null)
+        }
+
+        _confirmPassword.value = confirmPassword
     }
 
     fun setSignUser(isSignUser: Boolean) {
@@ -284,7 +307,16 @@ class MainAppViewModel(
         _password.value = ""
     }
 
-    fun cleanSignUser() {
+    private fun cleanConfirmPassword() {
+        _confirmPassword.value = ""
+    }
+
+    fun clearPasswordAndConfirmPassword() {
+        cleanPassword()
+        cleanConfirmPassword()
+    }
+
+    private fun cleanSignUser() {
         _isSignUser.value = false
     }
 

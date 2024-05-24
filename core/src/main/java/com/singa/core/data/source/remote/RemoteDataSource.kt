@@ -243,6 +243,7 @@ class RemoteDataSource(
     fun updateMe(
         name: RequestBody?,
         password: RequestBody?,
+        confirmPassword: RequestBody?,
         isSignUser: RequestBody?,
         avatar: MultipartBody.Part?
     ): Flow<ApiResponse<GenericResponse<UpdateUserResponse>>> {
@@ -251,6 +252,7 @@ class RemoteDataSource(
                 val response = apiService.updateMe(
                     avatar,
                     name,
+                    confirmPassword,
                     password,
                     isSignUser
                 )

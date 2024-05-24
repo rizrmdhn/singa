@@ -21,11 +21,13 @@ class SingaInteractor(
     override fun updateMe(
         name: String?,
         password: String?,
+        confirmPassword: String?,
         avatar: File?,
         isSignUser: Boolean?
     ) = singaRepository.updateMe(
         name,
         password,
+        confirmPassword,
         avatar,
         isSignUser
     )

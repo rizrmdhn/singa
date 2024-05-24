@@ -114,22 +114,25 @@ class MainActivityViewModel(
 
     fun updateUser(
         context: Context,
-        uri: Uri,
+        uri: Uri?,
         name: String,
         password: String,
+        confirmPassword: String,
         isSignUser: Boolean,
         updateValidationState: (validationState: ValidationState) -> Unit,
+        clearChangePasswordForm: () -> Unit,
         setUpdateIsLoading: (status: Boolean) -> Unit
     ) {
         var avatar: File? = null
         if (uri != Uri.EMPTY) {
-            avatar = Helpers.uriToFile(uri, context).reduceFileImage()
+            avatar = Helpers.uriToFile(uri!!, context).reduceFileImage()
         }
 
         viewModelScope.launch {
             singaUseCase.updateMe(
                 name = name,
                 password = password,
+                confirmPassword = confirmPassword,
                 avatar = avatar,
                 isSignUser = isSignUser
             ).collect {
@@ -137,6 +140,11 @@ class MainActivityViewModel(
                     is Resource.Success -> {
                         setUpdateIsLoading(false)
                         _authUser.value = Resource.Success(it.data)
+
+                        if (password.isNotBlank() && confirmPassword.isNotBlank()) {
+                            clearChangePasswordForm()
+                        }
+
                         showAlert("Success", "Update success")
                     }
 
