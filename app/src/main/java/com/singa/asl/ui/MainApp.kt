@@ -114,11 +114,11 @@ fun MainApp(
     val showBottomSheet = remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = currentRoute) {
-       if (currentRoute == Screen.ProfileDetail.route) {
-           viewModel.onChangeName(authUser?.name ?: "")
-           viewModel.onChangeEmail(authUser?.email ?: "")
-           viewModel.setSignUser(authUser?.isSignUser ?: false)
-       }
+        if (currentRoute == Screen.ProfileDetail.route) {
+            viewModel.onChangeName(authUser?.name ?: "")
+            viewModel.onChangeEmail(authUser?.email ?: "")
+            viewModel.setSignUser(authUser?.isSignUser ?: false)
+        }
     }
 
     SingaTheme {
@@ -258,8 +258,14 @@ fun MainApp(
                         onNavigateToLogin = {
                             navController.navigate(Screen.Login.route)
                         },
-                        onNavigateToGuest = {
-                            navController.navigate(Screen.Home.route)
+                        onLoginAsGuest = {
+                            viewModel.onLoginAsGuest(
+                                getAuthUser = getAuthUser,
+                                navigateToHome = {
+                                    navController.navigate(Screen.Home.route)
+                                },
+                                showDialog = showDialog
+                            )
                         }
                     )
                 }
@@ -286,6 +292,13 @@ fun MainApp(
                         avatarUrl = authUser?.avatar ?: "",
                         logoutIsLoading = logoutIsLoading,
                         onLogout = {
+                           if (authUser?.accountType == "guest") {
+                               it("Logout", "You are currently logged in as a guest, do you want to logout?")
+                           } else {
+                                 it("Logout", "Are you sure you want to logout?")
+                           }
+                        },
+                        onConfirmLogout = {
                             onLogouts {
                                 navController.navigate(Screen.Welcome.route)
                             }

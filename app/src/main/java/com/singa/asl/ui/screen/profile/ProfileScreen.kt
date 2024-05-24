@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,6 +25,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -36,25 +39,45 @@ import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.singa.asl.R
+import com.singa.asl.ui.components.ConfirmationDialog
+import com.singa.asl.ui.components.PopupAlertDialog
 import com.singa.asl.ui.components.shimmerBrush
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.ColorBluePastelBackground
 import com.singa.asl.ui.theme.ColorDanger
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
 fun ProfileScreen(
     avatarUrl: String,
-    onLogout: () -> Unit,
+    onLogout: (
+            (title: String, message: String) -> Unit,
+    ) -> Unit,
     logoutIsLoading: Boolean,
+    onConfirmLogout: () -> Unit,
     onNavigateToDetail: () -> Unit,
-    onNavigateToPassword: () -> Unit
+    onNavigateToPassword: () -> Unit,
+    viewModel: ProfileScreenViewModel = koinViewModel()
 ) {
+    val alertDialog by viewModel.alertDialog.collectAsState()
+    val alertDialogTitle by viewModel.alertDialogTitle.collectAsState()
+    val alertDialogMessage by viewModel.alertDialogMessage.collectAsState()
+
     ProfileContent(
         avatarUrl = avatarUrl,
-        onLogout = onLogout,
+        onLogout = {
+            onLogout(
+                viewModel::showAlert
+            )
+        },
         logoutIsLoading = logoutIsLoading,
+        alertDialog = alertDialog,
+        alertDialogTitle = alertDialogTitle,
+        alertDialogMessage = alertDialogMessage,
+        hideDialog = viewModel::hideAlert,
+        confirmDialog = onConfirmLogout,
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToPassword = onNavigateToPassword
     )
@@ -65,6 +88,11 @@ fun ProfileContent(
     avatarUrl: String,
     onLogout: () -> Unit,
     logoutIsLoading: Boolean,
+    alertDialog: Boolean,
+    alertDialogTitle: String,
+    alertDialogMessage: String,
+    hideDialog: () -> Unit,
+    confirmDialog: () -> Unit,
     onNavigateToDetail: () -> Unit,
     onNavigateToPassword: () -> Unit
 ) {
@@ -199,6 +227,15 @@ fun ProfileContent(
             }
         }
     }
+
+    if (alertDialog) {
+        ConfirmationDialog(
+            title = alertDialogTitle,
+            text = alertDialogMessage,
+            onDismissRequest = hideDialog,
+            confirmButton = confirmDialog
+        )
+    }
 }
 
 @Composable
@@ -238,7 +275,7 @@ fun ButtonAction(
                 Text(text = text, fontSize = 20.sp)
             }
             Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "Arrow Right",
                 modifier = Modifier.size(32.dp),
                 tint = Color1

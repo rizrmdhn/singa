@@ -73,6 +73,7 @@ class MainActivityViewModel(
         }
     }
 
+
     fun logout(
         navigateToWelcome: () -> Unit
     ) {

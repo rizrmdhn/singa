@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 
 @Composable
-fun PopupAlertDialog(
+fun ConfirmationDialog(
     title: String,
     text: String,
     onDismissRequest: () -> Unit,

@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImagePainter
@@ -146,8 +147,9 @@ fun TopBarProfile(
                 )
                 Text(
                     text = name,
-                    fontSize = 28.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Medium,
+                    overflow = TextOverflow.Ellipsis,
                     color = Color.White
                 )
             }
@@ -192,7 +194,7 @@ fun TopBarProfile(
 
                         is AsyncImagePainter.State.Error -> {
                             Image(
-                                imageVector = Icons.Default.Info,
+                                painter = painterResource(id = R.drawable.boy_1),
                                 contentDescription = "profile",
                             )
                         }

@@ -119,6 +119,49 @@ class MainAppViewModel(
         _isSignUser.value = !_isSignUser.value
     }
 
+    fun onLoginAsGuest(
+        getAuthUser: () -> Unit,
+        navigateToHome: () -> Unit,
+        showDialog: (String, String) -> Unit
+    ) {
+        viewModelScope.launch {
+            _loginIsLoading.value = true
+            singaUseCase.guest().collect {
+                when (it) {
+                    is Resource.Success -> {
+                        showDialog("Success", "Login success")
+                        singaUseCase.saveAccessToken(it.data.accessToken)
+                        singaUseCase.saveRefreshToken(it.data.refreshToken)
+                        getAuthUser()
+                        navigateToHome()
+                        _loginIsLoading.value = false
+                        cleanName()
+                        cleanEmail()
+                        cleanPassword()
+                        cleanValidationState()
+                    }
+
+                    is Resource.Empty -> {
+                        showDialog("Error", "Something went wrong")
+                        _loginIsLoading.value = false
+                    }
+
+                    is Resource.Error -> {
+                        showDialog("Error", it.message)
+                        _loginIsLoading.value = false
+                    }
+
+                    is Resource.Loading -> {
+                        _loginIsLoading.value = true
+                    }
+
+                    is Resource.ValidationError -> {
+                    }
+                }
+            }
+        }
+    }
+
     fun onLogin(
         getAuthUser: () -> Unit,
         navigateToHome: () -> Unit,
