@@ -7,6 +7,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.style.TextAlign
 
 @Composable
 fun PopupAlertDialog(
@@ -26,7 +27,10 @@ fun PopupAlertDialog(
             Text(title)
         },
         text = {
-            Text(text)
+            Text(
+                text,
+                textAlign = TextAlign.Center,
+            )
         },
         onDismissRequest = onDismissRequest,
         dismissButton = {

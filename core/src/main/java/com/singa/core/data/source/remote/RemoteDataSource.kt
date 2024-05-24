@@ -1,6 +1,7 @@
 package com.singa.core.data.source.remote
 
 
+import android.util.Log
 import com.google.gson.Gson
 import com.singa.core.data.source.remote.network.ApiResponse
 import com.singa.core.data.source.remote.network.ApiService
@@ -40,6 +41,7 @@ class RemoteDataSource(
                         Gson().fromJson(errorBody, GenericResponse::class.java)
                     if (response.code() == 422) {
                         emit(ApiResponse.ValidationError(errorResponse.errors))
+                        return@flow
                     }
                     if (response.code() != 200 || response.code() != 201) {
                         emit(ApiResponse.Error(normalErrorResponse.meta.message, response.code()))
@@ -106,6 +108,7 @@ class RemoteDataSource(
                         Gson().fromJson(errorBody, GenericResponse::class.java)
                     if (response.code() == 422) {
                         emit(ApiResponse.ValidationError(errorResponse.errors))
+                        return@flow
                     }
                     if (response.code() != 200 || response.code() != 201) {
                         emit(ApiResponse.Error(normalErrorResponse.meta.message, response.code()))
@@ -207,6 +210,7 @@ class RemoteDataSource(
                         Gson().fromJson(errorBody, GenericResponse::class.java)
                     if (response.code() == 422) {
                         emit(ApiResponse.ValidationError(errorResponse.errors))
+                        return@flow
                     }
                     if (response.code() != 200 || response.code() != 201) {
                         emit(ApiResponse.Error(normalErrorResponse.meta.message, response.code()))
@@ -261,6 +265,7 @@ class RemoteDataSource(
                         Gson().fromJson(errorBody, GenericResponse::class.java)
                     if (response.code() == 422) {
                         emit(ApiResponse.ValidationError(errorResponse.errors))
+                        return@flow
                     }
                     if (response.code() != 200 || response.code() != 201) {
                         emit(ApiResponse.Error(normalErrorResponse.meta.message, response.code()))

@@ -1,6 +1,5 @@
 package com.singa.asl
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.singa.core.data.Resource
@@ -24,12 +23,20 @@ class MainActivityViewModel(
     private val _logoutIsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val logoutIsLoading: MutableStateFlow<Boolean> get() = _logoutIsLoading
 
+    private val _alertDialogTitle: MutableStateFlow<String> = MutableStateFlow("")
+    val alertDialogTitle: MutableStateFlow<String> get() = _alertDialogTitle
+
+    private val _alertDialogMessage: MutableStateFlow<String> = MutableStateFlow("")
+    val alertDialogMessage: MutableStateFlow<String> get() = _alertDialogMessage
+
+    private val _alertDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val alertDialog: MutableStateFlow<Boolean> get() = _alertDialog
+
 
     init {
         getAuthUser()
         checkSecondLaunch()
     }
-
 
 
     private fun checkSecondLaunch() {
@@ -52,7 +59,7 @@ class MainActivityViewModel(
         }
     }
 
-    private fun getAuthUser() {
+    fun getAuthUser() {
         viewModelScope.launch {
             singaUseCase.getMe().collect {
                 _authUser.value = it
@@ -60,18 +67,28 @@ class MainActivityViewModel(
         }
     }
 
-    fun logout() {
+    fun logout(
+        navigateToWelcome: () -> Unit
+    ) {
         viewModelScope.launch {
             removeAccessToken()
             removeRefreshToken()
             singaUseCase.logout().collect {
                 when (it) {
                     is Resource.Success -> {
+                        showAlert("Success", "Logout success")
                         _logoutIsLoading.value = false
-                        _authUser.value = Resource.Loading()
+                        _authUser.value = Resource.Empty()
+                        navigateToWelcome()
+                    }
+
+                    is Resource.Empty -> {
+                        showAlert("Error", "Something went wrong")
+                        _logoutIsLoading.value = false
                     }
 
                     is Resource.Error -> {
+                        showAlert("Error", it.message ?: "Something went wrong")
                         _logoutIsLoading.value = false
                     }
 
@@ -80,6 +97,7 @@ class MainActivityViewModel(
                     }
 
                     is Resource.ValidationError -> {
+                        showAlert("Error", "Something went wrong")
                         _logoutIsLoading.value = false
                         return@collect
                     }
@@ -96,4 +114,15 @@ class MainActivityViewModel(
         _isScreenReady.value = false
     }
 
+    fun showAlert(title: String, message: String) {
+        _alertDialogTitle.value = title
+        _alertDialogMessage.value = message
+        _alertDialog.value = true
+    }
+
+    fun hideAlert() {
+        _alertDialogTitle.value = ""
+        _alertDialogMessage.value = ""
+        _alertDialog.value = false
+    }
 }

@@ -1,7 +1,6 @@
 package com.singa.asl
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -10,7 +9,6 @@ import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.singa.asl.ui.MainApp
 import com.singa.core.data.Resource
-import com.singa.core.domain.model.User
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 
@@ -25,6 +23,11 @@ class MainActivity : ComponentActivity() {
         setContent {
             val isScreenReady by viewModels.isScreenReady.collectAsState()
             val isSecondLaunch by viewModels.isSecondLaunch.collectAsState()
+            val logoutIsLoading by viewModels.logoutIsLoading.collectAsState()
+
+            val alertDialog by viewModels.alertDialog.collectAsState()
+            val alertDialogTitle by viewModels.alertDialogTitle.collectAsState()
+            val alertDialogMessage by viewModels.alertDialogMessage.collectAsState()
 
             splashScreen.setKeepOnScreenCondition {
                 !isScreenReady
@@ -36,30 +39,67 @@ class MainActivity : ComponentActivity() {
                         viewModels.setScreenNotReady()
                     }
 
+                    is Resource.Empty -> {
+                        viewModels.setScreenReady()
+                        MainApp(
+                            onLogouts = viewModels::logout,
+                            authUser = null,
+                            getAuthUser = viewModels::getAuthUser,
+                            logoutIsLoading = logoutIsLoading,
+                            isSecondLaunch = isSecondLaunch,
+                            alertDialog = alertDialog,
+                            alertDialogTitle = alertDialogTitle,
+                            alertDialogMessage = alertDialogMessage,
+                            showDialog = viewModels::showAlert,
+                            hideDialog = viewModels::hideAlert
+                        )
+                    }
+
                     is Resource.Success -> {
                         viewModels.setScreenReady()
                         MainApp(
-                            onLogout = viewModels::logout,
+                            onLogouts = viewModels::logout,
                             authUser = state.data,
-                            isSecondLaunch = isSecondLaunch
+                            getAuthUser = viewModels::getAuthUser,
+                            logoutIsLoading = logoutIsLoading,
+                            isSecondLaunch = isSecondLaunch,
+                            alertDialog = alertDialog,
+                            alertDialogTitle = alertDialogTitle,
+                            alertDialogMessage = alertDialogMessage,
+                            showDialog = viewModels::showAlert,
+                            hideDialog = viewModels::hideAlert
                         )
                     }
 
                     is Resource.Error -> {
                         viewModels.setScreenReady()
                         MainApp(
-                            onLogout = viewModels::logout,
+                            onLogouts = viewModels::logout,
                             authUser = null,
-                            isSecondLaunch = isSecondLaunch
+                            getAuthUser = viewModels::getAuthUser,
+                            logoutIsLoading = logoutIsLoading,
+                            isSecondLaunch = isSecondLaunch,
+                            alertDialog = alertDialog,
+                            alertDialogTitle = alertDialogTitle,
+                            alertDialogMessage = alertDialogMessage,
+                            showDialog = viewModels::showAlert,
+                            hideDialog = viewModels::hideAlert
                         )
                     }
 
                     is Resource.ValidationError -> {
                         viewModels.setScreenReady()
                         MainApp(
-                            onLogout = viewModels::logout,
+                            onLogouts = viewModels::logout,
                             authUser = null,
-                            isSecondLaunch = isSecondLaunch
+                            getAuthUser = viewModels::getAuthUser,
+                            logoutIsLoading = logoutIsLoading,
+                            isSecondLaunch = isSecondLaunch,
+                            alertDialog = alertDialog,
+                            alertDialogTitle = alertDialogTitle,
+                            alertDialogMessage = alertDialogMessage,
+                            showDialog = viewModels::showAlert,
+                            hideDialog = viewModels::hideAlert
                         )
                     }
                 }

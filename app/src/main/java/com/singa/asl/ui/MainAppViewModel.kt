@@ -1,16 +1,11 @@
 package com.singa.asl.ui
 
-import android.util.Log
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.singa.asl.common.ValidationState
 import com.singa.asl.utils.FormValidators
 import com.singa.core.data.Resource
-import com.singa.core.domain.model.User
 import com.singa.core.domain.usecase.SingaUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -18,7 +13,6 @@ import kotlinx.coroutines.launch
 class MainAppViewModel(
     private val singaUseCase: SingaUseCase
 ) : ViewModel() {
-    private val _authUser: MutableStateFlow<User?> = MutableStateFlow(null)
 
     private val _loginIsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val loginIsLoading get() = _loginIsLoading.value
@@ -38,42 +32,6 @@ class MainAppViewModel(
     private val _password: MutableStateFlow<String> = MutableStateFlow("")
     val password: MutableStateFlow<String> get() = _password
 
-    private val _alertDialogTitle: MutableStateFlow<String> = MutableStateFlow("")
-    val alertDialogTitle: MutableStateFlow<String> get() = _alertDialogTitle
-
-    private val _alertDialogMessage: MutableStateFlow<String> = MutableStateFlow("")
-    val alertDialogMessage: MutableStateFlow<String> get() = _alertDialogMessage
-
-    private val _alertDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val alertDialog: MutableStateFlow<Boolean> get() = _alertDialog
-
-    init {
-        getAuthUser()
-    }
-
-    private fun getAuthUser() {
-        viewModelScope.launch {
-            singaUseCase.getMe().collect {
-                when (it) {
-                    is Resource.Success -> {
-                        _authUser.value = it.data
-                    }
-
-                    is Resource.Error -> {
-                        _authUser.value = null
-                    }
-
-                    is Resource.Loading -> {
-                        _authUser.value = null
-                    }
-
-                    is Resource.ValidationError -> {
-                        _authUser.value = null
-                    }
-                }
-            }
-        }
-    }
 
     fun onChangeName(name: String) {
         _validationState.value = if (name.isBlank()) {
@@ -128,7 +86,9 @@ class MainAppViewModel(
     }
 
     fun onLogin(
+        getAuthUser: () -> Unit,
         navigateToHome: () -> Unit,
+        showDialog: (String, String) -> Unit
     ) {
         if (email.value.isBlank() || password.value.isBlank()) {
             _validationState.value = validationState.copy(
@@ -159,6 +119,7 @@ class MainAppViewModel(
             singaUseCase.login(email.value, password.value).collect {
                 when (it) {
                     is Resource.Success -> {
+                        showDialog("Success", "Login success")
                         singaUseCase.saveAccessToken(it.data.accessToken)
                         singaUseCase.saveRefreshToken(it.data.refreshToken)
                         getAuthUser()
@@ -170,10 +131,13 @@ class MainAppViewModel(
                         cleanValidationState()
                     }
 
+                    is Resource.Empty -> {
+                        showDialog("Error", "Something went wrong")
+                        _loginIsLoading.value = false
+                    }
+
                     is Resource.Error -> {
-                        _alertDialogTitle.value = "Error"
-                        _alertDialogMessage.value = it.message
-                        _alertDialog.value = true
+                        showDialog("Error", it.message)
                         _loginIsLoading.value = false
                     }
 
@@ -183,17 +147,17 @@ class MainAppViewModel(
 
                     is Resource.ValidationError -> {
                         _loginIsLoading.value = false
-                        it.errors.forEach { (key, value) ->
-                            when (key) {
+                        it.errors.forEach { (msg, _, field) ->
+                            when (field) {
                                 "email" -> {
                                     _validationState.value = validationState.copy(
-                                        emailError = value
+                                        emailError = msg
                                     )
                                 }
 
                                 "password" -> {
                                     _validationState.value = validationState.copy(
-                                        passwordError = value
+                                        passwordError = msg
                                     )
                                 }
                             }
@@ -205,7 +169,8 @@ class MainAppViewModel(
     }
 
     fun onRegister(
-        navigateToLogin: () -> Unit
+        navigateToLogin: () -> Unit,
+        showDialog: (String, String) -> Unit
     ) {
         if (email.value.isBlank() || password.value.isBlank() || name.value.isBlank()) {
             _validationState.value = validationState.copy(
@@ -246,19 +211,20 @@ class MainAppViewModel(
                     is Resource.Success -> {
                         navigateToLogin()
                         _registerIsLoading.value = false
-                        _alertDialogTitle.value = "Success"
-                        _alertDialogMessage.value = it.data
-                        _alertDialog.value = true
+                        showDialog("Success", "Register success")
                         cleanName()
                         cleanEmail()
                         cleanPassword()
                         cleanValidationState()
                     }
 
+                    is Resource.Empty -> {
+                        showDialog("Error", "Something went wrong")
+                        _registerIsLoading.value = false
+                    }
+
                     is Resource.Error -> {
-                        _alertDialogTitle.value = "Error"
-                        _alertDialogMessage.value = it.message
-                        _alertDialog.value = true
+                        showDialog("Error", it.message)
                         _registerIsLoading.value = false
                     }
 
@@ -268,17 +234,23 @@ class MainAppViewModel(
 
                     is Resource.ValidationError -> {
                         _registerIsLoading.value = false
-                        it.errors.forEach { (key, value) ->
-                            when (key) {
+                        it.errors.forEach { (msg, _, field) ->
+                            when (field) {
+                                "name" -> {
+                                    _validationState.value = validationState.copy(
+                                        nameError = msg
+                                    )
+                                }
+
                                 "email" -> {
                                     _validationState.value = validationState.copy(
-                                        emailError = value
+                                        emailError = msg
                                     )
                                 }
 
                                 "password" -> {
                                     _validationState.value = validationState.copy(
-                                        passwordError = value
+                                        passwordError = msg
                                     )
                                 }
                             }
@@ -289,9 +261,6 @@ class MainAppViewModel(
         }
     }
 
-    fun dismissAlertDialog() {
-        _alertDialog.value = false
-    }
 
     fun cleanName() {
         _name.value = ""

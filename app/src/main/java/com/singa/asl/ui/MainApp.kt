@@ -1,6 +1,5 @@
 package com.singa.asl.ui
 
-import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -27,7 +26,6 @@ import com.singa.asl.ui.components.TopBar
 import com.singa.asl.ui.navigation.Screen
 import com.singa.asl.ui.screen.change_password.ChangePasswordScreen
 import com.singa.asl.ui.screen.conversation.ConversationScreen
-import com.singa.asl.ui.screen.history.HistoryScreen
 import com.singa.asl.ui.screen.history_detail.HistoryDetailScreen
 import com.singa.asl.ui.screen.home.HomeScreen
 import com.singa.asl.ui.screen.login.LoginScreen
@@ -50,17 +48,22 @@ import org.koin.androidx.compose.koinViewModel
 fun MainApp(
     navController: NavHostController = rememberNavController(),
     authUser: User?,
+    getAuthUser: () -> Unit,
     isSecondLaunch: Boolean,
-    onLogout: () -> Unit,
+    onLogouts: (
+        navigateToWelcome: () -> Unit,
+    ) -> Unit,
+    logoutIsLoading: Boolean,
+    alertDialog: Boolean,
+    alertDialogTitle: String,
+    alertDialogMessage: String,
+    showDialog: (String, String) -> Unit,
+    hideDialog: () -> Unit,
     viewModel: MainAppViewModel = koinViewModel()
 ) {
     val name by viewModel.name.collectAsState()
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
-
-    val alertDialog by viewModel.alertDialog.collectAsState()
-    val alertDialogTitle by viewModel.alertDialogTitle.collectAsState()
-    val alertDialogMessage by viewModel.alertDialogMessage.collectAsState()
 
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -168,9 +171,13 @@ fun MainApp(
                         onChangePassword = viewModel::onChangePassword,
                         isLoginLoading = viewModel.loginIsLoading,
                         onLogin = {
-                            viewModel.onLogin {
-                                navController.navigate(Screen.Home.route)
-                            }
+                            viewModel.onLogin(
+                                getAuthUser = getAuthUser,
+                                navigateToHome = {
+                                    navController.navigate(Screen.Home.route)
+                                },
+                                showDialog = showDialog
+                            )
                         },
                         navigateToRegister = {
                             viewModel.cleanEmail()
@@ -199,9 +206,12 @@ fun MainApp(
                         onChangePassword = viewModel::onChangePassword,
                         isRegisterLoading = viewModel.registerIsLoading,
                         onRegister = {
-                            viewModel.onRegister {
-                                navController.navigate(Screen.Login.route)
-                            }
+                            viewModel.onRegister(
+                                navigateToLogin = {
+                                    navController.navigate(Screen.Login.route)
+                                },
+                                showDialog = showDialog
+                            )
                         },
                         navigateToLogin = {
                             viewModel.cleanName()
@@ -246,9 +256,11 @@ fun MainApp(
                 composable(Screen.Profile.route) {
                     ProfileScreen(
                         avatarUrl = authUser?.avatar ?: "",
+                        logoutIsLoading = logoutIsLoading,
                         onLogout = {
-                            onLogout()
-                            navController.navigate(Screen.Welcome.route)
+                            onLogouts {
+                                navController.navigate(Screen.Welcome.route)
+                            }
                         },
                         onNavigateToDetail = {
                             navController.navigate(Screen.ProfileDetail.route)
@@ -290,8 +302,8 @@ fun MainApp(
                 PopupAlertDialog(
                     title = alertDialogTitle,
                     text = alertDialogMessage,
-                    onDismissRequest = viewModel::dismissAlertDialog,
-                    confirmButton = viewModel::dismissAlertDialog
+                    onDismissRequest = hideDialog,
+                    confirmButton = hideDialog
                 )
             }
 

@@ -1,7 +1,6 @@
 package com.singa.asl.ui.screen.register
 
 import android.content.res.Configuration
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement

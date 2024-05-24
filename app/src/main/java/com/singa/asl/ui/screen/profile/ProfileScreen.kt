@@ -30,7 +30,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImagePainter
@@ -48,12 +47,14 @@ import com.singa.asl.ui.theme.ColorDanger
 fun ProfileScreen(
     avatarUrl: String,
     onLogout: () -> Unit,
+    logoutIsLoading: Boolean,
     onNavigateToDetail: () -> Unit,
     onNavigateToPassword: () -> Unit
 ) {
     ProfileContent(
         avatarUrl = avatarUrl,
         onLogout = onLogout,
+        logoutIsLoading = logoutIsLoading,
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToPassword = onNavigateToPassword
     )
@@ -63,6 +64,7 @@ fun ProfileScreen(
 fun ProfileContent(
     avatarUrl: String,
     onLogout: () -> Unit,
+    logoutIsLoading: Boolean,
     onNavigateToDetail: () -> Unit,
     onNavigateToPassword: () -> Unit
 ) {
@@ -103,6 +105,7 @@ fun ProfileContent(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 Button(
+                    enabled = !logoutIsLoading,
                     onClick = {
                         onLogout()
                     },
@@ -116,11 +119,26 @@ fun ProfileContent(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(
-                        text = "Logout",
-                        fontSize = 24.sp,
-                        color = Color.White
-                    )
+                    if (logoutIsLoading) {
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    shimmerBrush(
+                                        targetValue = 1300f,
+                                        showShimmer = true
+                                    )
+                                )
+                                .fillMaxWidth()
+                                .height(60.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                        )
+                    } else {
+                        Text(
+                            text = "Logout",
+                            fontSize = 24.sp,
+                            color = Color.White
+                        )
+                    }
                 }
             }
         }

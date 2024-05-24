@@ -149,6 +149,10 @@ class SingaRepository(
                                         }
                                     }
 
+                                    is Resource.Empty -> {
+                                        emit(Resource.Error("Empty Data"))
+                                    }
+
                                     is Resource.Error -> {
                                         emit(Resource.Error(it.message))
                                     }
@@ -181,11 +185,7 @@ class SingaRepository(
     override fun logout(): Flow<Resource<String>> {
         return flow {
             emit(Resource.Loading())
-            var token: String? = null
-            getRefreshToken().collect {
-                token = it
-            }
-            Log.d("SingaRepository", "logout: $token")
+            val token = getRefreshToken().first()
             val body = JsonObject().apply {
                 addProperty("refreshToken", token)
             }.toString()
