@@ -10,6 +10,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -109,6 +110,13 @@ fun MainApp(
     )
 
     val showBottomSheet = remember { mutableStateOf(false) }
+
+    LaunchedEffect(key1 = authUser) {
+        if (authUser != null) {
+            viewModel.onChangeName(authUser.name)
+            viewModel.onChangeEmail(authUser.email ?: "")
+        }
+    }
 
     SingaTheme {
         Scaffold(
@@ -290,8 +298,8 @@ fun MainApp(
                 composable(Screen.ProfileDetail.route) {
                     ProfileDetailScreen(
                         avatarUrl = authUser?.avatar ?: "",
-                        name = authUser?.name ?: "",
-                        email = authUser?.email ?: "",
+                        name = name,
+                        email = email,
                         onChangeName = viewModel::onChangeName,
                         onChangeEmail = viewModel::onChangeEmail,
                         onUpdate = { uri, setLoadingState ->

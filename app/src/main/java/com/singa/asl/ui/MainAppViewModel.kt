@@ -269,7 +269,6 @@ class MainAppViewModel(
         }
     }
 
-
     fun cleanName() {
         _name.value = ""
     }
