@@ -1,7 +1,6 @@
 package com.singa.asl.ui.components
 
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -43,6 +42,7 @@ fun TopBar(
     currentRoute: String?,
     name: String,
     avatarUrl: String,
+    resetForm: () -> Unit,
     navigateToProfile: () -> Unit,
     navigateBack: () -> Unit
 ) {
@@ -55,7 +55,7 @@ fun TopBar(
 
         else -> TopBarLeftIcon(
             navigateBack = navigateBack,
-            // replace second parameter to uppercase
+            resetForm = resetForm,
             route = currentRoute.toString()
         )
     }
@@ -65,6 +65,7 @@ fun TopBar(
 @Composable
 fun TopBarLeftIcon(
     route: String,
+    resetForm: () -> Unit,
     navigateBack: () -> Unit
 ) {
     val colorPaint: Color =
@@ -106,6 +107,9 @@ fun TopBarLeftIcon(
             if (showBackButton) {
                 IconButton(
                     onClick = {
+                        if (route == Screen.ProfileDetail.route || route == Screen.ChangePassword.route) {
+                            resetForm()
+                        }
                         navigateBack()
                     }
                 ) {
@@ -141,7 +145,7 @@ fun TopBarProfile(
                     color = Color(0xFFD5F4FC)
                 )
                 Text(
-                    text = "Welcome, $name",
+                    text = name,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Medium,
                     color = Color.White

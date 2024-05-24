@@ -41,6 +41,7 @@ import com.singa.core.domain.model.FormItem
 fun FormComp(
     formData: List<FormItem>,
     buttonText: String = "Login",
+    needSubmitButton: Boolean = true,
     onClickButton: () -> Unit,
     isLoading: Boolean = false,
 ) {
@@ -104,41 +105,43 @@ fun FormComp(
                 )
             }
             Spacer(
-                modifier = Modifier.height(26.dp)
+                modifier = Modifier.height(16.dp)
             )
         }
     }
-    TextButton(
-        enabled = !isLoading,
-        onClick = {
-            onClickButton()
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(58.dp)
-            .clip(
-                RoundedCornerShape(12.dp)
-            )
-            .background(
-                if (isLoading) {
-                    Color1.copy(alpha = 0.7f)
-                } else {
-                    Color1
-                }
-            )
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
+    if (needSubmitButton) {
+        TextButton(
+            enabled = !isLoading,
+            onClick = {
+                onClickButton()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(58.dp)
+                .clip(
+                    RoundedCornerShape(12.dp)
+                )
+                .background(
+                    if (isLoading) {
+                        Color1.copy(alpha = 0.7f)
+                    } else {
+                        Color1
+                    }
+                )
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.background,
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+            }
+            Text(
+                text = buttonText,
                 color = MaterialTheme.colorScheme.background,
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleLarge,
             )
-            Spacer(modifier = Modifier.width(16.dp))
         }
-        Text(
-            text = buttonText,
-            color = MaterialTheme.colorScheme.background,
-            fontWeight = FontWeight.Bold,
-            style = MaterialTheme.typography.titleLarge,
-        )
     }
 }
 

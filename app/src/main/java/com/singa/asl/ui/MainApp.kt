@@ -2,7 +2,6 @@ package com.singa.asl.ui
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -111,11 +110,12 @@ fun MainApp(
 
     val showBottomSheet = remember { mutableStateOf(false) }
 
-    LaunchedEffect(key1 = authUser) {
-        if (authUser != null) {
-            viewModel.onChangeName(authUser.name)
-            viewModel.onChangeEmail(authUser.email ?: "")
-        }
+    LaunchedEffect(key1 = currentRoute) {
+       if (currentRoute == Screen.ProfileDetail.route) {
+           viewModel.onChangeName(authUser?.name ?: "")
+           viewModel.onChangeEmail(authUser?.email ?: "")
+           viewModel.setSignUser(authUser?.isSignUser ?: false)
+       }
     }
 
     SingaTheme {
@@ -129,6 +129,7 @@ fun MainApp(
                         navigateToProfile = {
                             navController.navigate(Screen.Profile.route)
                         },
+                        resetForm = viewModel::resetForm,
                         navigateBack = {
                             navController.popBackStack()
                         }
@@ -299,9 +300,19 @@ fun MainApp(
                     ProfileDetailScreen(
                         avatarUrl = authUser?.avatar ?: "",
                         name = name,
+                        isNameError = viewModel.validationState.nameError != null,
+                        nameError = viewModel.validationState.nameError ?: "",
                         email = email,
+                        isEmailError = viewModel.validationState.emailError != null,
+                        emailError = viewModel.validationState.emailError ?: "",
                         onChangeName = viewModel::onChangeName,
                         onChangeEmail = viewModel::onChangeEmail,
+                        resetForm = viewModel::resetForm,
+                        isSignUser = isSignUser,
+                        onChangeIsSignUser = viewModel::onChangeSignUser,
+                        navigateBack = {
+                            navController.popBackStack()
+                        },
                         onUpdate = { uri, setLoadingState ->
                             onUpdateProfile(
                                 context,
