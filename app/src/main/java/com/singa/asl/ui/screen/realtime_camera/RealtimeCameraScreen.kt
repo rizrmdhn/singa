@@ -36,6 +36,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,11 +54,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LifecycleOwner
+import com.google.mediapipe.tasks.components.containers.Classifications
 import com.singa.asl.R
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
 import com.singa.asl.utils.Helpers
+import com.singa.asl.utils.ImageClassifierHelper
 import java.io.File
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -94,6 +98,13 @@ fun RealtimeCameraContent(
     cameraController.cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
     previewView.controller = cameraController
 
+    var analyzeResult: List<Classifications> by remember {
+        mutableStateOf(emptyList())
+    }
+
+    var analyzingResultIsOut: Boolean by remember {
+        mutableStateOf(false)
+    }
 
     val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -161,7 +172,8 @@ fun RealtimeCameraContent(
 
     fun recordVideo() {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val outputFile = File(context.getExternalFilesDir(Environment.DIRECTORY_MOVIES), "video_$timeStamp.mp4")
+        val outputFile =
+            File(context.getExternalFilesDir(Environment.DIRECTORY_MOVIES), "video_$timeStamp.mp4")
 
         if (ActivityCompat.checkSelfPermission(
                 context,
@@ -191,6 +203,57 @@ fun RealtimeCameraContent(
         }
     }
 
+    fun testMediaPipe() {
+        cameraController.takePicture(
+            executors,
+            object : OnImageCapturedCallback() {
+                @OptIn(ExperimentalGetImage::class)
+                override fun onCaptureSuccess(image: ImageProxy) {
+                    super.onCaptureSuccess(image)
+
+                    val imageClassifier = ImageClassifierHelper(
+                        context = context,
+                        classifierListener = object : ImageClassifierHelper.ClassifierListener {
+                            override fun onResults(
+                                results: List<Classifications>?,
+                                inferenceTime: Long
+                            ) {
+                                results?.let { it ->
+                                    if (it.isNotEmpty() && it[0].categories().isEmpty()) {
+                                        println(it)
+                                        val sortedCategories =
+                                            it[0].categories().sortedByDescending { it?.score() }
+                                        val displayResult =
+                                            sortedCategories.joinToString("\n") {
+                                                "${it.categoryName()} " + NumberFormat.getPercentInstance()
+                                                    .format(it.score()).trim()
+                                            }
+                                        Log.d("RealtimeCameraScreen", displayResult)
+                                        analyzeResult = it
+                                        analyzingResultIsOut = true
+                                    } else {
+                                        analyzeResult = it
+                                        analyzingResultIsOut = true
+                                    }
+                                }
+                            }
+
+                            override fun onError(error: String) {
+                                Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    )
+
+                    imageClassifier.classifyImage(image)
+
+                }
+
+                override fun onError(exception: ImageCaptureException) {
+                    Toast.makeText(context, "Error capturing image", Toast.LENGTH_SHORT).show()
+                }
+            }
+        )
+    }
 
     Box(
         modifier = modifier
@@ -225,6 +288,21 @@ fun RealtimeCameraContent(
                         shape = MaterialTheme.shapes.medium
                     )
             ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    IconButton(
+                        modifier = Modifier
+                            .padding(10.dp),
+                        onClick = {
+                            takePhoto()
+                        },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Text(text = analyzeResult.toString())
+                    }
+                }
+
                 IconButton(
                     modifier = Modifier
                         .padding(10.dp),
@@ -245,7 +323,6 @@ fun RealtimeCameraContent(
                 }
             }
         } else {
-            // space for the camera capture button
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -265,8 +342,10 @@ fun RealtimeCameraContent(
                     modifier = Modifier
                         .padding(10.dp),
                     onClick = {
-                        isRecording = true
-                        recordVideo()
+//                        isRecording = true
+//                        recordVideo()
+                        testMediaPipe()
+                        isRecording = false
                     },
                     colors = IconButtonDefaults.iconButtonColors(
                         contentColor = Color.White
