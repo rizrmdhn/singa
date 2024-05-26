@@ -31,6 +31,7 @@ import com.singa.asl.ui.components.TopBar
 import com.singa.asl.ui.navigation.Screen
 import com.singa.asl.ui.screen.change_password.ChangePasswordScreen
 import com.singa.asl.ui.screen.conversation.ConversationScreen
+import com.singa.asl.ui.screen.history.HistoryScreen
 import com.singa.asl.ui.screen.history_detail.HistoryDetailScreen
 import com.singa.asl.ui.screen.home.HomeScreen
 import com.singa.asl.ui.screen.login.LoginScreen
@@ -98,7 +99,8 @@ fun MainApp(
         Screen.Login.route,
         Screen.Register.route,
         Screen.ProfileDetail.route,
-        Screen.ChangePassword.route
+        Screen.ChangePassword.route,
+        Screen.HistoryDetail.route
     )
 
     val isDisabledTopBar = navBackStackEntry?.destination?.route in listOf(
@@ -284,7 +286,14 @@ fun MainApp(
                 }
 
                 composable(Screen.History.route) {
-//                    HistoryScreen()
+                    HistoryScreen(
+                        navigateToDetail = {
+                            navController.navigate(Screen.HistoryDetail.route)
+                        }
+                    )
+                }
+
+                composable(Screen.HistoryDetail.route) {
                     HistoryDetailScreen()
                 }
 

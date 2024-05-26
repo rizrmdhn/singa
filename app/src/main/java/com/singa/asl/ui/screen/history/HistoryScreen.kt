@@ -17,12 +17,14 @@ import com.singa.asl.ui.components.CardItem
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 
 @Composable
-fun HistoryScreen() {
-    HistoryContent()
+fun HistoryScreen(
+    navigateToDetail: (String) -> Unit
+) {
+    HistoryContent(navigateToDetail)
 }
 
 @Composable
-fun HistoryContent() {
+fun HistoryContent(navigateToDetail: (String) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -41,21 +43,12 @@ fun HistoryContent() {
             items(2) {
                 CardItem(
                     image = R.drawable.baseline_library_books_24,
-                    onClickCard = { /*TODO*/ }
+                    onClickCard = {
+                        navigateToDetail("History Detail id")
+                    }
                 )
             }
         }
     }
 }
 
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_NO)
-@Composable
-fun HistoryScreenPreview() {
-    HistoryContent()
-}
-
-@Preview(showBackground = true, uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-fun HistoryScreenDarkPreview() {
-    HistoryContent()
-}
