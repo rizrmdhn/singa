@@ -1,11 +1,15 @@
 package com.singa.core.utils
 
+import com.singa.core.data.source.remote.response.GetConversationListItem
 import com.singa.core.data.source.remote.response.GetMeResponse
+import com.singa.core.data.source.remote.response.GetStaticTranslationList
 import com.singa.core.data.source.remote.response.LoginResponse
 import com.singa.core.data.source.remote.response.SchemaError
 import com.singa.core.data.source.remote.response.UpdateTokenResponse
 import com.singa.core.data.source.remote.response.UpdateUserResponse
+import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.RefreshToken
+import com.singa.core.domain.model.StaticTranslation
 import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.User
 import com.singa.core.domain.model.ValidationErrorSchema
@@ -60,4 +64,23 @@ object DataMapper {
         createdAt = data.createdAt,
         updatedAt = data.updatedAt
     )
+
+    fun mapConversationResponseToModel(data: List<GetConversationListItem>) = data.map {
+        Conversation(
+            id = it.id,
+            title = it.title,
+            createdAt = it.createdAt,
+            updatedAt = it.updatedAt
+        )
+    }
+
+    fun mapStaticTranslationResponseToModel(data: List<GetStaticTranslationList>) = data.map {
+        StaticTranslation(
+            id = it.id,
+            title = it.title,
+            videoUrl = it.videoUrl,
+            createdAt = it.createdAt,
+            updatedAt = it.updatedAt
+        )
+    }
 }

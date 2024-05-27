@@ -7,7 +7,9 @@ import com.singa.core.data.source.remote.network.ApiResponse
 import com.singa.core.data.source.remote.network.ApiService
 import com.singa.core.data.source.remote.response.GenericResponse
 import com.singa.core.data.source.remote.response.GenericSuccessResponse
+import com.singa.core.data.source.remote.response.GetConversationListItem
 import com.singa.core.data.source.remote.response.GetMeResponse
+import com.singa.core.data.source.remote.response.GetStaticTranslationList
 import com.singa.core.data.source.remote.response.LoginResponse
 import com.singa.core.data.source.remote.response.SchemaErrorResponse
 import com.singa.core.data.source.remote.response.UpdateTokenResponse
@@ -274,6 +276,72 @@ class RemoteDataSource(
                     if (response.code() != 200 || response.code() != 201) {
                         emit(ApiResponse.Error(normalErrorResponse.meta.message, response.code()))
                     }
+                }
+            } catch (e: Exception) {
+                if (e is HttpException) {
+                    val exception: HttpException = e
+                    val response = exception.response()
+                    try {
+                        val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
+                        emit(
+                            ApiResponse.Error(
+                                jsonObject.optString("message"),
+                                response?.code() ?: 0
+                            )
+                        )
+                    } catch (e1: JSONException) {
+                        e1.printStackTrace()
+                    } catch (e1: IOException) {
+                        e1.printStackTrace()
+                    }
+                } else {
+                    emit(ApiResponse.Error(e.toString(), 0))
+                }
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    fun getConversations(): Flow<ApiResponse<GenericResponse<List<GetConversationListItem>>>> {
+        return flow {
+            try {
+                val response = apiService.getConversations()
+                if (response.meta.status == "error") {
+                    emit(ApiResponse.Error(response.meta.message, response.meta.code))
+                } else {
+                    emit(ApiResponse.Success(response))
+                }
+            } catch (e: Exception) {
+                if (e is HttpException) {
+                    val exception: HttpException = e
+                    val response = exception.response()
+                    try {
+                        val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
+                        emit(
+                            ApiResponse.Error(
+                                jsonObject.optString("message"),
+                                response?.code() ?: 0
+                            )
+                        )
+                    } catch (e1: JSONException) {
+                        e1.printStackTrace()
+                    } catch (e1: IOException) {
+                        e1.printStackTrace()
+                    }
+                } else {
+                    emit(ApiResponse.Error(e.toString(), 0))
+                }
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    fun getStaticTranslations(): Flow<ApiResponse<GenericResponse<List<GetStaticTranslationList>>>> {
+        return flow {
+            try {
+                val response = apiService.getStaticTranslations()
+                if (response.meta.status == "error") {
+                    emit(ApiResponse.Error(response.meta.message, response.meta.code))
+                } else {
+                    emit(ApiResponse.Success(response))
                 }
             } catch (e: Exception) {
                 if (e is HttpException) {
