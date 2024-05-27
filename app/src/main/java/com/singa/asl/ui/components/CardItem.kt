@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,15 +25,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color3
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CardItem(
-    image:Int,
+    image: Int,
+    title: String,
+    date: String,
     onClickCard: () -> Unit
 ) {
     Card(
@@ -63,21 +68,28 @@ fun CardItem(
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
-                Column {
+                Column(
+                    modifier = Modifier.fillMaxWidth(
+                        0.7f
+                    )
+                ) {
                     Text(
-                        text = "Video Games",
+                        text = title,
                         fontSize = 20.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "20 June 2023",
+                        text = LocalDateTime.parse(date, DateTimeFormatter.ISO_DATE_TIME).format(
+                            DateTimeFormatter.ofPattern("EEEE, dd MMMM yyyy")),
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Light
                     )
                 }
             }
             Icon(
-                imageVector = Icons.Default.KeyboardArrowRight,
+                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "transcript",
                 modifier = Modifier.size(30.dp),
                 tint = Color1

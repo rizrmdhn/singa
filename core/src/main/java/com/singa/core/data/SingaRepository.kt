@@ -5,7 +5,9 @@ import com.google.gson.JsonObject
 import com.singa.core.data.source.local.LocalDataSource
 import com.singa.core.data.source.remote.RemoteDataSource
 import com.singa.core.data.source.remote.network.ApiResponse
+import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.RefreshToken
+import com.singa.core.domain.model.StaticTranslation
 import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.User
 import com.singa.core.domain.repository.ISingaRepository
@@ -288,6 +290,65 @@ class SingaRepository(
                     is ApiResponse.Success -> {
                         val user = DataMapper.mapUpdateUserResponseToModel(it.data.data)
                         emit(Resource.Success(user))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
+    override fun getConversations(): Flow<Resource<List<Conversation>>> {
+        return flow {
+            emit(Resource.Loading())
+            remoteDataSource.getConversations().collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        val conversations = DataMapper.mapConversationResponseToModel(it.data.data)
+                        emit(Resource.Success(conversations))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
+    override fun getStaticTranslations(): Flow<Resource<List<StaticTranslation>>> {
+        return flow {
+            emit(Resource.Loading())
+            remoteDataSource.getStaticTranslations().collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        val translations =
+                            DataMapper.mapStaticTranslationResponseToModel(it.data.data)
+                        emit(Resource.Success(translations))
                     }
 
                     is ApiResponse.Empty -> {

@@ -1,29 +1,99 @@
 package com.singa.asl.ui.screen.message
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.singa.asl.R
 import com.singa.asl.ui.components.CardItem
+import com.singa.asl.ui.components.ConversationCardLoader
 import com.singa.asl.ui.theme.ColorBackgroundWhite
+import com.singa.core.data.Resource
+import com.singa.core.domain.model.Conversation
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
 fun MessageScreen(
-    onNavigateConversation: () -> Unit
+    onNavigateConversation: () -> Unit,
+    viewModel: MessageScreenViewModel = koinViewModel()
 ) {
-    MessageContent(onNavigateConversation)
+    viewModel.state.collectAsState(initial = Resource.Loading()).value.let { state ->
+        when (state) {
+            is Resource.Empty -> {
+                MessageContent(
+                    conversations = emptyList(),
+                    isLoading = false,
+                    isError = false,
+                    errorMessage = "",
+                    onNavigateConversation
+                )
+            }
+
+            is Resource.Error -> {
+                MessageContent(
+                    conversations = emptyList(),
+                    isLoading = false,
+                    isError = true,
+                    errorMessage = state.message,
+                    onNavigateConversation
+                )
+            }
+
+            is Resource.Loading -> {
+                MessageContent(
+                    conversations = emptyList(),
+                    isLoading = true,
+                    isError = false,
+                    errorMessage = "",
+                    onNavigateConversation
+                )
+            }
+
+            is Resource.Success -> {
+                MessageContent(
+                    conversations = state.data,
+                    isLoading = false,
+                    isError = false,
+                    errorMessage = "",
+                    onNavigateConversation
+                )
+            }
+
+            is Resource.ValidationError -> {
+                MessageContent(
+                    conversations = emptyList(),
+                    isLoading = false,
+                    isError = true,
+                    errorMessage = state.errors.joinToString { it.message },
+                    onNavigateConversation
+                )
+            }
+        }
+    }
 }
 
 @Composable
-fun MessageContent(onNavigateConversation: () -> Unit) {
+fun MessageContent(
+    conversations: List<Conversation>,
+    isLoading: Boolean = false,
+    isError: Boolean = false,
+    errorMessage: String = "",
+    onNavigateConversation: () -> Unit,
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -38,12 +108,33 @@ fun MessageContent(onNavigateConversation: () -> Unit) {
                 color = ColorBackgroundWhite
             )
     ) {
-        LazyColumn(Modifier.padding(16.dp)) {
-            items(2) {
-                CardItem(
-                    image = R.drawable.mdi_message_badge,
-                    onClickCard = onNavigateConversation
+        if (isLoading && conversations.isEmpty()) {
+            LazyColumn(Modifier.padding(16.dp)) {
+                items(10) {
+                    ConversationCardLoader()
+                }
+            }
+        } else if (isError) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodyMedium
                 )
+            }
+        } else {
+            LazyColumn(Modifier.padding(16.dp)) {
+                items(conversations, key = { it.id }) { conversation ->
+                    CardItem(
+                        image = R.drawable.mdi_message_badge,
+                        title = conversation.title,
+                        date = conversation.createdAt,
+                        onClickCard = onNavigateConversation
+                    )
+                }
             }
         }
     }

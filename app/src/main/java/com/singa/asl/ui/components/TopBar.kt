@@ -68,8 +68,7 @@ fun TopBarLeftIcon(
     resetForm: () -> Unit,
     navigateBack: () -> Unit
 ) {
-    val colorPaint: Color =
-        if (route == Screen.Login.route || route == "register") Color.Black else Color.White
+    val colorPaint: Color = Color.White
 
     val listOfShowBackButton = listOf(
         Screen.Conversation.route,
@@ -79,7 +78,7 @@ fun TopBarLeftIcon(
         Screen.ChangePassword.route
     )
 
-    val showBackButton = listOfShowBackButton.contains(route.lowercase())
+    val showBackButton = listOfShowBackButton.contains(route.lowercase(Locale.ROOT))
 
     val modifiedText = route
         .replace("_", " ")

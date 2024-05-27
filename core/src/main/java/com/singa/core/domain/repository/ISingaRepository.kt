@@ -1,7 +1,9 @@
 package com.singa.core.domain.repository
 
 import com.singa.core.data.Resource
+import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.RefreshToken
+import com.singa.core.domain.model.StaticTranslation
 import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.User
 import kotlinx.coroutines.flow.Flow
@@ -26,6 +28,10 @@ interface ISingaRepository {
         avatar: File?,
         isSignUser: Boolean?
     ): Flow<Resource<User>>
+
+    fun getConversations(): Flow<Resource<List<Conversation>>>
+
+    fun getStaticTranslations(): Flow<Resource<List<StaticTranslation>>>
 
     fun updateToken(): Flow<Resource<RefreshToken>>
 

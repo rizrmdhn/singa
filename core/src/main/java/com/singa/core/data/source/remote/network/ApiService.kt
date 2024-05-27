@@ -2,7 +2,9 @@ package com.singa.core.data.source.remote.network
 
 import com.singa.core.data.source.remote.response.GenericResponse
 import com.singa.core.data.source.remote.response.GenericSuccessResponse
+import com.singa.core.data.source.remote.response.GetConversationListItem
 import com.singa.core.data.source.remote.response.GetMeResponse
+import com.singa.core.data.source.remote.response.GetStaticTranslationList
 import com.singa.core.data.source.remote.response.LoginResponse
 import com.singa.core.data.source.remote.response.UpdateTokenResponse
 import com.singa.core.data.source.remote.response.UpdateUserResponse
@@ -61,5 +63,13 @@ interface ApiService {
         @Part("password_confirmation") confirmPassword: RequestBody?,
         @Part("isSignUser") isSignUser: RequestBody?,
     ): Response<GenericResponse<UpdateUserResponse>>
+
+    @Headers("Content-Type: application/json")
+    @GET("translation/conversation")
+    suspend fun getConversations(): GenericResponse<List<GetConversationListItem>>
+
+    @Headers("Content-Type: application/json")
+    @GET("translation/static")
+    suspend fun getStaticTranslations(): GenericResponse<List<GetStaticTranslationList>>
 }
 

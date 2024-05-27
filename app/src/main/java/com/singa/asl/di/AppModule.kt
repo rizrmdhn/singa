@@ -3,6 +3,8 @@ package com.singa.asl.di
 import com.singa.asl.MainActivityViewModel
 import com.singa.asl.ui.MainAppViewModel
 import com.singa.asl.ui.screen.change_password.ChangePasswordScreenViewModel
+import com.singa.asl.ui.screen.history.HistoryScreenViewModel
+import com.singa.asl.ui.screen.message.MessageScreenViewModel
 import com.singa.asl.ui.screen.onboarding.OnBoardingScreenViewModel
 import com.singa.asl.ui.screen.profile.ProfileScreenViewModel
 import com.singa.asl.ui.screen.profile_detail.ProfileDetailScreenViewModels
@@ -16,6 +18,8 @@ val useCaseModule = module {
 }
 
 val viewModelModule = module {
+    viewModel { HistoryScreenViewModel(get()) }
+    viewModel { MessageScreenViewModel(get()) }
     viewModel { ProfileScreenViewModel() }
     viewModel { ChangePasswordScreenViewModel() }
     viewModel { ProfileDetailScreenViewModels() }
