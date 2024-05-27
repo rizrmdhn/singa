@@ -65,6 +65,9 @@ import com.singa.asl.ui.theme.Color5
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.ColorBluePastelBackground
 import com.singa.core.domain.model.FormItem
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -94,7 +97,10 @@ fun ProfileDetailScreen(
 
     BackHandler {
         navigateBack()
-        resetForm()
+        MainScope().launch {
+            delay(500)
+            resetForm()
+        }
     }
 
     ProfileDetailContent(
