@@ -1,5 +1,6 @@
 package com.singa.asl.ui.screen.change_password
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,6 +41,9 @@ import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.ColorBluePastelBackground
 import com.singa.core.domain.model.FormItem
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -55,9 +59,19 @@ fun ChangePasswordScreen(
     onUpdatePassword: (
         setUpdatePasswordLoading: (Boolean) -> Unit
     ) -> Unit,
+    resetForm: () -> Unit,
+    navigateBack: () -> Unit,
     viewModel: ChangePasswordScreenViewModel = koinViewModel()
 ) {
     val isUpdatePasswordLoading by viewModel.isUpdatePasswordLoading.collectAsState()
+
+    BackHandler {
+        navigateBack()
+        MainScope().launch {
+            delay(500)
+            resetForm()
+        }
+    }
 
     ChangePasswordContent(
         password = password,

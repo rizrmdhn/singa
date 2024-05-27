@@ -401,6 +401,10 @@ fun MainApp(
                         onChangeConfirmPassword = viewModel::onChangeConfirmPassword,
                         isConfirmPasswordError = viewModel.validationState.confirmPasswordError != null,
                         confirmPasswordError = viewModel.validationState.confirmPasswordError ?: "",
+                        navigateBack = {
+                            navController.popBackStack()
+                        },
+                        resetForm = viewModel::clearPasswordAndConfirmPassword,
                         onUpdatePassword = { setLoadingState ->
                             if (password != confirmPassword) {
                                 viewModel.updateValidationState(
