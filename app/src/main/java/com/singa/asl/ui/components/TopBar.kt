@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImagePainter
@@ -68,8 +69,7 @@ fun TopBarLeftIcon(
     resetForm: () -> Unit,
     navigateBack: () -> Unit
 ) {
-    val colorPaint: Color =
-        if (route == Screen.Login.route || route == "register") Color.Black else Color.White
+    val colorPaint: Color = Color.White
 
     val listOfShowBackButton = listOf(
         Screen.Conversation.route,
@@ -79,7 +79,7 @@ fun TopBarLeftIcon(
         Screen.ChangePassword.route
     )
 
-    val showBackButton = listOfShowBackButton.contains(route.lowercase())
+    val showBackButton = listOfShowBackButton.contains(route.lowercase(Locale.ROOT))
 
     val modifiedText = route
         .replace("_", " ")
