@@ -108,32 +108,50 @@ fun MessageContent(
                 color = ColorBackgroundWhite
             )
     ) {
-        if (isLoading && conversations.isEmpty()) {
-            LazyColumn(Modifier.padding(16.dp)) {
-                items(10) {
-                    ConversationCardLoader()
+        when {
+            isLoading  -> {
+                LazyColumn(Modifier.padding(16.dp)) {
+                    items(10) {
+                        ConversationCardLoader()
+                    }
                 }
             }
-        } else if (isError) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = errorMessage,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        } else {
-            LazyColumn(Modifier.padding(16.dp)) {
-                items(conversations, key = { it.id }) { conversation ->
-                    CardItem(
-                        image = R.drawable.mdi_message_badge,
-                        title = conversation.title,
-                        date = conversation.createdAt,
-                        onClickCard = onNavigateConversation
+
+            conversations.isEmpty() -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.no_conversation),
+                        style = MaterialTheme.typography.bodyMedium
                     )
+                }
+            }
+
+            isError -> {
+                Column(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = errorMessage,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+            }
+            else -> {
+                LazyColumn(Modifier.padding(16.dp)) {
+                    items(conversations, key = { it.id }) { conversation ->
+                        CardItem(
+                            image = R.drawable.mdi_message_badge,
+                            title = conversation.title,
+                            date = conversation.createdAt,
+                            onClickCard = onNavigateConversation
+                        )
+                    }
                 }
             }
         }
