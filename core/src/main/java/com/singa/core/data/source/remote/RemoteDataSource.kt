@@ -1,7 +1,6 @@
 package com.singa.core.data.source.remote
 
 
-import android.util.Log
 import com.google.gson.Gson
 import com.singa.core.data.source.remote.network.ApiResponse
 import com.singa.core.data.source.remote.network.ApiService
@@ -143,7 +142,8 @@ class RemoteDataSource(
                     val exception: HttpException = e
                     val response = exception.response()
                     try {
-                        val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
+                        val jsonObject =
+                            JSONObject(response?.errorBody()?.string() ?: "Error")
                         emit(
                             ApiResponse.Error(
                                 jsonObject.optString("message"),
@@ -178,7 +178,8 @@ class RemoteDataSource(
                     val exception: HttpException = e
                     val response = exception.response()
                     try {
-                        val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
+                        val jsonObject =
+                            JSONObject(response?.errorBody()?.string() ?: "Error")
                         emit(
                             ApiResponse.Error(
                                 jsonObject.optString("message"),
@@ -207,7 +208,8 @@ class RemoteDataSource(
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
-                    val errorResponse = Gson().fromJson(errorBody, SchemaErrorResponse::class.java)
+                    val errorResponse =
+                        Gson().fromJson(errorBody, SchemaErrorResponse::class.java)
                     val normalErrorResponse =
                         Gson().fromJson(errorBody, GenericResponse::class.java)
                     if (response.code() == 422) {
@@ -215,7 +217,12 @@ class RemoteDataSource(
                         return@flow
                     }
                     if (response.code() != 200 || response.code() != 201) {
-                        emit(ApiResponse.Error(normalErrorResponse.meta.message, response.code()))
+                        emit(
+                            ApiResponse.Error(
+                                normalErrorResponse.meta.message,
+                                response.code()
+                            )
+                        )
                     }
                 }
             } catch (e: Exception) {
@@ -223,7 +230,8 @@ class RemoteDataSource(
                     val exception: HttpException = e
                     val response = exception.response()
                     try {
-                        val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
+                        val jsonObject =
+                            JSONObject(response?.errorBody()?.string() ?: "Error")
                         emit(
                             ApiResponse.Error(
                                 jsonObject.optString("message"),
@@ -266,7 +274,8 @@ class RemoteDataSource(
                     }
                 } else {
                     val errorBody = response.errorBody()?.string()
-                    val errorResponse = Gson().fromJson(errorBody, SchemaErrorResponse::class.java)
+                    val errorResponse =
+                        Gson().fromJson(errorBody, SchemaErrorResponse::class.java)
                     val normalErrorResponse =
                         Gson().fromJson(errorBody, GenericResponse::class.java)
                     if (response.code() == 422) {
@@ -274,7 +283,12 @@ class RemoteDataSource(
                         return@flow
                     }
                     if (response.code() != 200 || response.code() != 201) {
-                        emit(ApiResponse.Error(normalErrorResponse.meta.message, response.code()))
+                        emit(
+                            ApiResponse.Error(
+                                normalErrorResponse.meta.message,
+                                response.code()
+                            )
+                        )
                     }
                 }
             } catch (e: Exception) {
@@ -282,7 +296,8 @@ class RemoteDataSource(
                     val exception: HttpException = e
                     val response = exception.response()
                     try {
-                        val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
+                        val jsonObject =
+                            JSONObject(response?.errorBody()?.string() ?: "Error")
                         emit(
                             ApiResponse.Error(
                                 jsonObject.optString("message"),
@@ -315,7 +330,8 @@ class RemoteDataSource(
                     val exception: HttpException = e
                     val response = exception.response()
                     try {
-                        val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
+                        val jsonObject =
+                            JSONObject(response?.errorBody()?.string() ?: "Error")
                         emit(
                             ApiResponse.Error(
                                 jsonObject.optString("message"),
@@ -348,7 +364,8 @@ class RemoteDataSource(
                     val exception: HttpException = e
                     val response = exception.response()
                     try {
-                        val jsonObject = JSONObject(response?.errorBody()?.string() ?: "Error")
+                        val jsonObject =
+                            JSONObject(response?.errorBody()?.string() ?: "Error")
                         emit(
                             ApiResponse.Error(
                                 jsonObject.optString("message"),

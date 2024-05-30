@@ -75,7 +75,8 @@ fun TopBarLeftIcon(
         Screen.Login.route,
         Screen.Register.route,
         Screen.ProfileDetail.route,
-        Screen.ChangePassword.route
+        Screen.ChangePassword.route,
+        Screen.WebView.route
     )
 
     val showBackButton = listOfShowBackButton.contains(route.lowercase(Locale.ROOT))
@@ -95,12 +96,14 @@ fun TopBarLeftIcon(
             containerColor = Color.Transparent
         ),
         title = {
-            Text(
-                text = modifiedText,
-                fontWeight = FontWeight.Bold,
-                color = colorPaint,
-                fontSize = 28.sp
-            )
+            if (route != Screen.WebView.route) {
+                Text(
+                    text = modifiedText,
+                    fontWeight = FontWeight.Bold,
+                    color = colorPaint,
+                    fontSize = 28.sp
+                )
+            }
         },
         navigationIcon = {
             if (showBackButton) {

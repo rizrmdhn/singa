@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import com.singa.asl.R
 import com.singa.asl.ui.components.CardItem
 import com.singa.asl.ui.components.ConversationCardLoader
-import com.singa.asl.ui.screen.message.MessageContent
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.core.data.Resource
 import com.singa.core.domain.model.StaticTranslation

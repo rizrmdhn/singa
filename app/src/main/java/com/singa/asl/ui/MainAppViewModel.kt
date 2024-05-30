@@ -14,6 +14,9 @@ class MainAppViewModel(
     private val singaUseCase: SingaUseCase
 ) : ViewModel() {
 
+    private val _socialLoginUrl: MutableStateFlow<String> = MutableStateFlow("")
+    val socialLoginUrl: MutableStateFlow<String> get() = _socialLoginUrl
+
     private val _loginIsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val loginIsLoading get() = _loginIsLoading.value
 
@@ -38,6 +41,14 @@ class MainAppViewModel(
     private val _isSignUser: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isSignUser: MutableStateFlow<Boolean> get() = _isSignUser
 
+
+    fun setSocialLoginUrl(url: String) {
+        _socialLoginUrl.value = url
+    }
+
+    fun clearSocialLoginUrl() {
+        _socialLoginUrl.value = ""
+    }
 
     fun onChangeName(name: String) {
         _validationState.value = if (name.isBlank()) {

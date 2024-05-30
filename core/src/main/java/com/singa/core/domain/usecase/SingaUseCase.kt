@@ -33,6 +33,7 @@ interface SingaUseCase {
 
     fun getStaticTranslations(): Flow<Resource<List<StaticTranslation>>>
 
+
     fun updateToken(): Flow<Resource<RefreshToken>>
 
     fun getAccessToken(): Flow<String?>

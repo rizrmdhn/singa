@@ -210,7 +210,7 @@ fun ChangePasswordContent(
 
         Column(
             Modifier
-                .padding(top = 16.dp)
+                .padding(top = 16.dp, bottom = 16.dp)
                 .fillMaxSize(),
             verticalArrangement = Arrangement.SpaceBetween
         ) {

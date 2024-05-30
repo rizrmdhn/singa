@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -81,9 +82,13 @@ fun MainApp(
     alertDialogMessage: String,
     showDialog: (String, String) -> Unit,
     hideDialog: () -> Unit,
+    saveAccessToken: (String) -> Unit,
+    saveRefreshToken: (String) -> Unit,
     context: Context = LocalContext.current,
     viewModel: MainAppViewModel = koinViewModel()
 ) {
+    val socialLoginUrl by viewModel.socialLoginUrl.collectAsState()
+
     val name by viewModel.name.collectAsState()
     val email by viewModel.email.collectAsState()
     val password by viewModel.password.collectAsState()
@@ -125,6 +130,16 @@ fun MainApp(
             viewModel.onChangeName(authUser?.name ?: "")
             viewModel.onChangeEmail(authUser?.email ?: "")
             viewModel.setSignUser(authUser?.isSignUser ?: false)
+        }
+    }
+
+    val uriHandler = LocalUriHandler.current
+
+    LaunchedEffect(socialLoginUrl) {
+        if (socialLoginUrl.isNotEmpty()) {
+            navController.navigate(Screen.WebView.route)
+//            uriHandler.openUri(socialLoginUrl)
+//            viewModel.clearSocialLoginUrl()
         }
     }
 
@@ -226,6 +241,7 @@ fun MainApp(
                                 showDialog = showDialog
                             )
                         },
+                        setSocialLoginUrl = viewModel::setSocialLoginUrl,
                         navigateToRegister = {
                             viewModel.cleanEmail()
                             viewModel.cleanPassword()
@@ -433,7 +449,16 @@ fun MainApp(
                 }
 
                 composable(Screen.WebView.route) {
-                    WebViewScreen()
+                    WebViewScreen(
+                        url = socialLoginUrl,
+                        clearSocialLoginUrl = viewModel::clearSocialLoginUrl,
+                        saveAccessToken = saveAccessToken,
+                        saveRefreshToken = saveRefreshToken,
+                        getAuthUser = getAuthUser,
+                        navigateBack = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
 
                 composable(

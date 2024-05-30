@@ -1,9 +1,6 @@
 package com.singa.core.domain.usecase
 
-import com.singa.core.data.Resource
-import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.repository.ISingaRepository
-import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 class SingaInteractor(

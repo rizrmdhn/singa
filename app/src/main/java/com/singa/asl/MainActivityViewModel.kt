@@ -65,6 +65,18 @@ class MainActivityViewModel(
         }
     }
 
+    fun saveAccessToken(accessToken: String) {
+        viewModelScope.launch {
+            singaUseCase.saveAccessToken(accessToken)
+        }
+    }
+
+    fun saveRefreshToken(refreshToken: String) {
+        viewModelScope.launch {
+            singaUseCase.saveRefreshToken(refreshToken)
+        }
+    }
+
     fun getAuthUser() {
         viewModelScope.launch {
             singaUseCase.getMe().collect {
@@ -78,11 +90,11 @@ class MainActivityViewModel(
         navigateToWelcome: () -> Unit
     ) {
         viewModelScope.launch {
-            removeAccessToken()
-            removeRefreshToken()
             singaUseCase.logout().collect {
                 when (it) {
                     is Resource.Success -> {
+                        removeAccessToken()
+                        removeRefreshToken()
                         showAlert("Success", "Logout success")
                         _logoutIsLoading.value = false
                         _authUser.value = Resource.Empty()

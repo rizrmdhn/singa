@@ -1,6 +1,6 @@
 package com.singa.core.di
 
-import android.util.Log
+import com.google.gson.GsonBuilder
 import com.singa.core.BuildConfig
 import com.singa.core.data.SingaRepository
 import com.singa.core.data.source.local.LocalDataSource
@@ -51,9 +51,13 @@ val networkModule = module {
             .build()
     }
     single {
+        val gson = GsonBuilder()
+            .setLenient()
+            .create()
+
         val retrofit = Retrofit.Builder()
             .baseUrl(BuildConfig.BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .client(get<OkHttpClient>())
             .build()
         retrofit.create(ApiService::class.java)
