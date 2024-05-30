@@ -52,7 +52,9 @@ class MainActivity : ComponentActivity() {
                             alertDialogTitle = alertDialogTitle,
                             alertDialogMessage = alertDialogMessage,
                             showDialog = viewModels::showAlert,
-                            hideDialog = viewModels::hideAlert
+                            hideDialog = viewModels::hideAlert,
+                            saveAccessToken = viewModels::saveAccessToken,
+                            saveRefreshToken = viewModels::saveRefreshToken
                         )
                     }
 
@@ -69,7 +71,9 @@ class MainActivity : ComponentActivity() {
                             alertDialogTitle = alertDialogTitle,
                             alertDialogMessage = alertDialogMessage,
                             showDialog = viewModels::showAlert,
-                            hideDialog = viewModels::hideAlert
+                            hideDialog = viewModels::hideAlert,
+                            saveAccessToken = viewModels::saveAccessToken,
+                            saveRefreshToken = viewModels::saveRefreshToken
                         )
                     }
 
@@ -86,7 +90,9 @@ class MainActivity : ComponentActivity() {
                             alertDialogTitle = alertDialogTitle,
                             alertDialogMessage = alertDialogMessage,
                             showDialog = viewModels::showAlert,
-                            hideDialog = viewModels::hideAlert
+                            hideDialog = viewModels::hideAlert,
+                            saveAccessToken = viewModels::saveAccessToken,
+                            saveRefreshToken = viewModels::saveRefreshToken
                         )
                     }
 
@@ -103,7 +109,9 @@ class MainActivity : ComponentActivity() {
                             alertDialogTitle = alertDialogTitle,
                             alertDialogMessage = alertDialogMessage,
                             showDialog = viewModels::showAlert,
-                            hideDialog = viewModels::hideAlert
+                            hideDialog = viewModels::hideAlert,
+                            saveAccessToken = viewModels::saveAccessToken,
+                            saveRefreshToken = viewModels::saveRefreshToken
                         )
                     }
                 }

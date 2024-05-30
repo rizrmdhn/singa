@@ -13,18 +13,23 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -34,11 +39,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.singa.asl.BuildConfig
 import com.singa.asl.R
 import com.singa.asl.ui.components.FormComp
 import com.singa.asl.ui.theme.AuthBackground
 import com.singa.asl.ui.theme.Color1
 import com.singa.core.domain.model.FormItem
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
@@ -53,8 +63,13 @@ fun LoginScreen(
     onChangePassword: (String) -> Unit,
     isLoginLoading: Boolean,
     onLogin: () -> Unit,
-    navigateToRegister: () -> Unit
+    navigateToRegister: () -> Unit,
+    setSocialLoginUrl: (String) -> Unit,
+    viewModel: LoginScreenViewModel = koinViewModel()
 ) {
+    val isGithubLoginLoading by viewModel.githubLoginIsLoading.collectAsState()
+    val isGoogleLoginLoading by viewModel.googleLoginIsLoading.collectAsState()
+
     LoginContent(
         email = email,
         isEmailError = isEmailError,
@@ -66,7 +81,12 @@ fun LoginScreen(
         onChangePassword = onChangePassword,
         isLoginLoading = isLoginLoading,
         onLogin = onLogin,
-        navigateToRegister = navigateToRegister
+        navigateToRegister = navigateToRegister,
+        isGithubLoginLoading = isGithubLoginLoading,
+        setIsGithubLoginLoading = viewModel::setGithubLoginIsLoading,
+        isGoogleLoginLoading = isGoogleLoginLoading,
+        setIsGoogleLoginLoading = viewModel::setGoogleLoginIsLoading,
+        setSocialLoginUrl = setSocialLoginUrl
     )
 }
 
@@ -84,6 +104,11 @@ fun LoginContent(
     isLoginLoading: Boolean,
     onLogin: () -> Unit,
     navigateToRegister: () -> Unit,
+    isGithubLoginLoading: Boolean,
+    setIsGithubLoginLoading: (Boolean) -> Unit,
+    isGoogleLoginLoading: Boolean,
+    setIsGoogleLoginLoading: (Boolean) -> Unit,
+    setSocialLoginUrl: (String) -> Unit
 ) {
     var showPassword by remember {
         mutableStateOf(false)
@@ -199,7 +224,66 @@ fun LoginContent(
                 }
             )
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row {
+            IconButton(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color1),
+                onClick = {
+                    MainScope().launch {
+                        setIsGithubLoginLoading(true)
+                        delay(1000)
+                        setSocialLoginUrl(BuildConfig.GITHUB_LOGIN_URL)
+                        setIsGithubLoginLoading(false)
+                    }
+                }
+            ) {
+                if (isGithubLoginLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            IconButton(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(Color1),
+                onClick = {
+                    MainScope().launch {
+                        setIsGoogleLoginLoading(true)
+                        delay(1000)
+                        setSocialLoginUrl(BuildConfig.GOOGLE_LOGIN_URL)
+                        setIsGoogleLoginLoading(false)
+                    }
+                }
+            ) {
+                if (isGoogleLoginLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.Email,
+                        contentDescription = null,
+                        tint = Color.White
+                    )
+                }
+            }
+        }
     }
+
 }
 
 
@@ -217,7 +301,8 @@ fun LoginScreenPreview() {
         isPasswordError = false,
         passwordError = "",
         isLoginLoading = true,
-        navigateToRegister = {}
+        navigateToRegister = {},
+        setSocialLoginUrl = {}
     )
 }
 
@@ -235,6 +320,7 @@ fun LoginScreenDarkPreview() {
         isPasswordError = false,
         passwordError = "",
         isLoginLoading = false,
-        navigateToRegister = {}
+        navigateToRegister = {},
+        setSocialLoginUrl = {}
     )
 }

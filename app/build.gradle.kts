@@ -1,3 +1,7 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
+val apiUrl: String = gradleLocalProperties(rootDir, providers).getProperty("API_URL") ?: "https://api.singa.com/"
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -20,6 +24,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "GITHUB_LOGIN_URL", "\"${apiUrl}login/github\"")
+        buildConfigField("String", "GOOGLE_LOGIN_URL", "\"${apiUrl}login/google\"");
     }
 
     buildTypes {
