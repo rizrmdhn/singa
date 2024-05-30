@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -209,7 +210,7 @@ fun LoginContent(
                 text = stringResource(R.string.don_t_have_an_account),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = Color.Black
             )
             Spacer(
                 modifier = Modifier.width(4.dp)
@@ -225,10 +226,15 @@ fun LoginContent(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        Row {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
             IconButton(
                 modifier = Modifier
-                    .padding(8.dp)
+                    .height(58.dp)
+                    .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
                     .background(Color1),
                 onClick = {
@@ -245,19 +251,29 @@ fun LoginContent(
                         color = Color.White
                     )
                 } else {
-                    Icon(
-                        imageVector = Icons.Default.Email,
-                        contentDescription = null,
-                        tint = Color.White
-                    )
+                    Row {
+                        Icon(
+                            painter = painterResource(id = R.drawable.mdi_github),
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.github),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             IconButton(
                 modifier = Modifier
-                    .padding(8.dp)
+                    .height(58.dp)
+                    .fillMaxWidth()
                     .clip(RoundedCornerShape(10.dp))
                     .background(Color1),
                 onClick = {
@@ -274,11 +290,20 @@ fun LoginContent(
                         color = Color.White
                     )
                 } else {
-                    Icon(
-                        imageVector = Icons.Default.Email,
-                        contentDescription = null,
-                        tint = Color.White
-                    )
+                    Row {
+                        Icon(
+                            painter = painterResource(id = R.drawable.mdi_google),
+                            contentDescription = null,
+                            tint = Color.White
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.google),
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleLarge,
+                        )
+                    }
                 }
             }
         }
