@@ -123,7 +123,7 @@ fun HistoryContent(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "No data",
+                        text = "No data available",
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
