@@ -29,4 +29,5 @@
     <string name="confirm_password">Confirm Password</string>
     <string name="enter_your_confirm_password">Enter your confirm password</string>
     <string name="image_classifier_failed">Image classifier failed</string>
+    <string name="no_conversation">Conversation Empty</string>
 </resources>

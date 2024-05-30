@@ -16,11 +16,6 @@ import com.google.mediapipe.tasks.vision.core.ImageProcessingOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.imageclassifier.ImageClassifier
 import com.singa.asl.R
-import org.tensorflow.lite.DataType
-import org.tensorflow.lite.support.common.ops.CastOp
-import org.tensorflow.lite.support.image.ImageProcessor
-import org.tensorflow.lite.support.image.TensorImage
-import org.tensorflow.lite.support.image.ops.ResizeOp
 import java.io.ByteArrayOutputStream
 
 class ImageClassifierHelper(
@@ -44,7 +39,7 @@ class ImageClassifierHelper(
             .setRunningMode(runningMode)
 
         if (runningMode == RunningMode.LIVE_STREAM) {
-            optionsBuilder.setResultListener { result, image ->
+            optionsBuilder.setResultListener { result, _ ->
                 val finishTimeMs = SystemClock.uptimeMillis()
                 val inferenceTime = finishTimeMs - result.timestampMs()
                 classifierListener?.onResults(
@@ -83,12 +78,12 @@ class ImageClassifierHelper(
 
         val mpImage = BitmapImageBuilder(bitmapImage).build()
 
-        val imageProcessor = ImageProcessor.Builder()
-            .add(ResizeOp(224, 224, ResizeOp.ResizeMethod.NEAREST_NEIGHBOR))
-            .add(CastOp(DataType.UINT8))
-            .build()
-
-        val tensorImage = imageProcessor.process(TensorImage.fromBitmap(bitmapImage))
+//        val imageProcessor = ImageProcessor.Builder()
+//            .add(ResizeOp(224, 224, ResizeOp.ResizeMethod.NEAREST_NEIGHBOR))
+//            .add(CastOp(DataType.UINT8))
+//            .build()
+//
+//        val tensorImage = imageProcessor.process(TensorImage.fromBitmap(bitmapImage))
 
         val imageProcessingOptions = ImageProcessingOptions.builder()
             .setRotationDegrees(image.imageInfo.rotationDegrees)

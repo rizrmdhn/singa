@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.singa.core.data.Resource
 import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.usecase.SingaUseCase
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 

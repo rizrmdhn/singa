@@ -8,15 +8,20 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Environment
 import android.util.Log
+import android.view.Surface
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
+import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture.OnImageCapturedCallback
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoRecordEvent
@@ -27,9 +32,12 @@ import androidx.camera.view.video.AudioConfig
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.absolutePadding
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -38,6 +46,8 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +63,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.mediapipe.tasks.components.containers.Classifications
 import com.singa.asl.R
@@ -87,20 +98,14 @@ fun RealtimeCameraContent(
     val previewView = remember {
         PreviewView(context)
     }
-    val cameraController = remember {
-        LifecycleCameraController(context).apply {
-            setEnabledUseCases(
-                CameraController.IMAGE_CAPTURE or CameraController.VIDEO_CAPTURE
-            )
-        }
-    }
-    cameraController.bindToLifecycle(lifecycleOwner)
-    cameraController.cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-    previewView.controller = cameraController
 
-    var analyzeResult: List<Classifications> by remember {
-        mutableStateOf(emptyList())
+    var imageClassifierHelper by remember {
+        mutableStateOf<ImageClassifierHelper?>(null)
     }
+    var analyzingResult by remember { mutableStateOf<List<Classifications>?>(null) }
+    var analyzingInferenceTime by remember { mutableStateOf<Long?>(null) }
+    val executor = Executors.newSingleThreadExecutor()
+    val preview = remember { androidx.camera.core.Preview.Builder().build() }
 
     var analyzingResultIsOut: Boolean by remember {
         mutableStateOf(false)
@@ -126,9 +131,86 @@ fun RealtimeCameraContent(
 
     val executors = Executors.newSingleThreadExecutor()
 
-    var isRecording by remember {
+    val isRecording by remember {
         mutableStateOf(false)
     }
+
+    var isAnalyzing by remember { mutableStateOf(false) }
+
+    val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
+    val cameraController = remember { LifecycleCameraController(context) }
+
+
+
+    fun bindPreview(cameraProvider: ProcessCameraProvider) {
+        try {
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner,
+                cameraSelector,
+                preview
+            )
+            preview.setSurfaceProvider(previewView.surfaceProvider)
+        } catch (e: Exception) {
+            Log.e("RealtimeCameraScreen", "Binding failed", e)
+        }
+    }
+
+    fun bindAnalysis(cameraProvider: ProcessCameraProvider) {
+        try {
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            val imageAnalyzer = ImageAnalysis.Builder()
+                .setResolutionSelector(
+                    ResolutionSelector.Builder()
+                        .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
+                        .build()
+                )
+                .setTargetRotation(Surface.ROTATION_0)
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                .build()
+
+            imageClassifierHelper = ImageClassifierHelper(
+                context = context,
+                classifierListener = object : ImageClassifierHelper.ClassifierListener {
+                    override fun onError(error: String) {
+                        Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                    }
+
+                    override fun onResults(results: List<Classifications>?, inferenceTime: Long) {
+                        results?.let { result ->
+                            if (result.isNotEmpty() && result[0].categories().isNotEmpty()) {
+                                analyzingResult = result.sortedByDescending { it.categories()[0].score() }
+                                analyzingInferenceTime = inferenceTime
+                            } else {
+                                analyzingResult = emptyList()
+                                analyzingInferenceTime = null
+                            }
+                            Log.d("TestCameraScreen", result.sortedByDescending { it.categories()[0].score() }.toString())
+                        }
+                    }
+                }
+            )
+
+            imageAnalyzer.setAnalyzer(executor) { image ->
+                imageClassifierHelper?.classifyImage(image)
+                image.close()  // Ensure to close the image to avoid memory leaks
+            }
+
+            cameraProvider.unbindAll()
+            cameraProvider.bindToLifecycle(
+                lifecycleOwner,
+                cameraSelector,
+                preview,
+                imageAnalyzer
+            )
+            preview.setSurfaceProvider(previewView.surfaceProvider)
+        } catch (e: Exception) {
+            Log.e("RealtimeCameraScreen", "Binding failed", e)
+        }
+    }
+
 
     fun takePhoto() {
         cameraController.takePicture(
@@ -229,10 +311,10 @@ fun RealtimeCameraContent(
                                                     .format(it.score()).trim()
                                             }
                                         Log.d("RealtimeCameraScreen", displayResult)
-                                        analyzeResult = it
+                                        analyzingResult = it
                                         analyzingResultIsOut = true
                                     } else {
-                                        analyzeResult = it
+                                        analyzingResult = it
                                         analyzingResultIsOut = true
                                     }
                                 }
@@ -255,6 +337,24 @@ fun RealtimeCameraContent(
         )
     }
 
+    LaunchedEffect(isAnalyzing, isRecording) {
+        cameraProviderFuture.addListener({
+            val cameraProvider = cameraProviderFuture.get()
+            if (isAnalyzing) {
+                bindAnalysis(cameraProvider)
+            } else {
+                bindPreview(cameraProvider)
+            }
+        }, ContextCompat.getMainExecutor(context))
+    }
+
+    Log.d("RealtimeCameraScreen", analyzingResult?.joinToString("\n") { classification ->
+        classification.categories().joinToString("\n") { category ->
+            "${category.categoryName()} " + NumberFormat.getPercentInstance().format(category.score()).trim()
+        }
+    }.toString())
+
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -272,12 +372,17 @@ fun RealtimeCameraContent(
                 )
         )
 
-        if (isRecording) {
-            Row(
+        if (isAnalyzing) {
+            Column(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .absolutePadding(bottom = 16.dp)
+                    .padding(horizontal = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Box(modifier = Modifier
                     .padding(16.dp)
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.2f)
                     .background(
                         color = Color1,
                         shape = RoundedCornerShape(20.dp)
@@ -287,41 +392,58 @@ fun RealtimeCameraContent(
                         color = Color2,
                         shape = MaterialTheme.shapes.medium
                     )
-            ) {
-                Box(modifier = Modifier.weight(1f)) {
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = analyzingResult?.joinToString("\n") { classification ->
+                                classification.categories().joinToString("\n") { category ->
+                                    "${category.categoryName()} " + NumberFormat.getPercentInstance().format(category.score()).trim()
+                                }
+                            } ?: "No results",
+                            color = Color.White,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .absolutePadding(bottom = 16.dp)
+                        .padding(16.dp)
+                        .background(
+                            color = Color1,
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .border(
+                            width = 3.dp,
+                            color = Color2,
+                            shape = MaterialTheme.shapes.medium
+                        )
+                ) {
                     IconButton(
                         modifier = Modifier
                             .padding(10.dp),
                         onClick = {
-                            takePhoto()
+//                        if (recording != null) {
+//                            recording?.stop()
+//                        }
+                            isAnalyzing = false
                         },
                         colors = IconButtonDefaults.iconButtonColors(
                             contentColor = Color.White
                         )
                     ) {
-                        Text(text = analyzeResult.toString())
+                        Icon(
+                            painter = painterResource(id = R.drawable.when_recording),
+                            contentDescription = "Capture Image"
+                        )
                     }
                 }
-
-                IconButton(
-                    modifier = Modifier
-                        .padding(10.dp),
-                    onClick = {
-                        if (recording != null) {
-                            recording?.stop()
-                        }
-                        isRecording = false
-                    },
-                    colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = Color.White
-                    )
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.when_recording),
-                        contentDescription = "Capture Image"
-                    )
-                }
             }
+
         } else {
             Row(
                 modifier = Modifier
@@ -342,10 +464,10 @@ fun RealtimeCameraContent(
                     modifier = Modifier
                         .padding(10.dp),
                     onClick = {
-//                        isRecording = true
-//                        recordVideo()
-                        testMediaPipe()
-                        isRecording = false
+////                        isRecording = true
+////                        recordVideo()
+//                        testMediaPipe()
+                        isAnalyzing = true
                     },
                     colors = IconButtonDefaults.iconButtonColors(
                         contentColor = Color.White
