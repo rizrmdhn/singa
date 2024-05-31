@@ -192,6 +192,8 @@ fun ProfileDetailContent(
                 unfocusedIndicatorColor = ColorBluePastelBackground,
                 focusedContainerColor = ColorBluePastelBackground,
                 focusedIndicatorColor = Color1,
+                focusedTextColor = Color1,
+                unfocusedTextColor = Color1
             )
         ),
         FormItem(
@@ -217,6 +219,12 @@ fun ProfileDetailContent(
                 unfocusedIndicatorColor = ColorBluePastelBackground,
                 focusedContainerColor = ColorBluePastelBackground,
                 focusedIndicatorColor = Color1,
+                focusedTextColor = Color1,
+                unfocusedTextColor = Color1,
+                errorContainerColor = ColorBluePastelBackground.copy(
+                    alpha = 0.5f
+                ),
+                errorTextColor = Color1
             )
         ),
     )
@@ -240,7 +248,7 @@ fun ProfileDetailContent(
         ) {
             Column(
                 Modifier
-                    .padding(top = 140.dp)
+                    .padding(top = 140.dp, bottom = 16.dp)
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {

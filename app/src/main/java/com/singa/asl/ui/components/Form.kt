@@ -77,7 +77,7 @@ fun FormComp(
                         if (data.isError) {
                             Text(
                                 text = data.errorMessage,
-                                color = MaterialTheme.colorScheme.error,
+                                color = Color.Red,
                                 modifier = Modifier.testTag("error_message")
                             )
                         }
@@ -95,7 +95,7 @@ fun FormComp(
                                 Icon(
                                     imageVector = Icons.Filled.Info,
                                     contentDescription = stringResource(R.string.error_icon),
-                                    tint = MaterialTheme.colorScheme.error
+                                    tint = Color.Red,
                                 )
                             }
                         }

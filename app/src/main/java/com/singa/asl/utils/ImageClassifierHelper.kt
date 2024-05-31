@@ -21,7 +21,7 @@ import java.io.ByteArrayOutputStream
 class ImageClassifierHelper(
     private var threshold: Float = 0.1f,
     private var maxResults: Int = 3,
-    private val modelName: String = "mobilenet_v1.tflite",
+    private val modelName: String = "asl-test.tflite",
     private val runningMode: RunningMode = RunningMode.LIVE_STREAM,
     val context: Context,
     val classifierListener: ClassifierListener?

@@ -21,6 +21,7 @@ import retrofit2.http.Part
 
 
 interface ApiService {
+    // Singa API
     @Headers("Content-Type: application/json")
     @POST("register")
     suspend fun register(
@@ -71,5 +72,7 @@ interface ApiService {
     @Headers("Content-Type: application/json")
     @GET("translation/static")
     suspend fun getStaticTranslations(): GenericResponse<List<GetStaticTranslationList>>
+
+    // Article API
 }
 
