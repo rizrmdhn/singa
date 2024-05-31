@@ -207,7 +207,14 @@ fun ChangePasswordContent(
                     focusedContainerColor = ColorBluePastelBackground,
                     focusedIndicatorColor = Color1,
                     focusedTextColor = Color1,
-                    unfocusedTextColor = Color1
+                    unfocusedTextColor = Color1,
+                    errorLeadingIconColor = Color.Red,
+                    errorTrailingIconColor = Color.Red,
+                    errorContainerColor = ColorBluePastelBackground.copy(
+                        alpha = 0.5f
+                    ),
+                    errorPlaceholderColor = Color.Red,
+                    errorSupportingTextColor = Color.Red
                 )
             ),
         )

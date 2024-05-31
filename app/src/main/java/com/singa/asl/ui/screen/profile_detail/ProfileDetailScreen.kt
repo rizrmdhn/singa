@@ -220,7 +220,11 @@ fun ProfileDetailContent(
                 focusedContainerColor = ColorBluePastelBackground,
                 focusedIndicatorColor = Color1,
                 focusedTextColor = Color1,
-                unfocusedTextColor = Color1
+                unfocusedTextColor = Color1,
+                errorContainerColor = ColorBluePastelBackground.copy(
+                    alpha = 0.5f
+                ),
+                errorTextColor = Color1
             )
         ),
     )
