@@ -40,7 +40,7 @@ val networkModule = module {
 
         OkHttpClient.Builder()
             .addInterceptor(
-                if (BuildConfig.APP_MODE) HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+                if (BuildConfig.PRODUCTION_MODE) HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
                 else HttpLoggingInterceptor().setLevel(
                     HttpLoggingInterceptor.Level.NONE
                 )
@@ -56,7 +56,10 @@ val networkModule = module {
             .create()
 
         val retrofit = Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL)
+            .baseUrl(
+                if (BuildConfig.PRODUCTION_MODE) BuildConfig.BASE_URL_PROD
+                else BuildConfig.BASE_URL
+            )
             .addConverterFactory(GsonConverterFactory.create(gson))
             .client(get<OkHttpClient>())
             .build()
