@@ -1,6 +1,9 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
-val apiUrl: String = gradleLocalProperties(rootDir, providers).getProperty("API_URL") ?: "https://api.singa.com/"
+val appMode: Boolean = gradleLocalProperties(rootDir, providers).getProperty("APP_MODE") == "dev"
+val productionMode: Boolean = gradleLocalProperties(rootDir, providers).getProperty("PRODUCTION_MODE") == "true"
+val apiUrl: String = gradleLocalProperties(rootDir, providers).getProperty("API_URL")
+val apiUrlProd: String = gradleLocalProperties(rootDir, providers).getProperty("API_URL_PROD")
 
 plugins {
     alias(libs.plugins.android.application)
@@ -25,8 +28,10 @@ android {
             useSupportLibrary = true
         }
 
-        buildConfigField("String", "GITHUB_LOGIN_URL", "\"${apiUrl}login/github\"")
-        buildConfigField("String", "GOOGLE_LOGIN_URL", "\"${apiUrl}login/google\"");
+        buildConfigField("String", "BASE_URL", "\"$apiUrl\"")
+        buildConfigField("String", "BASE_URL_PROD", "\"$apiUrlProd\"")
+        buildConfigField("Boolean", "PRODUCTION_MODE", "$productionMode")
+        buildConfigField("Boolean", "APP_MODE", "$appMode")
     }
 
     buildTypes {

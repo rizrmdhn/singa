@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.gson.Gson
+import com.singa.asl.BuildConfig
 import com.singa.core.data.source.remote.response.TestLoginResponse
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -108,7 +109,13 @@ private fun handlePageFinished(
     onTokenReceived: (String, String) -> Unit,
     clearSocialLoginUrl: () -> Unit,
 ) {
-    if (url != null && url.startsWith("https://enabling-prawn-frankly.ngrok-free.app/login/github/callback")) {
+    if (url != null && url.startsWith(
+        if (BuildConfig.PRODUCTION_MODE) {
+            BuildConfig.BASE_URL_PROD.plus("login/github/callback")
+        } else {
+            BuildConfig.BASE_URL.plus("login/github/callback")
+        }
+    )) {
         // get code and state from url
         view?.evaluateJavascript(
             "(function() { return document.body.innerText; })();"
@@ -130,7 +137,13 @@ private fun handlePageFinished(
                 Log.e("WebViewContent", e.message.toString())
             }
         }
-    } else if (url != null && url.startsWith("https://enabling-prawn-frankly.ngrok-free.app/login/google/callback")) {
+    } else if (url != null && url.startsWith(
+        if (BuildConfig.PRODUCTION_MODE) {
+            BuildConfig.BASE_URL_PROD.plus("login/google/callback")
+        } else {
+            BuildConfig.BASE_URL.plus("login/google/callback")
+        }
+    )) {
         view?.evaluateJavascript(
             "(function() { return document.body.innerText; })();"
         ) { response ->

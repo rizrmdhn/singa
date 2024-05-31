@@ -241,7 +241,13 @@ fun LoginContent(
                     MainScope().launch {
                         setIsGithubLoginLoading(true)
                         delay(1000)
-                        setSocialLoginUrl(BuildConfig.GITHUB_LOGIN_URL)
+                        setSocialLoginUrl(
+                            if (BuildConfig.PRODUCTION_MODE) {
+                                BuildConfig.BASE_URL_PROD.plus("login/github")
+                            } else {
+                                BuildConfig.BASE_URL.plus("login/github")
+                            }
+                        )
                         setIsGithubLoginLoading(false)
                     }
                 }
@@ -280,7 +286,13 @@ fun LoginContent(
                     MainScope().launch {
                         setIsGoogleLoginLoading(true)
                         delay(1000)
-                        setSocialLoginUrl(BuildConfig.GOOGLE_LOGIN_URL)
+                        setSocialLoginUrl(
+                            if (BuildConfig.PRODUCTION_MODE) {
+                                BuildConfig.BASE_URL_PROD.plus("login/google")
+                            } else {
+                                BuildConfig.BASE_URL.plus("login/google")
+                            }
+                        )
                         setIsGoogleLoginLoading(false)
                     }
                 }
