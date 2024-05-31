@@ -164,6 +164,8 @@ fun ChangePasswordContent(
                     unfocusedIndicatorColor = ColorBluePastelBackground,
                     focusedContainerColor = ColorBluePastelBackground,
                     focusedIndicatorColor = Color1,
+                    focusedTextColor = Color1,
+                    unfocusedTextColor = Color1
                 )
             ),
             FormItem(
@@ -204,6 +206,8 @@ fun ChangePasswordContent(
                     unfocusedIndicatorColor = ColorBluePastelBackground,
                     focusedContainerColor = ColorBluePastelBackground,
                     focusedIndicatorColor = Color1,
+                    focusedTextColor = Color1,
+                    unfocusedTextColor = Color1
                 )
             ),
         )

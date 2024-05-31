@@ -192,6 +192,8 @@ fun ProfileDetailContent(
                 unfocusedIndicatorColor = ColorBluePastelBackground,
                 focusedContainerColor = ColorBluePastelBackground,
                 focusedIndicatorColor = Color1,
+                focusedTextColor = Color1,
+                unfocusedTextColor = Color1
             )
         ),
         FormItem(
@@ -217,6 +219,8 @@ fun ProfileDetailContent(
                 unfocusedIndicatorColor = ColorBluePastelBackground,
                 focusedContainerColor = ColorBluePastelBackground,
                 focusedIndicatorColor = Color1,
+                focusedTextColor = Color1,
+                unfocusedTextColor = Color1
             )
         ),
     )
