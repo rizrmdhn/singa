@@ -240,7 +240,7 @@ fun ProfileDetailContent(
         ) {
             Column(
                 Modifier
-                    .padding(top = 140.dp)
+                    .padding(top = 140.dp, bottom = 16.dp)
                     .fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
