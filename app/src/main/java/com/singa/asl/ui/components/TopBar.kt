@@ -150,6 +150,7 @@ fun TopBarProfile(
                 Text(
                     text = name,
                     fontSize = 20.sp,
+                    maxLines = 1,
                     fontWeight = FontWeight.Medium,
                     overflow = TextOverflow.Ellipsis,
                     color = Color.White

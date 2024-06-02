@@ -325,7 +325,11 @@ fun MainApp(
                 }
 
                 composable(Screen.Home.route) {
-                    HomeScreen()
+                    HomeScreen(
+                        showModal = {
+                            showBottomSheet.value = true
+                        }
+                    )
                 }
 
                 composable(Screen.Message.route) {
