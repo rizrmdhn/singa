@@ -8,6 +8,7 @@ import com.singa.core.data.source.remote.response.GenericResponse
 import com.singa.core.data.source.remote.response.GenericSuccessResponse
 import com.singa.core.data.source.remote.response.GetConversationListItem
 import com.singa.core.data.source.remote.response.GetMeResponse
+import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationList
 import com.singa.core.data.source.remote.response.LoginResponse
 import com.singa.core.data.source.remote.response.SchemaErrorResponse
@@ -354,6 +355,40 @@ class RemoteDataSource(
         return flow {
             try {
                 val response = apiService.getStaticTranslations()
+                if (response.meta.status == "error") {
+                    emit(ApiResponse.Error(response.meta.message, response.meta.code))
+                } else {
+                    emit(ApiResponse.Success(response))
+                }
+            } catch (e: Exception) {
+                if (e is HttpException) {
+                    val exception: HttpException = e
+                    val response = exception.response()
+                    try {
+                        val jsonObject =
+                            JSONObject(response?.errorBody()?.string() ?: "Error")
+                        emit(
+                            ApiResponse.Error(
+                                jsonObject.optString("message"),
+                                response?.code() ?: 0
+                            )
+                        )
+                    } catch (e1: JSONException) {
+                        e1.printStackTrace()
+                    } catch (e1: IOException) {
+                        e1.printStackTrace()
+                    }
+                } else {
+                    emit(ApiResponse.Error(e.toString(), 0))
+                }
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    fun getStaticTranslationsDetail(translationID:Int): Flow<ApiResponse<GenericResponse<GetStaticTranslationDetailResponse>>> {
+        return flow {
+            try {
+                val response = apiService.getStaticDetailTranslation(translationID)
                 if (response.meta.status == "error") {
                     emit(ApiResponse.Error(response.meta.message, response.meta.code))
                 } else {

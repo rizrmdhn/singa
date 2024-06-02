@@ -22,10 +22,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.singa.asl.common.ValidationState
 import com.singa.asl.ui.components.BottomBar
 import com.singa.asl.ui.components.FloatingButton
@@ -343,13 +345,19 @@ fun MainApp(
                 composable(Screen.History.route) {
                     HistoryScreen(
                         navigateToDetail = {
-                            navController.navigate(Screen.HistoryDetail.route)
+                            navController.navigate(Screen.HistoryDetail.createRoute(it))
                         }
                     )
                 }
 
-                composable(Screen.HistoryDetail.route) {
-                    HistoryDetailScreen()
+                composable(
+                    route = Screen.HistoryDetail.route,
+                    arguments = listOf(navArgument("id") { type = NavType.StringType })
+                ) {
+                    val id = it.arguments?.getString("id") ?: "0"
+                    HistoryDetailScreen(
+                        id = id.toInt()
+                    )
                 }
 
                 composable(Screen.Profile.route) {
@@ -357,11 +365,14 @@ fun MainApp(
                         avatarUrl = authUser?.avatar ?: "",
                         logoutIsLoading = logoutIsLoading,
                         onLogout = {
-                           if (authUser?.email == null) {
-                               it("Logout", "Are you sure you want to logout?. make sure you update your email and password first otherwise you will lose your account")
-                           } else {
-                                 it("Logout", "Are you sure you want to logout?")
-                           }
+                            if (authUser?.email == null) {
+                                it(
+                                    "Logout",
+                                    "Are you sure you want to logout?. make sure you update your email and password first otherwise you will lose your account"
+                                )
+                            } else {
+                                it("Logout", "Are you sure you want to logout?")
+                            }
                         },
                         onConfirmLogout = {
                             onLogouts {

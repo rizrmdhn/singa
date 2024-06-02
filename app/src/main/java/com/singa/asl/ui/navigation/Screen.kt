@@ -13,7 +13,9 @@ sealed class Screen(val route: String) {
     data object Message : Screen("message")
     data object Conversation : Screen("conversation")
     data object History : Screen("history")
-    data object HistoryDetail : Screen("history_detail")
+    data object HistoryDetail : Screen("history_detail/{id}"){
+        fun createRoute(id: String) = "history_detail/$id"
+    }
     data object WebView : Screen("webview")
     data object RealtimeCamera : Screen("realtimecamera")
     data object MessageCamera : Screen("messagecamera")

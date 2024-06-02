@@ -4,6 +4,7 @@ import com.singa.core.data.source.remote.response.GenericResponse
 import com.singa.core.data.source.remote.response.GenericSuccessResponse
 import com.singa.core.data.source.remote.response.GetConversationListItem
 import com.singa.core.data.source.remote.response.GetMeResponse
+import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationList
 import com.singa.core.data.source.remote.response.LoginResponse
 import com.singa.core.data.source.remote.response.UpdateTokenResponse
@@ -18,6 +19,8 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Part
+import retrofit2.http.Path
+
 
 
 interface ApiService {
@@ -73,6 +76,9 @@ interface ApiService {
     @GET("translation/static")
     suspend fun getStaticTranslations(): GenericResponse<List<GetStaticTranslationList>>
 
-    // Article API
+    @Headers("Content-Type: application/json")
+    @GET("translation/static/{id}")
+    suspend fun getStaticDetailTranslation(@Path("id") id: Int): GenericResponse<GetStaticTranslationDetailResponse>
+
 }
 

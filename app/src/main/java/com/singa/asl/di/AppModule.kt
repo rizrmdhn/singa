@@ -4,6 +4,7 @@ import com.singa.asl.MainActivityViewModel
 import com.singa.asl.ui.MainAppViewModel
 import com.singa.asl.ui.screen.change_password.ChangePasswordScreenViewModel
 import com.singa.asl.ui.screen.history.HistoryScreenViewModel
+import com.singa.asl.ui.screen.history_detail.HistoryDetailScreenViewModel
 import com.singa.asl.ui.screen.login.LoginScreenViewModel
 import com.singa.asl.ui.screen.message.MessageScreenViewModel
 import com.singa.asl.ui.screen.onboarding.OnBoardingScreenViewModel
@@ -28,4 +29,5 @@ val viewModelModule = module {
     viewModel { OnBoardingScreenViewModel(get()) }
     viewModel { MainAppViewModel(get()) }
     viewModel { MainActivityViewModel(get()) }
+    viewModel { HistoryDetailScreenViewModel(get()) }
 }
