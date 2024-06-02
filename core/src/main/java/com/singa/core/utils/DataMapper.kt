@@ -5,6 +5,7 @@ import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import com.singa.core.data.source.remote.response.GetConversationListItem
 import com.singa.core.data.source.remote.response.GetMeResponse
+import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationList
 import com.singa.core.data.source.remote.response.LoginResponse
 import com.singa.core.data.source.remote.response.SchemaError
@@ -17,7 +18,9 @@ import com.singa.core.domain.model.Landmark
 import com.singa.core.domain.model.NormalizedLandmark
 import com.singa.core.domain.model.PoseLandmarker
 import com.singa.core.domain.model.RefreshToken
+import com.singa.core.domain.model.StaticTranscriptsItem
 import com.singa.core.domain.model.StaticTranslation
+import com.singa.core.domain.model.StaticTranslationDetail
 import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.User
 import com.singa.core.domain.model.ValidationErrorSchema
@@ -151,4 +154,24 @@ object DataMapper {
             }
         )
     }
+
+    fun mapStaticTranslationDetailResponseToModel(data: GetStaticTranslationDetailResponse) =
+        StaticTranslationDetail(
+            id = data.id,
+            title = data.title,
+            videoUrl = data.videoUrl,
+            createdAt = data.createdAt,
+            transcripts = data.transcripts.map {
+                StaticTranscriptsItem(
+                    id = it.id,
+                    userId = it.userId,
+                    staticTranslationId = it.staticTranslationId,
+                    text = it.text,
+                    timestamp = it.timestamp,
+                    createdAt = it.createdAt,
+                    updatedAt = it.updatedAt
+                )
+            },
+            updatedAt = data.updatedAt
+        )
 }

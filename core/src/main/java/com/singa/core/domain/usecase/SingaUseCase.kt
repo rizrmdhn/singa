@@ -4,6 +4,7 @@ import com.singa.core.data.Resource
 import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.RefreshToken
 import com.singa.core.domain.model.StaticTranslation
+import com.singa.core.domain.model.StaticTranslationDetail
 import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.User
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +33,8 @@ interface SingaUseCase {
     fun getConversations(): Flow<Resource<List<Conversation>>>
 
     fun getStaticTranslations(): Flow<Resource<List<StaticTranslation>>>
+
+    fun getStaticTranslationDetail(staticTranslationId: Int): Flow<Resource<StaticTranslationDetail>>
 
 
     fun updateToken(): Flow<Resource<RefreshToken>>

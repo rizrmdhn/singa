@@ -16,8 +16,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import kotlinx.coroutines.delay
 
 /**
  * Composable function that displays an ExoPlayer to play a video using Jetpack Compose.
@@ -29,13 +31,13 @@ import androidx.media3.ui.PlayerView
  */
 
 @Composable
-fun ExoPlayerView() {
+fun ExoPlayerView(
+    exoPlayer: ExoPlayer,
+    videoUrl: String,
+    timeStamp:(millisecond:Long)->Unit,
+) {
     val EXAMPLE_VIDEO_URI = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
     // Get the current context
-    val context = LocalContext.current
-
-    // Initialize ExoPlayer
-    val exoPlayer = ExoPlayer.Builder(context).build()
 
     // Create a MediaSource
     val mediaSource = remember(EXAMPLE_VIDEO_URI) {
@@ -46,6 +48,7 @@ fun ExoPlayerView() {
     LaunchedEffect(mediaSource) {
         exoPlayer.setMediaItem(mediaSource)
         exoPlayer.prepare()
+        exoPlayer.playWhenReady = true
     }
 
     val playbackPosition = remember { mutableStateOf(0L) }
@@ -54,25 +57,56 @@ fun ExoPlayerView() {
     DisposableEffect(Unit) {
         val listener = object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (isPlaying) {
                     // Log and update playback position while playing
                     playbackPosition.value = exoPlayer.currentPosition
-                    Log.d("ExoPlayerView", "Playback position: ${playbackPosition.value} ms")
-                }
+                    Log.d("ExoPlayerView", "Playback is Playing position: ${playbackPosition.value} ms")
+                    timeStamp(playbackPosition.value)
             }
 
             override fun onPlaybackStateChanged(state: Int) {
                 playbackPosition.value = exoPlayer.currentPosition
                 Log.d("ExoPlayerView", "Playback position: ${playbackPosition.value} ms")
+                timeStamp(playbackPosition.value)
+
+                when (state) {
+                    Player.STATE_READY -> {
+                        Log.d("Player", "STATE_READY- duration: ${playbackPosition.value}") // <----- Problem 2
+                    }
+
+                    Player.STATE_ENDED -> {
+                        Log.d("Player", "STATE_ENDED")
+                    }
+
+                    Player.STATE_BUFFERING, Player.STATE_IDLE -> {
+                        Log.d("Player", "STATE_BUFFERING or STATE_IDLE")
+                    }
+                }
             }
+
         }
 
         exoPlayer.addListener(listener)
 
         onDispose {
+            exoPlayer.removeListener(listener)
             exoPlayer.release()
         }
     }
+
+    LaunchedEffect(
+        Unit
+    ) {
+        while(true){
+            Log.i("ExoPlayerView", "Current position: ${playbackPosition.value}")
+            delay(1000)
+            if(playbackPosition.value != exoPlayer.currentPosition){
+                timeStamp(playbackPosition.value)
+            }
+
+            playbackPosition.value = exoPlayer.currentPosition
+        }
+    }
+
 
     // Use AndroidView to embed an Android View (PlayerView) into Compose
     AndroidView(

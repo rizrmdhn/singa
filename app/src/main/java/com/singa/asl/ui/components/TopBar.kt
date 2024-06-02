@@ -1,6 +1,7 @@
 package com.singa.asl.ui.components
 
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -77,7 +78,8 @@ fun TopBarLeftIcon(
         Screen.Register.route,
         Screen.ProfileDetail.route,
         Screen.ChangePassword.route,
-        Screen.WebView.route
+        Screen.WebView.route,
+        Screen.HistoryDetail.route
     )
 
     val showBackButton = listOfShowBackButton.contains(route.lowercase(Locale.ROOT))
@@ -97,13 +99,23 @@ fun TopBarLeftIcon(
             containerColor = Color.Transparent
         ),
         title = {
-            if (route != Screen.WebView.route) {
-                Text(
-                    text = modifiedText,
-                    fontWeight = FontWeight.Bold,
-                    color = colorPaint,
-                    fontSize = 28.sp
-                )
+            when {
+                route == Screen.HistoryDetail.route -> {
+                    Text(
+                        text = "History Detail",
+                        fontWeight = FontWeight.Bold,
+                        color = colorPaint,
+                        fontSize = 28.sp
+                    )
+                }
+                route != Screen.WebView.route -> {
+                    Text(
+                        text = modifiedText,
+                        fontWeight = FontWeight.Bold,
+                        color = colorPaint,
+                        fontSize = 28.sp
+                    )
+                }
             }
         },
         navigationIcon = {
@@ -150,6 +162,7 @@ fun TopBarProfile(
                 Text(
                     text = name,
                     fontSize = 20.sp,
+                    maxLines = 1,
                     fontWeight = FontWeight.Medium,
                     overflow = TextOverflow.Ellipsis,
                     color = Color.White

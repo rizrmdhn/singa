@@ -4,9 +4,11 @@ import com.google.gson.JsonObject
 import com.singa.core.data.source.local.LocalDataSource
 import com.singa.core.data.source.remote.RemoteDataSource
 import com.singa.core.data.source.remote.network.ApiResponse
+import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.RefreshToken
 import com.singa.core.domain.model.StaticTranslation
+import com.singa.core.domain.model.StaticTranslationDetail
 import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.User
 import com.singa.core.domain.repository.ISingaRepository
@@ -347,6 +349,36 @@ class SingaRepository(
                         val translations =
                             DataMapper.mapStaticTranslationResponseToModel(it.data.data)
                         emit(Resource.Success(translations))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
+    override fun getStaticTranslationDetail(staticTranslationId: Int): Flow<Resource<StaticTranslationDetail>> {
+        return flow {
+            emit(Resource.Loading())
+            remoteDataSource.getStaticTranslationsDetail(staticTranslationId).collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        val translationDetail =
+                            DataMapper.mapStaticTranslationDetailResponseToModel(it.data.data)
+                        emit(Resource.Success(translationDetail))
                     }
 
                     is ApiResponse.Empty -> {
