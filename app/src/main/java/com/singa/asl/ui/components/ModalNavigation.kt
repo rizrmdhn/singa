@@ -2,7 +2,6 @@ package com.singa.asl.ui.components
 
 import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -30,17 +29,32 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import com.singa.asl.R
 import com.singa.asl.ui.theme.Color1
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ModalNavigation(
     context: Context = LocalContext.current,
     navigateToRealtimeCamera: () -> Unit,
     navigateToConversation: () -> Unit
 ) {
+    val storagePermissionState = rememberPermissionState(Manifest.permission.READ_EXTERNAL_STORAGE)
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (it) {
+            navigateToRealtimeCamera()
+        } else {
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val readStoragePermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {
         if (it) {
@@ -58,15 +72,23 @@ fun ModalNavigation(
     ) {
         Button(
             onClick = {
-                val permissionCheckResult =
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.CAMERA
-                    )
-                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                    navigateToRealtimeCamera()
-                } else {
-                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                when {
+                    cameraPermissionState.hasPermission -> {
+                        navigateToRealtimeCamera()
+                    }
+                    cameraPermissionState.shouldShowRationale -> {
+                        Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+                    }
+                    storagePermissionState.hasPermission -> {
+                        navigateToRealtimeCamera()
+                    }
+                    storagePermissionState.shouldShowRationale -> {
+                        Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        readStoragePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    }
                 }
             },
             shape = RoundedCornerShape(20),

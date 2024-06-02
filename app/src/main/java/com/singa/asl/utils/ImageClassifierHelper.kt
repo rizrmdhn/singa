@@ -1,145 +1,145 @@
 package com.singa.asl.utils
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.ImageFormat
-import android.graphics.Rect
-import android.graphics.YuvImage
 import android.os.SystemClock
 import android.util.Log
 import androidx.camera.core.ImageProxy
 import com.google.mediapipe.framework.image.BitmapImageBuilder
-import com.google.mediapipe.tasks.components.containers.Classifications
 import com.google.mediapipe.tasks.core.BaseOptions
+import com.google.mediapipe.tasks.core.Delegate
 import com.google.mediapipe.tasks.vision.core.ImageProcessingOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
-import com.google.mediapipe.tasks.vision.imageclassifier.ImageClassifier
-import com.singa.asl.R
-import java.io.ByteArrayOutputStream
+import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarker
+import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarker
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
+import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
+import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 
 class ImageClassifierHelper(
     private var threshold: Float = 0.1f,
     private var maxResults: Int = 3,
     private val modelName: String = "asl-test.tflite",
-    private val runningMode: RunningMode = RunningMode.LIVE_STREAM,
+    private val runningMode: RunningMode = RunningMode.VIDEO,
     val context: Context,
-    val classifierListener: ClassifierListener?
+    val handLandmarkerListener: HandLandmarkerListener?,
+    val faceLandmarkerListener: FaceLandmarkerListener?,
+    val poseLandmarkerListener: PoseLandmarkerListener?
 ) {
-    private var imageClassifier: ImageClassifier? = null
+    private var faceLandmarker: FaceLandmarker? = null
+    private var handLandmarker: HandLandmarker? = null
+    private var poseLandmarker: PoseLandmarker? = null
 
     init {
-        setupImageClassifier()
+        setupLandmarkers()
     }
 
-    private fun setupImageClassifier() {
-        val optionsBuilder = ImageClassifier.ImageClassifierOptions.builder()
-            .setScoreThreshold(threshold)
-            .setMaxResults(maxResults)
-            .setRunningMode(runningMode)
-
-        if (runningMode == RunningMode.LIVE_STREAM) {
-            optionsBuilder.setResultListener { result, _ ->
-                val finishTimeMs = SystemClock.uptimeMillis()
-                val inferenceTime = finishTimeMs - result.timestampMs()
-                classifierListener?.onResults(
-                    result.classificationResult().classifications(),
-                    inferenceTime
-                )
-            }.setErrorListener { error ->
-                classifierListener?.onError(error.message.toString())
-            }
-        }
-
-        val baseOptionsBuilder = BaseOptions.builder()
+    private fun setupLandmarkers() {
+        val baseOptions = BaseOptions.builder()
             .setModelAssetPath(modelName)
-        optionsBuilder.setBaseOptions(baseOptionsBuilder.build())
+            .setDelegate(Delegate.GPU)
+            .build()
 
+        setupFaceLandmarker(baseOptions)
+        setupHandLandmarker(baseOptions)
+        setupPoseLandmarker(baseOptions)
+    }
+
+    private fun setupFaceLandmarker(baseOptions: BaseOptions) {
         try {
-            imageClassifier = ImageClassifier.createFromOptions(
-                context,
-                optionsBuilder.build()
-            )
-        } catch (e: IllegalStateException) {
-            classifierListener?.onError(context.getString(R.string.image_classifier_failed))
-            Log.e(TAG, e.message.toString())
+            val options = FaceLandmarker.FaceLandmarkerOptions.builder()
+                .setBaseOptions(baseOptions)
+                .setMinFaceDetectionConfidence(0.5f)
+                .setMinTrackingConfidence(0.5f)
+                .setNumFaces(1)
+                .setRunningMode(runningMode)
+                .build()
+
+            faceLandmarker = FaceLandmarker.createFromOptions(context, options)
+            Log.d(TAG, "FaceLandmarker successfully created")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating FaceLandmarker: $e")
+            faceLandmarkerListener?.onError("Error creating FaceLandmarker: $e")
+        }
+    }
+
+    private fun setupHandLandmarker(baseOptions: BaseOptions) {
+        try {
+            val options = HandLandmarker.HandLandmarkerOptions.builder()
+                .setBaseOptions(baseOptions)
+                .setMinHandDetectionConfidence(0.5f)
+                .setMinTrackingConfidence(0.5f)
+                .setMinHandPresenceConfidence(0.5f)
+                .setNumHands(1)
+                .setRunningMode(runningMode)
+                .build()
+
+            handLandmarker = HandLandmarker.createFromOptions(context, options)
+            Log.d(TAG, "HandLandmarker successfully created")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating HandLandmarker: $e")
+            handLandmarkerListener?.onError("Error creating HandLandmarker: $e")
+        }
+    }
+
+    private fun setupPoseLandmarker(baseOptions: BaseOptions) {
+        try {
+            val options = PoseLandmarker.PoseLandmarkerOptions.builder()
+                .setBaseOptions(baseOptions)
+                .setMinPoseDetectionConfidence(0.5f)
+                .setMinTrackingConfidence(0.5f)
+                .setNumPoses(1)
+                .setRunningMode(runningMode)
+                .build()
+
+            poseLandmarker = PoseLandmarker.createFromOptions(context, options)
+            Log.d(TAG, "PoseLandmarker successfully created")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error creating PoseLandmarker: $e")
+            poseLandmarkerListener?.onError("Error creating PoseLandmarker: $e")
         }
     }
 
     fun classifyImage(image: ImageProxy) {
-
-        if (imageClassifier == null) {
-            setupImageClassifier()
-        }
-
         val bitmapImage = image.toBitmap()
-
         Log.d(TAG, "Classifying image...")
 
         val mpImage = BitmapImageBuilder(bitmapImage).build()
-
-//        val imageProcessor = ImageProcessor.Builder()
-//            .add(ResizeOp(224, 224, ResizeOp.ResizeMethod.NEAREST_NEIGHBOR))
-//            .add(CastOp(DataType.UINT8))
-//            .build()
-//
-//        val tensorImage = imageProcessor.process(TensorImage.fromBitmap(bitmapImage))
-
         val imageProcessingOptions = ImageProcessingOptions.builder()
             .setRotationDegrees(image.imageInfo.rotationDegrees)
             .build()
 
         val inferenceTime = SystemClock.uptimeMillis()
-        imageClassifier?.classifyAsync(mpImage, imageProcessingOptions, inferenceTime)
-    }
 
-    private fun toBitmap(image: ImageProxy): Bitmap? {
-        // Ensure the image format is YUV_420_888
-        if (image.format != ImageFormat.YUV_420_888) {
-            throw IllegalArgumentException("Unsupported image format: ${image.format}")
+        // Hand Landmarker
+        handLandmarker?.detectForVideo(mpImage, inferenceTime)?.let {
+            handLandmarkerListener?.onResults(it, inferenceTime)
         }
 
-        val yBuffer = image.planes[0].buffer
-        val uBuffer = image.planes[1].buffer
-        val vBuffer = image.planes[2].buffer
-
-        val ySize = yBuffer.remaining()
-        val uSize = uBuffer.remaining()
-        val vSize = vBuffer.remaining()
-
-        val nv21 = ByteArray(ySize + uSize + vSize)
-
-        // Copy the Y buffer
-        yBuffer.get(nv21, 0, ySize)
-
-        // Interleave U and V buffers
-        var uvIndex = ySize
-        val pixelStride = image.planes[1].pixelStride
-        val rowStride = image.planes[1].rowStride
-        val chromaHeight = image.height / 2
-        val chromaWidth = image.width / 2
-
-        for (row in 0 until chromaHeight) {
-            for (col in 0 until chromaWidth) {
-                val uIndex = row * rowStride + col * pixelStride
-                nv21[uvIndex++] = uBuffer[uIndex]
-                nv21[uvIndex++] = vBuffer[uIndex]
-            }
+        // Face Landmarker
+        faceLandmarker?.detectForVideo(mpImage, inferenceTime)?.let {
+            faceLandmarkerListener?.onResults(it, inferenceTime)
         }
 
-        val yuvImage = YuvImage(nv21, ImageFormat.NV21, image.width, image.height, null)
-        val out = ByteArrayOutputStream()
-        yuvImage.compressToJpeg(Rect(0, 0, image.width, image.height), 100, out)
-        val jpegArray = out.toByteArray()
-        return BitmapFactory.decodeByteArray(jpegArray, 0, jpegArray.size)
+        // Pose Landmarker
+        poseLandmarker?.detectForVideo(mpImage, inferenceTime)?.let {
+            poseLandmarkerListener?.onResults(it, inferenceTime)
+        }
     }
 
-    interface ClassifierListener {
+    interface HandLandmarkerListener {
         fun onError(error: String)
-        fun onResults(
-            results: List<Classifications>?,
-            inferenceTime: Long
-        )
+        fun onResults(results: HandLandmarkerResult?, inferenceTime: Long)
+    }
+
+    interface FaceLandmarkerListener {
+        fun onError(error: String)
+        fun onResults(results: FaceLandmarkerResult?, inferenceTime: Long)
+    }
+
+    interface PoseLandmarkerListener {
+        fun onError(error: String)
+        fun onResults(results: PoseLandmarkerResult?, inferenceTime: Long)
     }
 
     companion object {

@@ -2,9 +2,6 @@ package com.singa.asl.ui
 
 import android.content.Context
 import android.net.Uri
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -20,7 +17,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -45,7 +41,6 @@ import com.singa.asl.ui.screen.profile.ProfileScreen
 import com.singa.asl.ui.screen.profile_detail.ProfileDetailScreen
 import com.singa.asl.ui.screen.realtime_camera.RealtimeCameraScreen
 import com.singa.asl.ui.screen.register.RegisterScreen
-import com.singa.asl.ui.screen.test_camera.TestCameraScreen
 import com.singa.asl.ui.screen.web_view.WebViewScreen
 import com.singa.asl.ui.screen.welcome.WelcomeScreen
 import com.singa.asl.ui.theme.Color1
@@ -133,7 +128,6 @@ fun MainApp(
         }
     }
 
-    val uriHandler = LocalUriHandler.current
 
     LaunchedEffect(socialLoginUrl) {
         if (socialLoginUrl.isNotEmpty()) {
@@ -186,18 +180,6 @@ fun MainApp(
             floatingActionButtonPosition = FabPosition.Center,
             containerColor = if (!isDisabledTopBar) Color1 else Color.White,
         ) { innerPadding ->
-
-            val cameraPermissionLauncher = rememberLauncherForActivityResult(
-                ActivityResultContracts.RequestPermission()
-            ) {
-                if (it) {
-                    navController.navigate(Screen.RealtimeCamera.route)
-                } else {
-                    Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-
             NavHost(
                 navController = navController,
                 startDestination = if (authUser == null && !isSecondLaunch) {
@@ -316,12 +298,6 @@ fun MainApp(
                             )
                         }
                     )
-                }
-
-                composable(
-                    Screen.TestCamera.route
-                ) {
-                    TestCameraScreen()
                 }
 
                 composable(Screen.Home.route) {

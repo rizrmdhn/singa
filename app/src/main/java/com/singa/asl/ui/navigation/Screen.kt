@@ -17,5 +17,4 @@ sealed class Screen(val route: String) {
     data object WebView : Screen("webview")
     data object RealtimeCamera : Screen("realtimecamera")
     data object MessageCamera : Screen("messagecamera")
-    data object TestCamera : Screen("testcamera")
 }

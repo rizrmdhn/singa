@@ -19,7 +19,6 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageCapture.OnImageCapturedCallback
 import androidx.camera.core.ImageCaptureException
 import androidx.camera.core.ImageProxy
-import androidx.camera.core.resolutionselector.AspectRatioStrategy
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FileOutputOptions
@@ -30,14 +29,17 @@ import androidx.camera.view.PreviewView
 import androidx.camera.view.video.AudioConfig
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -65,11 +67,20 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.mediapipe.tasks.components.containers.Classifications
 import com.singa.asl.R
+import com.singa.asl.ml.AslTest
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
+import com.singa.asl.utils.CombinedLandmarkerHelper
 import com.singa.asl.utils.Helpers
-import com.singa.asl.utils.ImageClassifierHelper
+import com.singa.core.domain.model.FaceLandmarker
+import com.singa.core.domain.model.HandLandmarker
+import com.singa.core.domain.model.PoseLandmarker
+import com.singa.core.utils.DataMapper
+import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.File
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -96,16 +107,19 @@ fun RealtimeCameraContent(
     val previewView = remember {
         PreviewView(context)
     }
+    var combinedLandmarkerHelper by remember { mutableStateOf<CombinedLandmarkerHelper?>(null) }
 
-    var imageClassifierHelper by remember {
-        mutableStateOf<ImageClassifierHelper?>(null)
-    }
-    var analyzingResult by remember { mutableStateOf<List<Classifications>?>(null) }
-    var analyzingInferenceTime by remember { mutableStateOf<Long?>(null) }
+    // Results from the analyzing
+    val analyzingResult by remember { mutableStateOf<List<Classifications>?>(null) }
+    var faceLandmarkResult by remember { mutableStateOf<FaceLandmarker?>(null) }
+    var handLandmarkResult by remember { mutableStateOf<List<HandLandmarker>?>(null) }
+    var poseLandmarkResult by remember { mutableStateOf<List<PoseLandmarker>?>(null) }
+
+
     val executor = Executors.newSingleThreadExecutor()
     val preview = remember { androidx.camera.core.Preview.Builder().build() }
 
-    var analyzingResultIsOut: Boolean by remember {
+    var isFrontCamera by remember {
         mutableStateOf(false)
     }
 
@@ -139,10 +153,142 @@ fun RealtimeCameraContent(
     val cameraController = remember { LifecycleCameraController(context) }
 
 
+    var cameraSelector by remember {
+        mutableStateOf(CameraSelector.DEFAULT_BACK_CAMERA)
+    }
+
+    fun flattenLandmarks(
+        poseResults: List<PoseLandmarker>,
+        faceResult: FaceLandmarker?,
+        handResults: List<HandLandmarker>?
+    ): FloatArray {
+        val landmarks = mutableListOf<Float>()
+
+        // Add pose landmarks (33 landmarks, each with x, y, z, visibility)
+        for (result in poseResults) {
+            for (landmarkList in result.landmarks) {
+                for (landmark in landmarkList) {
+                    landmarks.add(landmark.x)
+                    landmarks.add(landmark.y)
+                    landmarks.add(landmark.z)
+                    landmarks.add(landmark.visibility.orElse(0.0f)) // Add visibility, default to 0.0f if not present
+                }
+            }
+        }
+
+        // If poseResults are empty, add default values (33 landmarks * 4 floats)
+        if (poseResults.isEmpty()) {
+            repeat(33) {
+                landmarks.add(0.0f)
+                landmarks.add(0.0f)
+                landmarks.add(0.0f)
+                landmarks.add(0.0f) // Add default visibility
+            }
+        }
+
+        // Add face landmarks (478 landmarks, each with x, y, z)
+        if (faceResult != null) {
+            for (landmarkList in faceResult.faceLandmarks) {
+                for (landmark in landmarkList) {
+                    landmarks.add(landmark.x)
+                    landmarks.add(landmark.y)
+                    landmarks.add(landmark.z)
+                }
+            }
+        } else {
+            // Add default values if faceResult is null (478 landmarks * 3 floats)
+            repeat(478) {
+                landmarks.add(0.0f)
+                landmarks.add(0.0f)
+                landmarks.add(0.0f)
+            }
+        }
+
+        // Add hand landmarks (21 landmarks per hand, each with x, y, z)
+        if (handResults != null) {
+            for (result in handResults) {
+                for (landmarkList in result.landmarks) {
+                    for (landmark in landmarkList) {
+                        landmarks.add(landmark.x)
+                        landmarks.add(landmark.y)
+                        landmarks.add(landmark.z)
+                    }
+                }
+            }
+        }
+
+        // If handResults are empty, add default values (21 landmarks per hand * 3 floats)
+        if (handResults.isNullOrEmpty()) {
+            repeat(21 * 2) {
+                landmarks.add(0.0f)
+                landmarks.add(0.0f)
+                landmarks.add(0.0f)
+            }
+        }
+
+        // Pad with zeros if necessary to meet the required size
+        val requiredSize = 50760
+        while (landmarks.size < requiredSize) {
+            landmarks.add(0.0f)
+        }
+
+        // Ensure the size does not exceed the required size
+        if (landmarks.size > requiredSize) {
+            landmarks.subList(0, requiredSize)
+        }
+
+        return landmarks.toFloatArray()
+    }
+
+
+    fun createTensorBuffer(landmarks: FloatArray): TensorBuffer {
+        val byteBuffer = ByteBuffer.allocateDirect(landmarks.size * 4)
+        byteBuffer.order(ByteOrder.nativeOrder())
+        for (value in landmarks) {
+            byteBuffer.putFloat(value)
+        }
+
+        val inputFeature = TensorBuffer.createFixedSize(intArrayOf(1, 50760), DataType.FLOAT32)
+        inputFeature.loadBuffer(byteBuffer)
+        return inputFeature
+    }
+
+    fun getPredictedLabel(outputArray: FloatArray): String {
+        // Define the list of labels
+        val labels = listOf("hello", "thanks", "i-love-you", "see-you-later", "I", "Father")
+
+        // Find the index of the highest probability
+        val maxIndex = outputArray.indices.maxByOrNull { outputArray[it] } ?: -1
+
+        // Return the corresponding label
+        return if (maxIndex != -1) labels[maxIndex] else "Unknown"
+    }
+
+    fun runAslModel(
+        context: Context,
+        poseResults: List<PoseLandmarker>,
+        faceResult: FaceLandmarker?,
+        handResults: List<HandLandmarker>?
+    ): String {
+        val landmarks = flattenLandmarks(poseResults, faceResult, handResults)
+        val inputFeature0 = createTensorBuffer(landmarks)
+
+        val model = AslTest.newInstance(context)
+        val outputs = model.process(inputFeature0)
+        val outputFeature0 = outputs.outputFeature0AsTensorBuffer
+
+        // Convert the output to a label
+        val outputArray = outputFeature0.floatArray
+        Log.d("RealtimeCameraScreen", "Output array: ${outputArray.joinToString()}")
+        val predictedLabel = getPredictedLabel(outputArray)
+
+        model.close()
+        return predictedLabel
+    }
+
 
     fun bindPreview(cameraProvider: ProcessCameraProvider) {
         try {
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
             cameraProvider.unbindAll()
             cameraProvider.bindToLifecycle(
                 lifecycleOwner,
@@ -155,46 +301,69 @@ fun RealtimeCameraContent(
         }
     }
 
+
     fun bindAnalysis(cameraProvider: ProcessCameraProvider) {
         try {
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
-            val imageAnalyzer = ImageAnalysis.Builder()
-                .setResolutionSelector(
-                    ResolutionSelector.Builder()
-                        .setAspectRatioStrategy(AspectRatioStrategy.RATIO_16_9_FALLBACK_AUTO_STRATEGY)
-                        .build()
-                )
-                .setTargetRotation(Surface.ROTATION_0)
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
-                .build()
+            // Common ImageAnalysis configuration function
+            fun createImageAnalysis(): ImageAnalysis {
+                return ImageAnalysis.Builder()
+                    .setResolutionSelector(
+                        ResolutionSelector.Builder()
+                            .build()
+                    )
+                    .setTargetRotation(Surface.ROTATION_0)
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .setOutputImageFormat(ImageAnalysis.OUTPUT_IMAGE_FORMAT_RGBA_8888)
+                    .build()
+            }
 
-            imageClassifierHelper = ImageClassifierHelper(
+            val imageAnalyzer = createImageAnalysis()
+
+            combinedLandmarkerHelper = CombinedLandmarkerHelper(
                 context = context,
-                classifierListener = object : ImageClassifierHelper.ClassifierListener {
-                    override fun onError(error: String) {
-                        Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
+                faceLandmarkerHelperListener = object :
+                    CombinedLandmarkerHelper.CombinedFaceLandmarkerListener {
+                    override fun onResultsFaceLandmarker(result: CombinedLandmarkerHelper.ResultFaceLandmarkerBundle) {
+                        val mappedData = DataMapper.mapFaceLandmarkResponseToModel(result.results)
+                        faceLandmarkResult = mappedData
                     }
 
-                    override fun onResults(results: List<Classifications>?, inferenceTime: Long) {
-                        results?.let { result ->
-                            if (result.isNotEmpty() && result[0].categories().isNotEmpty()) {
-                                analyzingResult = result.sortedByDescending { it.categories()[0].score() }
-                                analyzingInferenceTime = inferenceTime
-                            } else {
-                                analyzingResult = emptyList()
-                                analyzingInferenceTime = null
-                            }
-                            Log.d("TestCameraScreen", result.sortedByDescending { it.categories()[0].score() }.toString())
-                        }
+
+                    override fun onError(error: String, errorCode: Int) {
+                        Log.e("RealtimeCameraScreen", "Error: $error, code: $errorCode")
+                    }
+                },
+                handLandmarkerHelperListener = object :
+                    CombinedLandmarkerHelper.CombinedHandLandmarkerListener {
+                    override fun onResultsHandLandmarker(result: CombinedLandmarkerHelper.ResultHandLandmarkerBundle) {
+                        val mappedData = DataMapper.mapHandLandmarkResponseToModel(result.results)
+                        handLandmarkResult = mappedData
+                    }
+
+                    override fun onError(error: String, errorCode: Int) {
+                        Log.e("RealtimeCameraScreen", "Error: $error, code: $errorCode")
+                    }
+                },
+                poseLandmarkerHelperListener = object :
+                    CombinedLandmarkerHelper.CombinedPoseLandmarkerListener {
+                    override fun onResultsPoseLandmarker(result: CombinedLandmarkerHelper.ResultPoseLandmarkerBundle) {
+                        val mappedData = DataMapper.mapPoseLandmarkResponseToModel(result.results)
+                        poseLandmarkResult = mappedData
+                    }
+
+                    override fun onError(error: String, errorCode: Int) {
+                        Log.e("RealtimeCameraScreen", "Error: $error, code: $errorCode")
                     }
                 }
             )
 
+            // Set analyzers with image closure handling
             imageAnalyzer.setAnalyzer(executor) { image ->
-                imageClassifierHelper?.classifyImage(image)
-                image.close()  // Ensure to close the image to avoid memory leaks
+                image.use {
+                    combinedLandmarkerHelper?.detectLiveStream(it, isFrontCamera)
+                }
             }
+
 
             cameraProvider.unbindAll()
             cameraProvider.bindToLifecycle(
@@ -283,59 +452,7 @@ fun RealtimeCameraContent(
         }
     }
 
-    fun testMediaPipe() {
-        cameraController.takePicture(
-            executors,
-            object : OnImageCapturedCallback() {
-                @OptIn(ExperimentalGetImage::class)
-                override fun onCaptureSuccess(image: ImageProxy) {
-                    super.onCaptureSuccess(image)
-
-                    val imageClassifier = ImageClassifierHelper(
-                        context = context,
-                        classifierListener = object : ImageClassifierHelper.ClassifierListener {
-                            override fun onResults(
-                                results: List<Classifications>?,
-                                inferenceTime: Long
-                            ) {
-                                results?.let { it ->
-                                    if (it.isNotEmpty() && it[0].categories().isEmpty()) {
-                                        println(it)
-                                        val sortedCategories =
-                                            it[0].categories().sortedByDescending { it?.score() }
-                                        val displayResult =
-                                            sortedCategories.joinToString("\n") {
-                                                "${it.categoryName()} " + NumberFormat.getPercentInstance()
-                                                    .format(it.score()).trim()
-                                            }
-                                        Log.d("RealtimeCameraScreen", displayResult)
-                                        analyzingResult = it
-                                        analyzingResultIsOut = true
-                                    } else {
-                                        analyzingResult = it
-                                        analyzingResultIsOut = true
-                                    }
-                                }
-                            }
-
-                            override fun onError(error: String) {
-                                Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    )
-
-                    imageClassifier.classifyImage(image)
-
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    Toast.makeText(context, "Error capturing image", Toast.LENGTH_SHORT).show()
-                }
-            }
-        )
-    }
-
-    LaunchedEffect(isAnalyzing, isRecording) {
+    LaunchedEffect(isAnalyzing, isRecording, isFrontCamera) {
         cameraProviderFuture.addListener({
             val cameraProvider = cameraProviderFuture.get()
             if (isAnalyzing) {
@@ -344,13 +461,25 @@ fun RealtimeCameraContent(
                 bindPreview(cameraProvider)
             }
         }, ContextCompat.getMainExecutor(context))
+
     }
 
-    Log.d("RealtimeCameraScreen", analyzingResult?.joinToString("\n") { classification ->
-        classification.categories().joinToString("\n") { category ->
-            "${category.categoryName()} " + NumberFormat.getPercentInstance().format(category.score()).trim()
+    LaunchedEffect(isFrontCamera) {
+        cameraSelector = if (isFrontCamera) {
+            CameraSelector.DEFAULT_FRONT_CAMERA
+        } else {
+            CameraSelector.DEFAULT_BACK_CAMERA
         }
-    }.toString())
+    }
+
+    LaunchedEffect(faceLandmarkResult, handLandmarkResult, poseLandmarkResult) {
+        if (faceLandmarkResult != null && handLandmarkResult != null && poseLandmarkResult != null) {
+            val result = runAslModel(context, poseLandmarkResult!!, faceLandmarkResult!!, handLandmarkResult!!)
+
+            // Display the result
+            Log.d("RealtimeCameraScreen", "ASL Result: $result")
+        }
+    }
 
 
     Box(
@@ -377,19 +506,20 @@ fun RealtimeCameraContent(
                     .padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Box(modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
-                    .fillMaxHeight(0.2f)
-                    .background(
-                        color = Color1,
-                        shape = RoundedCornerShape(20.dp)
-                    )
-                    .border(
-                        width = 3.dp,
-                        color = Color2,
-                        shape = MaterialTheme.shapes.medium
-                    )
+                Box(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .fillMaxHeight(0.2f)
+                        .background(
+                            color = Color1,
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .border(
+                            width = 3.dp,
+                            color = Color2,
+                            shape = MaterialTheme.shapes.medium
+                        )
                 ) {
                     Column(
                         modifier = Modifier
@@ -398,7 +528,8 @@ fun RealtimeCameraContent(
                         Text(
                             text = analyzingResult?.joinToString("\n") { classification ->
                                 classification.categories().joinToString("\n") { category ->
-                                    "${category.categoryName()} " + NumberFormat.getPercentInstance().format(category.score()).trim()
+                                    "${category.categoryName()} " + NumberFormat.getPercentInstance()
+                                        .format(category.score()).trim()
                                 }
                             } ?: "No results",
                             color = Color.White,
@@ -419,7 +550,9 @@ fun RealtimeCameraContent(
                             width = 3.dp,
                             color = Color2,
                             shape = MaterialTheme.shapes.medium
-                        )
+                        ),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
                 ) {
                     IconButton(
                         modifier = Modifier
@@ -439,6 +572,24 @@ fun RealtimeCameraContent(
                             contentDescription = "Capture Image"
                         )
                     }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    IconButton(
+                        modifier = Modifier
+                            .padding(10.dp),
+                        onClick = {
+                            isFrontCamera = !isFrontCamera
+                        },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_cameraswitch_24),
+                            contentDescription = "switch camera"
+                        )
+                    }
                 }
             }
 
@@ -456,7 +607,9 @@ fun RealtimeCameraContent(
                         width = 3.dp,
                         color = Color2,
                         shape = MaterialTheme.shapes.medium
-                    )
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
                 IconButton(
                     modifier = Modifier
@@ -474,6 +627,24 @@ fun RealtimeCameraContent(
                     Icon(
                         painter = painterResource(id = R.drawable.fluent_video_16_filled),
                         contentDescription = "Capture Image"
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                IconButton(
+                    modifier = Modifier
+                        .padding(10.dp),
+                    onClick = {
+                        isFrontCamera = !isFrontCamera
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = Color.White
+                    )
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_cameraswitch_24),
+                        contentDescription = "switch camera"
                     )
                 }
             }
