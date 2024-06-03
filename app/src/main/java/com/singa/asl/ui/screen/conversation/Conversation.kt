@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.ManagedActivityResultLauncher
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -12,6 +13,8 @@ import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,45 +23,133 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreInterceptKeyBeforeSoftKeyboard
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.singa.asl.R
 import com.singa.asl.ui.components.ConversationCard
+import com.singa.asl.ui.components.ConversationCardLoader
 import com.singa.asl.ui.components.MySendInput
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color3
+import com.singa.core.data.Resource
+import com.singa.core.domain.model.ConversationNode
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 import java.util.Locale
 
-@Preview(showBackground = true, showSystemUi = true, backgroundColor = 0xFF4BA6F8)
-@Composable
-fun ConversationScreen(
-    context: Context = LocalContext.current
-) {
-    ConversationContent(
-        context = context
-    )
-}
 
 @Composable
-fun ConversationContent(
-    context: Context
+fun ConversationScreen(
+    id: Int,
+    context: Context = LocalContext.current,
+    viewModel: ConversationViewModel = koinViewModel()
 ) {
-    var textMessage by remember { mutableStateOf("") }
+    val textMessage by viewModel.textMessageState.collectAsState()
+    val isInputFocused by viewModel.isInputFocused.collectAsState()
+
+    viewModel.state.collectAsState(initial = Resource.Loading()).value.let {
+        when (it) {
+            is Resource.Empty -> {
+                ConversationContent(
+                    context = context,
+                    conversationNode = emptyList(),
+                    isLoading = false,
+                    isError = false,
+                    textMessage = textMessage,
+                    isInputFocused = isInputFocused,
+                    setInputFocus = viewModel::setInputFocus,
+                    onChangeTextMessage = viewModel::setTextMessage
+                )
+            }
+
+            is Resource.Error -> {
+                Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                ConversationContent(
+                    context = context,
+                    conversationNode = emptyList(),
+                    isLoading = false,
+                    isError = true,
+                    textMessage = textMessage,
+                    isInputFocused = isInputFocused,
+                    setInputFocus = viewModel::setInputFocus,
+                    onChangeTextMessage = viewModel::setTextMessage
+                )
+            }
+
+            is Resource.Loading -> {
+                viewModel.getConversationNodes(id)
+                ConversationContent(
+                    context = context,
+                    conversationNode = emptyList(),
+                    isLoading = true,
+                    isError = false,
+                    textMessage = textMessage,
+                    isInputFocused = isInputFocused,
+                    setInputFocus = viewModel::setInputFocus,
+                    onChangeTextMessage = viewModel::setTextMessage
+                )
+            }
+
+            is Resource.Success -> {
+                ConversationContent(
+                    context = context,
+                    conversationNode = it.data,
+                    isLoading = false,
+                    isError = false,
+                    textMessage = textMessage,
+                    isInputFocused = isInputFocused,
+                    setInputFocus = viewModel::setInputFocus,
+                    onChangeTextMessage = viewModel::setTextMessage
+                )
+            }
+
+            is Resource.ValidationError -> {
+                Log.e("ConversationScreen", it.errors.toString())
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class)
+@Composable
+fun ConversationContent(
+    context: Context,
+    conversationNode: List<ConversationNode>,
+    isLoading: Boolean,
+    isError: Boolean,
+    textMessage: String,
+    isInputFocused: Boolean,
+    setInputFocus: (Boolean) -> Unit,
+    onChangeTextMessage: (String) -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
     val speechRecognizerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -66,27 +157,102 @@ fun ConversationContent(
         if (result.resultCode == Activity.RESULT_OK) {
             val data: Intent? = result.data
             val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
-            textMessage = results?.get(0).toString()
+            onChangeTextMessage(results?.get(0).toString())
         }
     }
 
     Card(
         modifier = Modifier
             .fillMaxSize()
-            .padding(20.dp),
+            .padding(20.dp)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null
+            ) {
+                MainScope().launch {
+                    focusManager.clearFocus()
+                    keyboardController?.hide()
+                    delay(100)
+                    setInputFocus(false)
+                }
+            }
+            .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
+                if (keyEvent.key.keyCode == 17179869184) {
+                    MainScope().launch {
+                        focusManager.clearFocus()
+                        keyboardController?.hide()
+                        delay(100)
+                        setInputFocus(false)
+                    }
+                    true
+                } else {
+                    false
+                }
+            },
         colors = CardDefaults.cardColors(
             containerColor = Color.White,
         ),
         shape = RoundedCornerShape(20.dp),
     ) {
         Column {
-            Column(
-                Modifier
-                    .padding(16.dp)
-                    .fillMaxHeight(0.87f)
-            ) {
-                ConversationCard("You")
-                ConversationCard("They")
+            when {
+                isLoading -> {
+                    Column(
+                        Modifier
+                            .padding(16.dp)
+                            .fillMaxHeight(0.87f)
+                    ) {
+                        ConversationCardLoader("video")
+                        ConversationCardLoader("speech")
+                    }
+                }
+
+                conversationNode.isEmpty() -> {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        Text(
+                            text = "No conversation found",
+                            color = Color.Gray
+                        )
+                    }
+                }
+
+                isError -> {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxSize()
+                    ) {
+                        Text(
+                            text = "An error occurred",
+                            color = Color.Red
+                        )
+                    }
+                }
+
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .fillMaxHeight(0.87f)
+                    ) {
+                        items(conversationNode) { item ->
+                            ConversationCard(
+                                type = item.type.replaceFirstChar { it.uppercase() },
+                                date = item.createdAt,
+                                text = item.transcripts,
+                                onNavigateToVideo = {
+                                    Log.d("ConversationScreen", "Navigate to video ${item.id}")
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
             Row(
@@ -97,84 +263,91 @@ fun ConversationContent(
             ) {
                 MySendInput(
                     text = textMessage,
-                    onTextChange = {
-                        textMessage = it
-                    },
+                    onTextChange = onChangeTextMessage,
                     placeHolder = "Send a message",
+                    keyboardController = keyboardController,
+                    focusManager = focusManager,
                     isLoading = false,
+                    isFocused = isInputFocused,
+                    setInputFocus = setInputFocus,
                     onClick = {},
                 )
 
-                IconButton(
-                    enabled = true,
-                    onClick = {
-                        if (!SpeechRecognizer.isRecognitionAvailable(context)) {
-                            // if the intent is not present we are simply displaying a toast message.
-                            Toast.makeText(context, "Speech not Available", Toast.LENGTH_SHORT)
-                                .show()
-                        } else {
-                            // on below line we are calling a speech recognizer intent
-                            val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
+                if (!isInputFocused) {
+                    IconButton(
+                        enabled = true,
+                        onClick = {
+                            if (!SpeechRecognizer.isRecognitionAvailable(context)) {
+                                // if the intent is not present we are simply displaying a toast message.
+                                Toast.makeText(context, "Speech not Available", Toast.LENGTH_SHORT)
+                                    .show()
+                            } else {
+                                // on below line we are calling a speech recognizer intent
+                                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
 
-                            // on the below line we are specifying language model as language web search
-                            intent.putExtra(
-                                RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                                RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH
+                                // on the below line we are specifying language model as language web search
+                                intent.putExtra(
+                                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                                    RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH
+                                )
+
+                                // on below line we are specifying extra language as default english language
+                                intent.putExtra(
+                                    RecognizerIntent.EXTRA_LANGUAGE,
+                                    Locale.getDefault()
+                                )
+
+                                // on below line we are specifying prompt as Speak something
+                                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak Something")
+
+                                // at last we are calling start activity
+                                // for result to start our activity.
+                                speechRecognizerLauncher.launch(intent)
+                            }
+                        },
+                        modifier = Modifier
+                            .size(50.dp)
+                            .background(
+                                color = Color1,
+                                shape = CircleShape
                             )
-
-                            // on below line we are specifying extra language as default english language
-                            intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault())
-
-                            // on below line we are specifying prompt as Speak something
-                            intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak Something")
-
-                            // at last we are calling start activity
-                            // for result to start our activity.
-                            speechRecognizerLauncher.launch(intent)
-                        }
-                    },
-                    modifier = Modifier
-                        .size(50.dp)
-                        .background(
-                            color = Color1,
-                            shape = CircleShape
+                            .border(
+                                width = 4.dp,
+                                color = Color3,
+                                shape = CircleShape
+                            ),
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.mdi_microphone),
+                            contentDescription = "Favorite",
+                            modifier = Modifier.size(30.dp),
+                            tint = Color.White
                         )
-                        .border(
-                            width = 4.dp,
-                            color = Color3,
-                            shape = CircleShape
-                        ),
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.mdi_microphone),
-                        contentDescription = "Favorite",
-                        modifier = Modifier.size(30.dp),
-                        tint = Color.White
-                    )
-                }
-                IconButton(
-                    enabled = true,
-                    onClick = {
-                        /*TODO*/
-                    },
-                    modifier = Modifier
-                        .size(50.dp)
-                        .background(
-                            color = Color1,
-                            shape = CircleShape
+                    }
+                    IconButton(
+                        enabled = true,
+                        onClick = {
+                            /*TODO*/
+                        },
+                        modifier = Modifier
+                            .size(50.dp)
+                            .background(
+                                color = Color1,
+                                shape = CircleShape
+                            )
+                            .border(
+                                width = 4.dp,
+                                color = Color3,
+                                shape = CircleShape
+                            ),
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.fluent_video_16_filled),
+                            contentDescription = "Favorite",
+                            modifier = Modifier.size(30.dp),
+                            tint = Color.White
                         )
-                        .border(
-                            width = 4.dp,
-                            color = Color3,
-                            shape = CircleShape
-                        ),
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.fluent_video_16_filled),
-                        contentDescription = "Favorite",
-                        modifier = Modifier.size(30.dp),
-                        tint = Color.White
-                    )
+                    }
                 }
             }
         }
@@ -210,4 +383,10 @@ private fun getSpeechInput(
         // for result to start our activity.
         speechRecognizerLauncher.launch(intent)
     }
+}
+
+@Preview(showBackground = true, showSystemUi = true, backgroundColor = 0xFF4BA6F8)
+@Composable
+fun ConversationScreenPreview() {
+    ConversationScreen(1)
 }

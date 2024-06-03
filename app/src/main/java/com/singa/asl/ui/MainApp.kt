@@ -313,7 +313,9 @@ fun MainApp(
                 composable(Screen.Message.route) {
                     MessageScreen(
                         onNavigateConversation = {
-                            navController.navigate(Screen.Conversation.route)
+                            navController.navigate(
+                                Screen.Conversation.createRoute(it.toString())
+                            )
                         }
                     )
                 }
@@ -453,9 +455,13 @@ fun MainApp(
                 }
 
                 composable(
-                    Screen.Conversation.route
-                ) {
-                    ConversationScreen()
+                    route = Screen.Conversation.route,
+                    arguments = listOf(navArgument("id") { type = NavType.StringType })
+                ) { args ->
+                    val id = args.arguments?.getString("id") ?: "0"
+                    ConversationScreen(
+                        id = id.toInt()
+                    )
                 }
 
                 composable(

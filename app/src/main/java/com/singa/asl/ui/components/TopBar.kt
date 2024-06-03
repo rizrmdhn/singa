@@ -1,7 +1,6 @@
 package com.singa.asl.ui.components
 
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -103,6 +102,14 @@ fun TopBarLeftIcon(
                 route == Screen.HistoryDetail.route -> {
                     Text(
                         text = "History Detail",
+                        fontWeight = FontWeight.Bold,
+                        color = colorPaint,
+                        fontSize = 28.sp
+                    )
+                }
+                route == Screen.Conversation.route -> {
+                    Text(
+                        text = "Conversation",
                         fontWeight = FontWeight.Bold,
                         color = colorPaint,
                         fontSize = 28.sp

@@ -24,30 +24,39 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.singa.asl.R
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ConversationCard(
-    person: String,
+    type: String,
+    date: String,
+    text: String,
+    onNavigateToVideo: () -> Unit
 ) {
     Column(
-        horizontalAlignment = if (person == "You") Alignment.End else Alignment.Start,
+        horizontalAlignment = if (type == "Speech") Alignment.End else Alignment.Start,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 12.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(0.8f),
-            horizontalArrangement = if (person == "They") Arrangement.SpaceBetween else Arrangement.End,
+            horizontalArrangement = if (type == "Video") Arrangement.SpaceBetween else Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row {
-                Text(text = person, fontWeight = FontWeight.SemiBold)
+                Text(text = type, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "12:00 PM")
+                Text(
+                    LocalDateTime.parse(date, DateTimeFormatter.ISO_DATE_TIME).format(
+                        DateTimeFormatter.ofPattern("HH:mm")
+                    ),
+                )
             }
-            if (person == "They") {
+            if (type == "Video") {
                 IconButton(
-                    onClick = { /*TODO*/ },
+                    onClick = onNavigateToVideo,
                     modifier = Modifier.size(24.dp)
                 ) {
                     Icon(
@@ -64,15 +73,17 @@ fun ConversationCard(
             modifier = Modifier
                 .fillMaxWidth(0.8f),
             colors = CardDefaults.cardColors(
-                containerColor = Color(if (person == "You") 0xFF7DBDFA else 0xFFF6F9F8),
-                contentColor = if (person == "You") Color.White else Color.Black
+                containerColor = Color(if (type == "Speech") 0xFF7DBDFA else 0xFFF6F9F8),
+                contentColor = if (type == "Speech") Color.White else Color.Black
             ),
             border = BorderStroke(
-                1.5.dp, Color(if (person == "You") 0xFF2E8CE0 else 0xFFD9D9D9)
+                1.5.dp, Color(if (type == "Speech") 0xFF2E8CE0 else 0xFFD9D9D9)
             ),
         ) {
             Column(Modifier.padding(8.dp)) {
-                Text(text = "is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.")
+                Text(
+                    text
+                )
             }
         }
     }
@@ -82,5 +93,10 @@ fun ConversationCard(
 @Preview(showBackground = true)
 @Composable
 fun ConversationCardPreview() {
-    ConversationCard("You")
+    ConversationCard(
+        type = "Speech",
+        date = "2022-10-10T10:10:10",
+        text = "Hello, how are you?",
+        onNavigateToVideo = {}
+    )
 }

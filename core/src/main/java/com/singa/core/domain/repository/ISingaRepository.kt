@@ -3,6 +3,7 @@ package com.singa.core.domain.repository
 import com.singa.core.data.Resource
 import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.domain.model.Conversation
+import com.singa.core.domain.model.ConversationNode
 import com.singa.core.domain.model.RefreshToken
 import com.singa.core.domain.model.StaticTranslation
 import com.singa.core.domain.model.StaticTranslationDetail
@@ -32,6 +33,8 @@ interface ISingaRepository {
     ): Flow<Resource<User>>
 
     fun getConversations(): Flow<Resource<List<Conversation>>>
+
+    fun getConverstaionNodes(id: Int): Flow<Resource<List<ConversationNode>>>
 
     fun getStaticTranslations(): Flow<Resource<List<StaticTranslation>>>
 

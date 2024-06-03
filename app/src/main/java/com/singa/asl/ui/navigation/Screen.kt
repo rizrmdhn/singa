@@ -11,9 +11,11 @@ sealed class Screen(val route: String) {
     data object ProfileDetail : Screen("profile_detail")
     data object ChangePassword : Screen("change_password")
     data object Message : Screen("message")
-    data object Conversation : Screen("conversation")
+    data object Conversation : Screen("conversation/{id}") {
+        fun createRoute(id: String) = "conversation/$id"
+    }
     data object History : Screen("history")
-    data object HistoryDetail : Screen("history_detail/{id}"){
+    data object HistoryDetail : Screen("history_detail/{id}") {
         fun createRoute(id: String) = "history_detail/$id"
     }
     data object WebView : Screen("webview")

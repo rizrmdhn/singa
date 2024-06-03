@@ -14,9 +14,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.SoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -29,15 +30,22 @@ fun MySendInput(
     text: String,
     onTextChange: (String) -> Unit,
     placeHolder: String,
+    keyboardController: SoftwareKeyboardController?,
+    focusManager: FocusManager,
     isLoading: Boolean,
+    isFocused: Boolean,
+    setInputFocus: (Boolean) -> Unit,
     onClick: () -> Unit
 ) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    val focusManager = LocalFocusManager.current
     OutlinedTextField(
         enabled = !isLoading,
         modifier = modifier
-            .fillMaxWidth(0.65f),
+            .fillMaxWidth(
+                if (!isFocused) 0.65f else 1f
+            )
+            .onFocusChanged {
+                setInputFocus(it.isFocused)
+            },
         value = text,
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(
@@ -78,6 +86,6 @@ fun MySendInput(
                 )
             }
         },
-        maxLines = 4,
+        maxLines = 4
     )
 }

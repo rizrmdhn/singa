@@ -33,7 +33,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MessageScreen(
-    onNavigateConversation: () -> Unit,
+    onNavigateConversation: (id: Int) -> Unit,
     viewModel: MessageScreenViewModel = koinViewModel()
 ) {
     viewModel.state.collectAsState(initial = Resource.Loading()).value.let { state ->
@@ -97,7 +97,7 @@ fun MessageContent(
     isLoading: Boolean = false,
     isError: Boolean = false,
     errorMessage: String = "",
-    onNavigateConversation: () -> Unit,
+    onNavigateConversation: (id: Int) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -160,7 +160,9 @@ fun MessageContent(
                             image = R.drawable.mdi_message_badge,
                             title = conversation.title,
                             date = conversation.createdAt,
-                            onClickCard = onNavigateConversation
+                            onClickCard = {
+                                onNavigateConversation(conversation.id)
+                            }
                         )
                     }
                 }

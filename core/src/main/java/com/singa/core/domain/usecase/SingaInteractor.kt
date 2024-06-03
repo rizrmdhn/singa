@@ -35,6 +35,8 @@ class SingaInteractor(
 
     override fun getConversations() = singaRepository.getConversations()
 
+    override fun getConverstaionNodes(id: Int) = singaRepository.getConverstaionNodes(id)
+
     override fun getStaticTranslations() = singaRepository.getStaticTranslations()
 
     override fun getStaticTranslationDetail(staticTranslationId: Int) =

@@ -28,17 +28,17 @@ import kotlin.random.Random
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ConversationCardLoader(
-    person: String,
+    type: String,
 ) {
     Column(
-        horizontalAlignment = if (person == "You") Alignment.End else Alignment.Start,
+        horizontalAlignment = if (type == "You") Alignment.End else Alignment.Start,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 12.dp),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(0.8f),
-            horizontalArrangement = if (person == "They") Arrangement.SpaceBetween else Arrangement.End,
+            horizontalArrangement = if (type == "They") Arrangement.SpaceBetween else Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row {
@@ -72,7 +72,7 @@ fun ConversationCardLoader(
                         )
                 )
             }
-            if (person == "They") {
+            if (type == "They") {
                 Box(
                     modifier = Modifier
                         .height(24.dp)
@@ -94,11 +94,11 @@ fun ConversationCardLoader(
             modifier = Modifier
                 .fillMaxWidth(0.8f),
             colors = CardDefaults.cardColors(
-                containerColor = Color(if (person == "You") 0xFF7DBDFA else 0xFFF6F9F8),
-                contentColor = if (person == "You") Color.White else Color.Black
+                containerColor = Color(if (type == "You") 0xFF7DBDFA else 0xFFF6F9F8),
+                contentColor = if (type == "You") Color.White else Color.Black
             ),
             border = BorderStroke(
-                1.5.dp, Color(if (person == "You") 0xFF2E8CE0 else 0xFFD9D9D9)
+                1.5.dp, Color(if (type == "You") 0xFF2E8CE0 else 0xFFD9D9D9)
             ),
         ) {
             FlowRow(

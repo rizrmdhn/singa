@@ -6,6 +6,7 @@ import com.singa.core.data.source.remote.RemoteDataSource
 import com.singa.core.data.source.remote.network.ApiResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.domain.model.Conversation
+import com.singa.core.domain.model.ConversationNode
 import com.singa.core.domain.model.RefreshToken
 import com.singa.core.domain.model.StaticTranslation
 import com.singa.core.domain.model.StaticTranslationDetail
@@ -319,6 +320,38 @@ class SingaRepository(
                     is ApiResponse.Success -> {
                         val conversations = DataMapper.mapConversationResponseToModel(it.data.data)
                         emit(Resource.Success(conversations))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
+    override fun getConverstaionNodes(
+        id: Int,
+    ): Flow<Resource<List<ConversationNode>>> {
+        return flow {
+            emit(Resource.Loading())
+            remoteDataSource.getConversationNodes(id).collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        val conversationNodes =
+                            DataMapper.mapConversationNodeResponseToModel(it.data.data)
+                        emit(Resource.Success(conversationNodes))
                     }
 
                     is ApiResponse.Empty -> {

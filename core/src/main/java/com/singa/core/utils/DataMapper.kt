@@ -4,6 +4,7 @@ import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import com.singa.core.data.source.remote.response.GetConversationListItem
+import com.singa.core.data.source.remote.response.GetConversationNode
 import com.singa.core.data.source.remote.response.GetMeResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationList
@@ -12,6 +13,7 @@ import com.singa.core.data.source.remote.response.SchemaError
 import com.singa.core.data.source.remote.response.UpdateTokenResponse
 import com.singa.core.data.source.remote.response.UpdateUserResponse
 import com.singa.core.domain.model.Conversation
+import com.singa.core.domain.model.ConversationNode
 import com.singa.core.domain.model.FaceLandmarker
 import com.singa.core.domain.model.HandLandmarker
 import com.singa.core.domain.model.Landmark
@@ -82,6 +84,20 @@ object DataMapper {
             title = it.title,
             createdAt = it.createdAt,
             updatedAt = it.updatedAt
+        )
+    }
+
+    fun mapConversationNodeResponseToModel(data: List<GetConversationNode>) = data.map {
+        ConversationNode(
+            id = it.id,
+            conversationTranslationId = it.conversationTranslationId,
+            type = it.type,
+            createdAt = it.createdAt,
+            updatedAt = it.updatedAt,
+            video = it.video,
+            userId = it.userId,
+            transcripts = it.transcripts,
+            videoUrl = it.videoUrl
         )
     }
 
