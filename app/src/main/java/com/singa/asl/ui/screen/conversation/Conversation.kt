@@ -1,8 +1,10 @@
 package com.singa.asl.ui.screen.conversation
 
+import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
@@ -48,12 +50,14 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.singa.asl.R
 import com.singa.asl.ui.components.ConversationCard
 import com.singa.asl.ui.components.ConversationCardLoader
 import com.singa.asl.ui.components.MySendInput
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color3
+import com.singa.asl.utils.getSpeech
 import com.singa.core.data.Resource
 import com.singa.core.domain.model.ConversationNode
 import kotlinx.coroutines.MainScope
@@ -131,6 +135,7 @@ fun ConversationScreen(
             is Resource.ValidationError -> {
                 Log.e("ConversationScreen", it.errors.toString())
             }
+
         }
     }
 }
@@ -158,6 +163,16 @@ fun ConversationContent(
             val data: Intent? = result.data
             val results = data?.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS)
             onChangeTextMessage(results?.get(0).toString())
+        }
+    }
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            getSpeech(speechRecognizerLauncher)
+        } else {
+            Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -212,7 +227,7 @@ fun ConversationContent(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxSize(0.87f)
                     ) {
                         Text(
                             text = "No conversation found",
@@ -226,7 +241,7 @@ fun ConversationContent(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                         modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxSize(0.87f)
                     ) {
                         Text(
                             text = "An error occurred",
@@ -278,31 +293,18 @@ fun ConversationContent(
                         enabled = true,
                         onClick = {
                             if (!SpeechRecognizer.isRecognitionAvailable(context)) {
-                                // if the intent is not present we are simply displaying a toast message.
-                                Toast.makeText(context, "Speech not Available", Toast.LENGTH_SHORT)
-                                    .show()
+                                Toast.makeText(context, "Speech not Available", Toast.LENGTH_SHORT).show()
                             } else {
-                                // on below line we are calling a speech recognizer intent
-                                val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH)
-
-                                // on the below line we are specifying language model as language web search
-                                intent.putExtra(
-                                    RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                                    RecognizerIntent.LANGUAGE_MODEL_WEB_SEARCH
-                                )
-
-                                // on below line we are specifying extra language as default english language
-                                intent.putExtra(
-                                    RecognizerIntent.EXTRA_LANGUAGE,
-                                    Locale.getDefault()
-                                )
-
-                                // on below line we are specifying prompt as Speak something
-                                intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak Something")
-
-                                // at last we are calling start activity
-                                // for result to start our activity.
-                                speechRecognizerLauncher.launch(intent)
+                                if (
+                                    ContextCompat.checkSelfPermission(
+                                        context,
+                                        Manifest.permission.RECORD_AUDIO
+                                    ) == PackageManager.PERMISSION_GRANTED
+                                ) {
+                                    getSpeech(speechRecognizerLauncher)
+                                } else {
+                                    requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                }
                             }
                         },
                         modifier = Modifier
