@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.singa.asl.R
 import com.singa.asl.ui.components.CardItem
-import com.singa.asl.ui.components.ConversationCardLoader
+import com.singa.asl.ui.components.MessageCardLoader
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.core.data.Resource
 import com.singa.core.domain.model.StaticTranslation
@@ -116,7 +116,7 @@ fun HistoryContent(
             isLoading  -> {
                 LazyColumn(Modifier.padding(16.dp)) {
                     items(10) {
-                        ConversationCardLoader()
+                        MessageCardLoader()
                     }
                 }
             }

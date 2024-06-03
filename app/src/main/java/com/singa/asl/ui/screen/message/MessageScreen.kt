@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.singa.asl.R
 import com.singa.asl.ui.components.CardItem
-import com.singa.asl.ui.components.ConversationCardLoader
+import com.singa.asl.ui.components.MessageCardLoader
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.core.data.Resource
 import com.singa.core.domain.model.Conversation
@@ -33,7 +33,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MessageScreen(
-    onNavigateConversation: () -> Unit,
+    onNavigateConversation: (id: Int) -> Unit,
     viewModel: MessageScreenViewModel = koinViewModel()
 ) {
     viewModel.state.collectAsState(initial = Resource.Loading()).value.let { state ->
@@ -97,7 +97,7 @@ fun MessageContent(
     isLoading: Boolean = false,
     isError: Boolean = false,
     errorMessage: String = "",
-    onNavigateConversation: () -> Unit,
+    onNavigateConversation: (id: Int) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -117,7 +117,7 @@ fun MessageContent(
             isLoading  -> {
                 LazyColumn(Modifier.padding(16.dp)) {
                     items(10) {
-                        ConversationCardLoader()
+                        MessageCardLoader()
                     }
                 }
             }
@@ -160,7 +160,9 @@ fun MessageContent(
                             image = R.drawable.mdi_message_badge,
                             title = conversation.title,
                             date = conversation.createdAt,
-                            onClickCard = onNavigateConversation
+                            onClickCard = {
+                                onNavigateConversation(conversation.id)
+                            }
                         )
                     }
                 }

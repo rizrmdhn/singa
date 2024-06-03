@@ -33,6 +33,15 @@ dependencies {
     // TensorFlow Lite
     implementation(libs.tensorflow.lite.support)
     implementation(libs.tensorflow.lite.metadata)
+    implementation(libs.tensorflow.lite.task.vision.play.services)
+    implementation(libs.play.services.tflite.support)
+    implementation(libs.play.services.tflite.gpu)
+    implementation(libs.tensorflow.lite.gpu.v290)
+    implementation(libs.tensorflow.lite)
+    implementation(libs.tensorflow.lite.select.tf.ops)
+
+    // Permissions
+    implementation(libs.accompanist.permissions)
 
     // Media pipe
     implementation(libs.tasks.vision)

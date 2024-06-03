@@ -3,6 +3,7 @@ package com.singa.core.data.source.remote.network
 import com.singa.core.data.source.remote.response.GenericResponse
 import com.singa.core.data.source.remote.response.GenericSuccessResponse
 import com.singa.core.data.source.remote.response.GetConversationListItem
+import com.singa.core.data.source.remote.response.GetConversationNode
 import com.singa.core.data.source.remote.response.GetMeResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationList
@@ -79,6 +80,10 @@ interface ApiService {
     @Headers("Content-Type: application/json")
     @GET("translation/static/{id}")
     suspend fun getStaticDetailTranslation(@Path("id") id: Int): GenericResponse<GetStaticTranslationDetailResponse>
+
+    @Headers("Content-Type: application/json")
+    @GET("translation/conversation/{id}")
+    suspend fun getConversationNodes(@Path("id") id: Int): GenericResponse<List<GetConversationNode>>
 
 }
 
