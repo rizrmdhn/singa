@@ -21,6 +21,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -64,6 +68,9 @@ fun ModalNavigation(
         }
     }
 
+    var conversationDialog by remember { mutableStateOf(false) }
+    var conversationTitle by remember { mutableStateOf("") }
+
     Column(
         Modifier
             .fillMaxHeight(0.3f)
@@ -76,15 +83,19 @@ fun ModalNavigation(
                     cameraPermissionState.hasPermission -> {
                         navigateToRealtimeCamera()
                     }
+
                     cameraPermissionState.shouldShowRationale -> {
                         Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
                     }
+
                     storagePermissionState.hasPermission -> {
                         navigateToRealtimeCamera()
                     }
+
                     storagePermissionState.shouldShowRationale -> {
                         Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
                     }
+
                     else -> {
                         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                         readStoragePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -115,7 +126,7 @@ fun ModalNavigation(
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedButton(
             onClick = {
-                navigateToConversation()
+                conversationDialog = true
             },
             shape = RoundedCornerShape(20),
             colors = ButtonDefaults.outlinedButtonColors(
@@ -140,5 +151,15 @@ fun ModalNavigation(
                 fontSize = 20.sp
             )
         }
+    }
+
+    if(conversationDialog){
+        PopupInputAlertDialog(
+            title = "Create a conversation",
+            value = conversationTitle,
+            onValueChange = { conversationTitle = it },
+            onDismissRequest = { conversationDialog = false },
+            confirmButton = { conversationDialog = false }
+        )
     }
 }
