@@ -1,6 +1,10 @@
 package com.singa.core.utils
 
+import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
+import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
+import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import com.singa.core.data.source.remote.response.GetConversationListItem
+import com.singa.core.data.source.remote.response.GetConversationNode
 import com.singa.core.data.source.remote.response.GetMeResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationList
@@ -9,6 +13,12 @@ import com.singa.core.data.source.remote.response.SchemaError
 import com.singa.core.data.source.remote.response.UpdateTokenResponse
 import com.singa.core.data.source.remote.response.UpdateUserResponse
 import com.singa.core.domain.model.Conversation
+import com.singa.core.domain.model.ConversationNode
+import com.singa.core.domain.model.FaceLandmarker
+import com.singa.core.domain.model.HandLandmarker
+import com.singa.core.domain.model.Landmark
+import com.singa.core.domain.model.NormalizedLandmark
+import com.singa.core.domain.model.PoseLandmarker
 import com.singa.core.domain.model.RefreshToken
 import com.singa.core.domain.model.StaticTranscriptsItem
 import com.singa.core.domain.model.StaticTranslation
@@ -77,6 +87,20 @@ object DataMapper {
         )
     }
 
+    fun mapConversationNodeResponseToModel(data: List<GetConversationNode>) = data.map {
+        ConversationNode(
+            id = it.id,
+            conversationTranslationId = it.conversationTranslationId,
+            type = it.type,
+            createdAt = it.createdAt,
+            updatedAt = it.updatedAt,
+            video = it.video,
+            userId = it.userId,
+            transcripts = it.transcripts,
+            videoUrl = it.videoUrl
+        )
+    }
+
     fun mapStaticTranslationResponseToModel(data: List<GetStaticTranslationList>) = data.map {
         StaticTranslation(
             id = it.id,
@@ -84,6 +108,66 @@ object DataMapper {
             videoUrl = it.videoUrl,
             createdAt = it.createdAt,
             updatedAt = it.updatedAt
+        )
+    }
+
+    fun mapFaceLandmarkResponseToModel(data: FaceLandmarkerResult) = FaceLandmarker(
+        timestampMs = data.timestampMs(),
+        faceLandmarks = data.faceLandmarks().map { landmarks ->
+            landmarks.map { normalizedLandmark ->
+                NormalizedLandmark(
+                    x = normalizedLandmark.x(),
+                    y = normalizedLandmark.y(),
+                    z = normalizedLandmark.z(),
+                    visibility = normalizedLandmark.visibility(),
+                    presence = normalizedLandmark.presence()
+                )
+            }
+        }
+    )
+
+    fun mapPoseLandmarkResponseToModel(data: List<PoseLandmarkerResult>) = data.map {
+        PoseLandmarker(
+            timestampMs = it.timestampMs(),
+            landmarks = it.landmarks().map { landmarks ->
+                landmarks.map { normalizedLandmark ->
+                    NormalizedLandmark(
+                        x = normalizedLandmark.x(),
+                        y = normalizedLandmark.y(),
+                        z = normalizedLandmark.z(),
+                        visibility = normalizedLandmark.visibility(),
+                        presence = normalizedLandmark.presence()
+                    )
+                }
+            }
+        )
+    }
+
+    fun mapHandLandmarkResponseToModel(data: List<HandLandmarkerResult>) = data.map {
+        HandLandmarker(
+            timestampMs = it.timestampMs(),
+            landmarks = it.landmarks().map { landmarks ->
+                landmarks.map { normalizedLandmark ->
+                    NormalizedLandmark(
+                        x = normalizedLandmark.x(),
+                        y = normalizedLandmark.y(),
+                        z = normalizedLandmark.z(),
+                        visibility = normalizedLandmark.visibility(),
+                        presence = normalizedLandmark.presence()
+                    )
+                }
+            },
+            worldLandmarks = it.worldLandmarks().map { landmarks ->
+                landmarks.map { landmark ->
+                    Landmark(
+                        x = landmark.x(),
+                        y = landmark.y(),
+                        z = landmark.z(),
+                        visibility = landmark.visibility(),
+                        presence = landmark.presence()
+                    )
+                }
+            }
         )
     }
 
