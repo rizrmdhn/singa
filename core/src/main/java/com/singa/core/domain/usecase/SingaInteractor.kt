@@ -42,6 +42,8 @@ class SingaInteractor(
     override fun getStaticTranslationDetail(staticTranslationId: Int) =
         singaRepository.getStaticTranslationDetail(staticTranslationId)
 
+    override fun getArticles() = singaRepository.getArticles()
+
     override fun updateToken() = singaRepository.updateToken()
 
     override fun getAccessToken() = singaRepository.getAccessToken()

@@ -1,6 +1,7 @@
 package com.singa.core.domain.usecase
 
 import com.singa.core.data.Resource
+import com.singa.core.domain.model.Articles
 import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.ConversationNode
 import com.singa.core.domain.model.RefreshToken
@@ -38,6 +39,8 @@ interface SingaUseCase {
     fun getStaticTranslations(): Flow<Resource<List<StaticTranslation>>>
 
     fun getStaticTranslationDetail(staticTranslationId: Int): Flow<Resource<StaticTranslationDetail>>
+
+    fun getArticles(): Flow<Resource<List<Articles>>>
 
 
     fun updateToken(): Flow<Resource<RefreshToken>>

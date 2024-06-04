@@ -4,6 +4,7 @@ package com.singa.core.data.source.remote
 import com.google.gson.Gson
 import com.singa.core.data.source.remote.network.ApiResponse
 import com.singa.core.data.source.remote.network.ApiService
+import com.singa.core.data.source.remote.response.ArticlesItem
 import com.singa.core.data.source.remote.response.GenericResponse
 import com.singa.core.data.source.remote.response.GenericSuccessResponse
 import com.singa.core.data.source.remote.response.GetConversationListItem
@@ -424,6 +425,40 @@ class RemoteDataSource(
         return flow {
             try {
                 val response = apiService.getConversationNodes(id)
+                if (response.meta.status == "error") {
+                    emit(ApiResponse.Error(response.meta.message, response.meta.code))
+                } else {
+                    emit(ApiResponse.Success(response))
+                }
+            } catch (e: Exception) {
+                if (e is HttpException) {
+                    val exception: HttpException = e
+                    val response = exception.response()
+                    try {
+                        val jsonObject =
+                            JSONObject(response?.errorBody()?.string() ?: "Error")
+                        emit(
+                            ApiResponse.Error(
+                                jsonObject.optString("message"),
+                                response?.code() ?: 0
+                            )
+                        )
+                    } catch (e1: JSONException) {
+                        e1.printStackTrace()
+                    } catch (e1: IOException) {
+                        e1.printStackTrace()
+                    }
+                } else {
+                    emit(ApiResponse.Error(e.toString(), 0))
+                }
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    fun getArticles(): Flow<ApiResponse<GenericResponse<List<ArticlesItem>>>> {
+        return flow {
+            try {
+                val response = apiService.getArticles()
                 if (response.meta.status == "error") {
                     emit(ApiResponse.Error(response.meta.message, response.meta.code))
                 } else {

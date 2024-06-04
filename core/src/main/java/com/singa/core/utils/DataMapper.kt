@@ -3,6 +3,7 @@ package com.singa.core.utils
 import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
+import com.singa.core.data.source.remote.response.ArticlesItem
 import com.singa.core.data.source.remote.response.GetConversationListItem
 import com.singa.core.data.source.remote.response.GetConversationNode
 import com.singa.core.data.source.remote.response.GetMeResponse
@@ -12,6 +13,7 @@ import com.singa.core.data.source.remote.response.LoginResponse
 import com.singa.core.data.source.remote.response.SchemaError
 import com.singa.core.data.source.remote.response.UpdateTokenResponse
 import com.singa.core.data.source.remote.response.UpdateUserResponse
+import com.singa.core.domain.model.Articles
 import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.ConversationNode
 import com.singa.core.domain.model.FaceLandmarker
@@ -190,4 +192,15 @@ object DataMapper {
             },
             updatedAt = data.updatedAt
         )
+
+    fun mapArticlesResponseToModel(data: List<ArticlesItem>) = data.map {
+        Articles(
+            createdAt = it.createdAt,
+            imageUrl = it.imageUrl,
+            description = it.description,
+            id = it.id,
+            title = it.title,
+            updatedAt = it.updatedAt
+        )
+    }
 }

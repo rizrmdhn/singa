@@ -5,6 +5,7 @@ import com.singa.core.data.source.local.LocalDataSource
 import com.singa.core.data.source.remote.RemoteDataSource
 import com.singa.core.data.source.remote.network.ApiResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
+import com.singa.core.domain.model.Articles
 import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.ConversationNode
 import com.singa.core.domain.model.RefreshToken
@@ -412,6 +413,35 @@ class SingaRepository(
                         val translationDetail =
                             DataMapper.mapStaticTranslationDetailResponseToModel(it.data.data)
                         emit(Resource.Success(translationDetail))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
+    override fun getArticles(): Flow<Resource<List<Articles>>> {
+        return flow {
+            emit(Resource.Loading())
+            remoteDataSource.getArticles().collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        val articles = DataMapper.mapArticlesResponseToModel(it.data.data)
+                        emit(Resource.Success(articles))
                     }
 
                     is ApiResponse.Empty -> {
