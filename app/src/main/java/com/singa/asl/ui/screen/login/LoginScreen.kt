@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -202,37 +204,40 @@ fun LoginContent(
             isLoading = isLoginLoading,
             buttonText = "Login",
         )
-        Spacer(modifier = Modifier.height(16.dp))
-        Row {
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            HorizontalDivider(
+                modifier = Modifier
+                    .fillMaxWidth(0.4f)
+                    .height(1.dp),
+            )
             Text(
-                text = stringResource(R.string.don_t_have_an_account),
+                text = "OR",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
-                color = Color.Black
+                color = Color.Gray,
+                modifier = Modifier.padding(horizontal = 8.dp)
             )
-            Spacer(
-                modifier = Modifier.width(4.dp)
-            )
-            Text(
-                text = stringResource(R.string.register),
-                fontWeight = FontWeight.Bold,
-                style = MaterialTheme.typography.titleMedium,
-                color = Color1,
-                modifier = Modifier.clickable {
-                    navigateToRegister()
-                }
+            HorizontalDivider(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .height(1.dp),
             )
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxWidth()
         ) {
             IconButton(
                 modifier = Modifier
                     .height(58.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(0.5f)
                     .clip(RoundedCornerShape(10.dp))
                     .background(Color1),
                 onClick = {
@@ -272,12 +277,12 @@ fun LoginContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             IconButton(
                 modifier = Modifier
                     .height(58.dp)
-                    .fillMaxWidth()
+                    .fillMaxWidth(1f)
                     .clip(RoundedCornerShape(10.dp))
                     .background(Color1),
                 onClick = {
@@ -316,6 +321,27 @@ fun LoginContent(
                     }
                 }
             }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row {
+            Text(
+                text = stringResource(R.string.don_t_have_an_account),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            )
+            Spacer(
+                modifier = Modifier.width(4.dp)
+            )
+            Text(
+                text = stringResource(R.string.register),
+                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
+                color = Color1,
+                modifier = Modifier.clickable {
+                    navigateToRegister()
+                }
+            )
         }
     }
 
