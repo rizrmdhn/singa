@@ -68,6 +68,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.google.mediapipe.tasks.components.containers.Classifications
 import com.singa.asl.R
 import com.singa.asl.ml.AslTest
+import com.singa.asl.ui.components.LandmarkOverlay
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
 import com.singa.asl.utils.CombinedLandmarkerHelper
@@ -81,7 +82,6 @@ import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -111,6 +111,7 @@ fun RealtimeCameraContent(
 
     // Results from the analyzing
     val analyzingResult by remember { mutableStateOf<List<Classifications>?>(null) }
+    var aslResults by remember { mutableStateOf<String?>(null) }
     var faceLandmarkResult by remember { mutableStateOf<FaceLandmarker?>(null) }
     var handLandmarkResult by remember { mutableStateOf<List<HandLandmarker>?>(null) }
     var poseLandmarkResult by remember { mutableStateOf<List<PoseLandmarker>?>(null) }
@@ -157,101 +158,111 @@ fun RealtimeCameraContent(
         mutableStateOf(CameraSelector.DEFAULT_BACK_CAMERA)
     }
 
-    fun flattenLandmarks(
+    fun prepareLandmarks(
         poseResults: List<PoseLandmarker>,
         faceResult: FaceLandmarker?,
         handResults: List<HandLandmarker>?
     ): FloatArray {
         val landmarks = mutableListOf<Float>()
 
-        // Add pose landmarks (33 landmarks, each with x, y, z, visibility)
+        // Pose landmarks: 33 landmarks each with 4 values (x, y, z, visibility)
+        val poseLandmarks = mutableListOf<Float>()
         for (result in poseResults) {
             for (landmarkList in result.landmarks) {
                 for (landmark in landmarkList) {
-                    landmarks.add(landmark.x)
-                    landmarks.add(landmark.y)
-                    landmarks.add(landmark.z)
-                    landmarks.add(landmark.visibility.orElse(0.0f)) // Add visibility, default to 0.0f if not present
+                    poseLandmarks.add(landmark.x)
+                    poseLandmarks.add(landmark.y)
+                    poseLandmarks.add(landmark.z)
+                    poseLandmarks.add(landmark.visibility.orElse(0.0f))
                 }
             }
         }
-
-        // If poseResults are empty, add default values (33 landmarks * 4 floats)
-        if (poseResults.isEmpty()) {
-            repeat(33) {
-                landmarks.add(0.0f)
-                landmarks.add(0.0f)
-                landmarks.add(0.0f)
-                landmarks.add(0.0f) // Add default visibility
-            }
+        // Pad pose landmarks to 33 * 4 = 132 values
+        while (poseLandmarks.size < 132) {
+            poseLandmarks.add(0.0f)
         }
+        landmarks.addAll(poseLandmarks)
 
-        // Add face landmarks (478 landmarks, each with x, y, z)
+        // Face landmarks: 478 landmarks each with 3 values (x, y, z)
+        val faceLandmarks = mutableListOf<Float>()
         if (faceResult != null) {
             for (landmarkList in faceResult.faceLandmarks) {
                 for (landmark in landmarkList) {
-                    landmarks.add(landmark.x)
-                    landmarks.add(landmark.y)
-                    landmarks.add(landmark.z)
+                    faceLandmarks.add(landmark.x)
+                    faceLandmarks.add(landmark.y)
+                    faceLandmarks.add(landmark.z)
                 }
             }
-        } else {
-            // Add default values if faceResult is null (478 landmarks * 3 floats)
-            repeat(478) {
-                landmarks.add(0.0f)
-                landmarks.add(0.0f)
-                landmarks.add(0.0f)
-            }
         }
+        // Pad face landmarks to 478 * 3 = 1434 values
+        while (faceLandmarks.size < 1434) {
+            faceLandmarks.add(0.0f)
+        }
+        landmarks.addAll(faceLandmarks)
 
-        // Add hand landmarks (21 landmarks per hand, each with x, y, z)
+        // Hand landmarks: 21 landmarks each with 3 values (x, y, z) for each hand
+        val leftHandLandmarks = mutableListOf<Float>()
+        val rightHandLandmarks = mutableListOf<Float>()
         if (handResults != null) {
             for (result in handResults) {
                 for (landmarkList in result.landmarks) {
                     for (landmark in landmarkList) {
-                        landmarks.add(landmark.x)
-                        landmarks.add(landmark.y)
-                        landmarks.add(landmark.z)
+                        if (result.landmarks.indexOf(landmarkList) % 2 == 0) {
+                            leftHandLandmarks.add(landmark.x)
+                            leftHandLandmarks.add(landmark.y)
+                            leftHandLandmarks.add(landmark.z)
+                        } else {
+                            rightHandLandmarks.add(landmark.x)
+                            rightHandLandmarks.add(landmark.y)
+                            rightHandLandmarks.add(landmark.z)
+                        }
                     }
                 }
             }
         }
+        // Pad left and right hand landmarks to 21 * 3 = 63 values each
+        while (leftHandLandmarks.size < 63) {
+            leftHandLandmarks.add(0.0f)
+        }
+        while (rightHandLandmarks.size < 63) {
+            rightHandLandmarks.add(0.0f)
+        }
+        landmarks.addAll(leftHandLandmarks)
+        landmarks.addAll(rightHandLandmarks)
 
-        // If handResults are empty, add default values (21 landmarks per hand * 3 floats)
-        if (handResults.isNullOrEmpty()) {
-            repeat(21 * 2) {
-                landmarks.add(0.0f)
-                landmarks.add(0.0f)
-                landmarks.add(0.0f)
-            }
+        // Extract the first 30 elements
+        val first30Elements = landmarks.take(30)
+
+        // Prepare the final landmarks array by repeating the first 30 elements until 50760 elements are reached
+        val finalLandmarks = mutableListOf<Float>()
+        while (finalLandmarks.size < 50760) {
+            finalLandmarks.addAll(first30Elements)
         }
 
-        // Pad with zeros if necessary to meet the required size
-        val requiredSize = 50760
-        while (landmarks.size < requiredSize) {
-            landmarks.add(0.0f)
-        }
-
-        // Ensure the size does not exceed the required size
-        if (landmarks.size > requiredSize) {
-            landmarks.subList(0, requiredSize)
-        }
-
-        return landmarks.toFloatArray()
+        // Ensure the final landmarks array has exactly 50760 elements
+        return finalLandmarks.take(50760).toFloatArray()
     }
 
 
     fun createTensorBuffer(landmarks: FloatArray): TensorBuffer {
+        if (landmarks.size != 50760) {
+            throw IllegalArgumentException("The size of flattened landmarks array (${landmarks.size}) does not match the expected size (50760)")
+        }
+
         val byteBuffer = ByteBuffer.allocateDirect(landmarks.size * 4)
         byteBuffer.order(ByteOrder.nativeOrder())
         for (value in landmarks) {
             byteBuffer.putFloat(value)
         }
 
-        val inputFeature = TensorBuffer.createFixedSize(intArrayOf(1, 50760), DataType.FLOAT32)
+        val inputFeature = TensorBuffer.createFixedSize(
+            intArrayOf(1, 30, 1692),
+            DataType.FLOAT32
+        ) // Assuming the tensor shape to match the size
         inputFeature.loadBuffer(byteBuffer)
         return inputFeature
     }
+
 
     fun getPredictedLabel(outputArray: FloatArray): String {
         // Define the list of labels
@@ -261,8 +272,9 @@ fun RealtimeCameraContent(
         val maxIndex = outputArray.indices.maxByOrNull { outputArray[it] } ?: -1
 
         // Return the corresponding label
-        return if (maxIndex != -1) labels[maxIndex] else "Unknown"
+        return if (maxIndex != -1 && maxIndex < labels.size) labels[maxIndex] else "Unknown"
     }
+
 
     fun runAslModel(
         context: Context,
@@ -270,7 +282,8 @@ fun RealtimeCameraContent(
         faceResult: FaceLandmarker?,
         handResults: List<HandLandmarker>?
     ): String {
-        val landmarks = flattenLandmarks(poseResults, faceResult, handResults)
+        val landmarks = prepareLandmarks(poseResults, faceResult, handResults)
+        Log.d("RealtimeCameraScreen", "Landmarks: ${landmarks.joinToString()}")
         val inputFeature0 = createTensorBuffer(landmarks)
 
         val model = AslTest.newInstance(context)
@@ -474,10 +487,15 @@ fun RealtimeCameraContent(
 
     LaunchedEffect(faceLandmarkResult, handLandmarkResult, poseLandmarkResult) {
         if (faceLandmarkResult != null && handLandmarkResult != null && poseLandmarkResult != null) {
-            val result = runAslModel(context, poseLandmarkResult!!, faceLandmarkResult!!, handLandmarkResult!!)
+            val result = runAslModel(
+                context,
+                poseLandmarkResult!!,
+                faceLandmarkResult!!,
+                handLandmarkResult!!
+            )
 
             // Display the result
-            Log.d("RealtimeCameraScreen", "ASL Result: $result")
+            aslResults = result
         }
     }
 
@@ -498,6 +516,14 @@ fun RealtimeCameraContent(
                     shape = RoundedCornerShape(20.dp)
                 )
         )
+
+       if (isAnalyzing) {
+           LandmarkOverlay(
+               poseLandmarks = poseLandmarkResult,
+               faceLandmarks = faceLandmarkResult,
+               handLandmarks = handLandmarkResult,
+           )
+       }
 
         if (isAnalyzing) {
             Column(
@@ -526,15 +552,20 @@ fun RealtimeCameraContent(
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = analyzingResult?.joinToString("\n") { classification ->
-                                classification.categories().joinToString("\n") { category ->
-                                    "${category.categoryName()} " + NumberFormat.getPercentInstance()
-                                        .format(category.score()).trim()
-                                }
-                            } ?: "No results",
+                            text = aslResults ?: "No results",
                             color = Color.White,
                             style = MaterialTheme.typography.bodySmall
                         )
+//                        Text(
+//                            text = analyzingResult?.joinToString("\n") { classification ->
+//                                classification.categories().joinToString("\n") { category ->
+//                                    "${category.categoryName()} " + NumberFormat.getPercentInstance()
+//                                        .format(category.score()).trim()
+//                                }
+//                            } ?: "No results",
+//                            color = Color.White,
+//                            style = MaterialTheme.typography.bodySmall
+//                        )
                     }
                 }
 
