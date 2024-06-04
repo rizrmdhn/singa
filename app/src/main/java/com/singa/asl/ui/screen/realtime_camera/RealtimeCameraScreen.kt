@@ -65,7 +65,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
-import com.google.mediapipe.tasks.components.containers.Classifications
 import com.singa.asl.R
 import com.singa.asl.ml.AslTest
 import com.singa.asl.ui.components.LandmarkOverlay
@@ -109,13 +108,13 @@ fun RealtimeCameraContent(
     }
     var combinedLandmarkerHelper by remember { mutableStateOf<CombinedLandmarkerHelper?>(null) }
 
-    // Results from the analyzing
-    val analyzingResult by remember { mutableStateOf<List<Classifications>?>(null) }
+
     var aslResults by remember { mutableStateOf<String?>(null) }
     var faceLandmarkResult by remember { mutableStateOf<FaceLandmarker?>(null) }
     var handLandmarkResult by remember { mutableStateOf<List<HandLandmarker>?>(null) }
     var poseLandmarkResult by remember { mutableStateOf<List<PoseLandmarker>?>(null) }
 
+    val sequences by remember { mutableStateOf<MutableList<List<Float>>>(mutableListOf()) }
 
     val executor = Executors.newSingleThreadExecutor()
     val preview = remember { androidx.camera.core.Preview.Builder().build() }
@@ -162,7 +161,7 @@ fun RealtimeCameraContent(
         poseResults: List<PoseLandmarker>,
         faceResult: FaceLandmarker?,
         handResults: List<HandLandmarker>?
-    ): FloatArray {
+    ): List<Float> {
         val landmarks = mutableListOf<Float>()
 
         // Pose landmarks: 33 landmarks each with 4 values (x, y, z, visibility)
@@ -181,7 +180,6 @@ fun RealtimeCameraContent(
         while (poseLandmarks.size < 132) {
             poseLandmarks.add(0.0f)
         }
-        landmarks.addAll(poseLandmarks)
 
         // Face landmarks: 478 landmarks each with 3 values (x, y, z)
         val faceLandmarks = mutableListOf<Float>()
@@ -198,7 +196,6 @@ fun RealtimeCameraContent(
         while (faceLandmarks.size < 1434) {
             faceLandmarks.add(0.0f)
         }
-        landmarks.addAll(faceLandmarks)
 
         // Hand landmarks: 21 landmarks each with 3 values (x, y, z) for each hand
         val leftHandLandmarks = mutableListOf<Float>()
@@ -227,52 +224,44 @@ fun RealtimeCameraContent(
         while (rightHandLandmarks.size < 63) {
             rightHandLandmarks.add(0.0f)
         }
-        landmarks.addAll(leftHandLandmarks)
+        landmarks.addAll(faceLandmarks)
+        landmarks.addAll(poseLandmarks)
         landmarks.addAll(rightHandLandmarks)
+        landmarks.addAll(leftHandLandmarks)
 
-        // Extract the first 30 elements
-        val first30Elements = landmarks.take(30)
-
-        // Prepare the final landmarks array by repeating the first 30 elements until 50760 elements are reached
-        val finalLandmarks = mutableListOf<Float>()
-        while (finalLandmarks.size < 50760) {
-            finalLandmarks.addAll(first30Elements)
-        }
-
-        // Ensure the final landmarks array has exactly 50760 elements
-        return finalLandmarks.take(50760).toFloatArray()
+        return landmarks.toList()
     }
 
 
-    fun createTensorBuffer(landmarks: FloatArray): TensorBuffer {
-        if (landmarks.size != 50760) {
-            throw IllegalArgumentException("The size of flattened landmarks array (${landmarks.size}) does not match the expected size (50760)")
-        }
 
-        val byteBuffer = ByteBuffer.allocateDirect(landmarks.size * 4)
+
+    fun convertListToByteBuffer(input: List<List<Float>>): ByteBuffer {
+        val flatList = input.flatten()
+        val byteBuffer = ByteBuffer.allocateDirect(flatList.size * 4)
         byteBuffer.order(ByteOrder.nativeOrder())
-        for (value in landmarks) {
+
+        for (value in flatList) {
             byteBuffer.putFloat(value)
         }
 
         val inputFeature = TensorBuffer.createFixedSize(
             intArrayOf(1, 30, 1692),
             DataType.FLOAT32
-        ) // Assuming the tensor shape to match the size
+        )
         inputFeature.loadBuffer(byteBuffer)
-        return inputFeature
+
+        return byteBuffer
     }
 
 
     fun getPredictedLabel(outputArray: FloatArray): String {
-        // Define the list of labels
         val labels = listOf("hello", "thanks", "i-love-you", "see-you-later", "I", "Father")
 
-        // Find the index of the highest probability
         val maxIndex = outputArray.indices.maxByOrNull { outputArray[it] } ?: -1
 
-        // Return the corresponding label
-        return if (maxIndex != -1 && maxIndex < labels.size) labels[maxIndex] else "Unknown"
+        // remove - in the label and capitalize the first letter
+        return if (maxIndex >= 0) labels[maxIndex].replace("-", " ")
+            .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.ROOT) else it.toString() } else "Unknown"
     }
 
 
@@ -282,20 +271,59 @@ fun RealtimeCameraContent(
         faceResult: FaceLandmarker?,
         handResults: List<HandLandmarker>?
     ): String {
+        val sequenceLength = 30
+        val threshold = 0.5f
+        val maxSequences = 90
+
         val landmarks = prepareLandmarks(poseResults, faceResult, handResults)
-        Log.d("RealtimeCameraScreen", "Landmarks: ${landmarks.joinToString()}")
-        val inputFeature0 = createTensorBuffer(landmarks)
+
+        sequences.add(landmarks)
+        val snapshot = sequences.takeLast(30)
 
         val model = AslTest.newInstance(context)
-        val outputs = model.process(inputFeature0)
-        val outputFeature0 = outputs.outputFeature0AsTensorBuffer
 
-        // Convert the output to a label
-        val outputArray = outputFeature0.floatArray
-        Log.d("RealtimeCameraScreen", "Output array: ${outputArray.joinToString()}")
-        val predictedLabel = getPredictedLabel(outputArray)
+        var predictedLabel = ""
+        val predictions = mutableListOf<Int>()
+
+        // collect keypoints until sequence is full
+        if (snapshot.size == sequenceLength) {
+            val byteBuffer = convertListToByteBuffer(snapshot)
+
+            val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 30, 1692), DataType.FLOAT32)
+            inputFeature0.loadBuffer(byteBuffer)
+
+            val outputs = model.process(inputFeature0)
+            val outputFeature0 = outputs.outputFeature0AsTensorBuffer
+            val outputArray = outputFeature0.floatArray
+
+            val maxIndex = outputArray.indices.maxByOrNull { outputArray[it] } ?: -1
+
+            predictions.add(maxIndex)
+            val last10Predictions = predictions.takeLast(10)
+
+            // get the most common element in the last 10 predictions
+            val mostCommonPrediction = last10Predictions.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
+
+            // check if the most common prediction matches the index of the maximum value in the result array
+            val matches = mostCommonPrediction == maxIndex
+
+            if (matches) {
+                if (outputArray[maxIndex] > threshold) {
+                    Log.d("RealtimeCameraScreen", "Predicted label: ${getPredictedLabel(outputArray)}")
+                    predictedLabel = getPredictedLabel(outputArray)
+                }
+            }
+        }
 
         model.close()
+
+        // make sure sequences list does not exceed maximum length
+        // since we will only use the last 30 frame, then we can
+        // remove the older frame
+        if (sequences.size > maxSequences) {
+            sequences.removeAt(0)
+        }
+
         return predictedLabel
     }
 
@@ -456,7 +484,6 @@ fun RealtimeCameraContent(
                     if (it.hasError()) {
                         recording?.close()
                         recording = null
-
                     } else {
                         Log.d("RealtimeCameraScreen", "Video saved to ${outputFile.absolutePath}")
                     }
@@ -646,9 +673,6 @@ fun RealtimeCameraContent(
                     modifier = Modifier
                         .padding(10.dp),
                     onClick = {
-////                        isRecording = true
-////                        recordVideo()
-//                        testMediaPipe()
                         isAnalyzing = true
                     },
                     colors = IconButtonDefaults.iconButtonColors(
