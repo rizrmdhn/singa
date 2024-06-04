@@ -35,6 +35,8 @@ interface ISingaRepository {
 
     fun getConversations(): Flow<Resource<List<Conversation>>>
 
+    fun createConversation(title: String): Flow<Resource<Conversation>>
+
     fun getConverstaionNodes(id: Int): Flow<Resource<List<ConversationNode>>>
 
     fun getStaticTranslations(): Flow<Resource<List<StaticTranslation>>>

@@ -497,7 +497,10 @@ fun MainApp(
                             showBottomSheet.value = false
                         },
                         navigateToConversation = {
-                            navController.navigate(Screen.Conversation.route)
+                            id ->
+                            navController.navigate(Screen.Conversation.createRoute(id))
+                        },
+                        dismissBottomSheet = {
                             showBottomSheet.value = false
                         }
                     )

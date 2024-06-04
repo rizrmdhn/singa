@@ -89,6 +89,13 @@ object DataMapper {
         )
     }
 
+    fun mapConversationCreateResponseToModel(data: GetConversationListItem) = Conversation(
+        id = data.id,
+        title = data.title,
+        createdAt = data.createdAt,
+        updatedAt = data.updatedAt
+    )
+
     fun mapConversationNodeResponseToModel(data: List<GetConversationNode>) = data.map {
         ConversationNode(
             id = it.id,

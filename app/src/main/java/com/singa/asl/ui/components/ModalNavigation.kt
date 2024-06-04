@@ -36,14 +36,18 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import com.singa.asl.R
+import com.singa.asl.ui.screen.conversation.ConversationViewModel
 import com.singa.asl.ui.theme.Color1
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ModalNavigation(
     context: Context = LocalContext.current,
     navigateToRealtimeCamera: () -> Unit,
-    navigateToConversation: () -> Unit
+    navigateToConversation: (String) -> Unit,
+    dismissBottomSheet: () -> Unit,
+    viewModel: ConversationViewModel = koinViewModel()
 ) {
     val storagePermissionState = rememberPermissionState(Manifest.permission.READ_EXTERNAL_STORAGE)
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
@@ -157,9 +161,22 @@ fun ModalNavigation(
         PopupInputAlertDialog(
             title = "Create a conversation",
             value = conversationTitle,
+            isLoading = viewModel.createConversationStateIsLoading,
             onValueChange = { conversationTitle = it },
             onDismissRequest = { conversationDialog = false },
-            confirmButton = { conversationDialog = false }
+            confirmButton = {
+                viewModel.createConversation(
+                    title = conversationTitle,
+                    navigateToConversation = {
+                        id ->
+                        navigateToConversation(id)
+                    }
+                )
+                conversationDialog = false
+                dismissBottomSheet()
+            }
         )
     }
+
+
 }

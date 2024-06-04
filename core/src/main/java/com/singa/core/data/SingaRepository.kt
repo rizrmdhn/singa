@@ -342,6 +342,39 @@ class SingaRepository(
         }
     }
 
+    override fun createConversation(title: String): Flow<Resource<Conversation>> {
+        return flow {
+            emit(Resource.Loading())
+            val body = JsonObject().apply {
+                addProperty("title", title)
+            }.toString()
+                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+            remoteDataSource.createConversation(body).collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        val conversation = DataMapper.mapConversationCreateResponseToModel(it.data.data)
+                        emit(Resource.Success(conversation))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
     override fun getConverstaionNodes(
         id: Int,
     ): Flow<Resource<List<ConversationNode>>> {

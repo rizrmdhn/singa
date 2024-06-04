@@ -24,7 +24,6 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 
 
-
 interface ApiService {
     // Singa API
     @Headers("Content-Type: application/json")
@@ -85,6 +84,12 @@ interface ApiService {
     @Headers("Content-Type: application/json")
     @GET("translation/conversation/{id}")
     suspend fun getConversationNodes(@Path("id") id: Int): GenericResponse<List<GetConversationNode>>
+
+    @Headers("Content-Type: application/json")
+    @POST("translation/conversation")
+    suspend fun createConversationNode(
+        @Body body: RequestBody
+    ): GenericResponse<GetConversationListItem>
 
     @Headers("Content-Type: application/json")
     @GET("articles")
