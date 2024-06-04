@@ -70,6 +70,7 @@ import java.util.Locale
 @Composable
 fun ConversationScreen(
     id: Int,
+    onNavigateVideo:(Int)->Unit,
     context: Context = LocalContext.current,
     viewModel: ConversationViewModel = koinViewModel()
 ) {
@@ -87,7 +88,8 @@ fun ConversationScreen(
                     textMessage = textMessage,
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
-                    onChangeTextMessage = viewModel::setTextMessage
+                    onChangeTextMessage = viewModel::setTextMessage,
+                    onNavigateVideo = onNavigateVideo
                 )
             }
 
@@ -101,7 +103,8 @@ fun ConversationScreen(
                     textMessage = textMessage,
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
-                    onChangeTextMessage = viewModel::setTextMessage
+                    onChangeTextMessage = viewModel::setTextMessage,
+                    onNavigateVideo = onNavigateVideo
                 )
             }
 
@@ -115,7 +118,8 @@ fun ConversationScreen(
                     textMessage = textMessage,
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
-                    onChangeTextMessage = viewModel::setTextMessage
+                    onChangeTextMessage = viewModel::setTextMessage,
+                    onNavigateVideo = onNavigateVideo
                 )
             }
 
@@ -128,7 +132,8 @@ fun ConversationScreen(
                     textMessage = textMessage,
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
-                    onChangeTextMessage = viewModel::setTextMessage
+                    onChangeTextMessage = viewModel::setTextMessage,
+                    onNavigateVideo = onNavigateVideo
                 )
             }
 
@@ -150,7 +155,8 @@ fun ConversationContent(
     textMessage: String,
     isInputFocused: Boolean,
     setInputFocus: (Boolean) -> Unit,
-    onChangeTextMessage: (String) -> Unit
+    onChangeTextMessage: (String) -> Unit,
+    onNavigateVideo:(Int)->Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -262,7 +268,7 @@ fun ConversationContent(
                                 date = item.createdAt,
                                 text = item.transcripts,
                                 onNavigateToVideo = {
-                                    Log.d("ConversationScreen", "Navigate to video ${item.id}")
+                                    onNavigateVideo(item.conversationTranslationId)
                                 }
                             )
                         }
@@ -387,8 +393,8 @@ private fun getSpeechInput(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true, backgroundColor = 0xFF4BA6F8)
-@Composable
-fun ConversationScreenPreview() {
-    ConversationScreen(1)
-}
+//@Preview(showBackground = true, showSystemUi = true, backgroundColor = 0xFF4BA6F8)
+//@Composable
+//fun ConversationScreenPreview() {
+//    ConversationScreen(1)
+//}

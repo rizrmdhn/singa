@@ -460,7 +460,10 @@ fun MainApp(
                 ) { args ->
                     val id = args.arguments?.getString("id") ?: "0"
                     ConversationScreen(
-                        id = id.toInt()
+                        id = id.toInt(),
+                        onNavigateVideo = {
+                            navController.navigate(Screen.HistoryDetail.createRoute(it.toString()))
+                        }
                     )
                 }
 
