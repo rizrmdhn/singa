@@ -28,7 +28,6 @@ import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.singa.asl.R
-import com.singa.asl.common.ArticleItem
 import com.singa.core.domain.model.Articles
 
 

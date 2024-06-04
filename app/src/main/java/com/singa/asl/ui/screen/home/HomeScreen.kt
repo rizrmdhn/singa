@@ -18,7 +18,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.singa.asl.common.Articles
 import com.singa.asl.ui.components.ArticleCard
 import com.singa.asl.ui.components.ArticlesCardLoader
 import com.singa.asl.ui.components.Board
