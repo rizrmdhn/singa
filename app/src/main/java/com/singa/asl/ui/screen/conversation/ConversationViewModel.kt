@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.singa.core.data.Resource
 import com.singa.core.domain.model.ConversationNode
 import com.singa.core.domain.usecase.SingaUseCase
+import com.singa.core.utils.DataMapper
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
@@ -20,8 +22,8 @@ class ConversationViewModel(
         MutableStateFlow(false)
     val createConversationStateIsLoading: MutableStateFlow<Boolean> get() = _createConversationStateIsLoading
 
-    private val textMessage: MutableStateFlow<String> = MutableStateFlow("")
-    val textMessageState: MutableStateFlow<String> get() = textMessage
+    private val _textMessage: MutableStateFlow<String> = MutableStateFlow("")
+    val textMessageState: MutableStateFlow<String> get() = _textMessage
 
     private val _isInputFocused: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isInputFocused: MutableStateFlow<Boolean> get() = _isInputFocused
@@ -38,7 +40,7 @@ class ConversationViewModel(
     }
 
     fun setTextMessage(text: String) {
-        textMessage.value = text
+        _textMessage.value = text
     }
 
     fun setInputFocus(isFocused: Boolean) {
@@ -60,6 +62,47 @@ class ConversationViewModel(
                     is Resource.Success -> {
                         _createConversationStateIsLoading.value = false
                         navigateToConversation(it.data.id.toString())
+                    }
+
+                    is Resource.Error -> {
+                        _createConversationStateIsLoading.value = false
+                    }
+
+                    is Resource.Empty -> {
+                        Log.e("ConversationViewModel", "createConversation: empty")
+                    }
+
+                    is Resource.ValidationError -> {
+                        Log.e("ConversationViewModel", "createConversation: ${it.errors}")
+                    }
+                }
+            }
+        }
+    }
+
+    fun createSpeechConversation(
+        conversationId: Int,
+    ) {
+        viewModelScope.launch {
+            singaUseCase.createNewSpeechConversation(textMessageState.value, conversationId).collect {
+                _createConversationStateIsLoading.value = true
+                when (it) {
+                    is Resource.Loading -> {
+                        _createConversationStateIsLoading.value = true
+                    }
+
+                    is Resource.Success -> {
+                        _createConversationStateIsLoading.value = false
+                        val mapData = DataMapper.mapSpeechConversationToConversationNode(it.data)
+                        _state.value = Resource.Success(_state.value.let { resource ->
+                            if (resource is Resource.Success) {
+                                resource.data.toMutableList().apply {
+                                    add(mapData)
+                                }
+                            } else {
+                                listOf(mapData)
+                            }
+                        })
                     }
 
                     is Resource.Error -> {

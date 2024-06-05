@@ -46,6 +46,11 @@ class SingaInteractor(
 
     override fun getArticles() = singaRepository.getArticles()
 
+    override fun createNewSpeechConversation(
+        text: String,
+        conversationId: Int
+    ) = singaRepository.createNewSpeechConversation(text, conversationId)
+
     override fun updateToken() = singaRepository.updateToken()
 
     override fun getAccessToken() = singaRepository.getAccessToken()

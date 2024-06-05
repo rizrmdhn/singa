@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.singa.core.data.source.remote.network.ApiResponse
 import com.singa.core.data.source.remote.network.ApiService
 import com.singa.core.data.source.remote.response.ArticlesItem
+import com.singa.core.data.source.remote.response.CreateNewSpeechConversation
 import com.singa.core.data.source.remote.response.GenericResponse
 import com.singa.core.data.source.remote.response.GenericSuccessResponse
 import com.singa.core.data.source.remote.response.GetConversationListItem
@@ -357,10 +358,28 @@ class RemoteDataSource(
         return flow {
             try {
                 val response = apiService.createConversationNode(body)
-                if (response.meta.status == "error") {
-                    emit(ApiResponse.Error(response.meta.message, response.meta.code))
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        emit(ApiResponse.Success(it))
+                    }
                 } else {
-                    emit(ApiResponse.Success(response))
+                    val errorBody = response.errorBody()?.string()
+                    val errorResponse =
+                        Gson().fromJson(errorBody, SchemaErrorResponse::class.java)
+                    val normalErrorResponse =
+                        Gson().fromJson(errorBody, GenericResponse::class.java)
+                    if (response.code() == 422) {
+                        emit(ApiResponse.ValidationError(errorResponse.errors))
+                        return@flow
+                    }
+                    if (response.code() != 200 || response.code() != 201) {
+                        emit(
+                            ApiResponse.Error(
+                                normalErrorResponse.meta.message,
+                                response.code()
+                            )
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 if (e is HttpException) {
@@ -497,6 +516,58 @@ class RemoteDataSource(
                     emit(ApiResponse.Error(response.meta.message, response.meta.code))
                 } else {
                     emit(ApiResponse.Success(response))
+                }
+            } catch (e: Exception) {
+                if (e is HttpException) {
+                    val exception: HttpException = e
+                    val response = exception.response()
+                    try {
+                        val jsonObject =
+                            JSONObject(response?.errorBody()?.string() ?: "Error")
+                        emit(
+                            ApiResponse.Error(
+                                jsonObject.optString("message"),
+                                response?.code() ?: 0
+                            )
+                        )
+                    } catch (e1: JSONException) {
+                        e1.printStackTrace()
+                    } catch (e1: IOException) {
+                        e1.printStackTrace()
+                    }
+                } else {
+                    emit(ApiResponse.Error(e.toString(), 0))
+                }
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    fun createNewSpeechConversation(id: Int, body: RequestBody): Flow<ApiResponse<GenericResponse<CreateNewSpeechConversation>>> {
+        return flow {
+            try {
+                val response = apiService.createNewSpeechConversation(id, body)
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        emit(ApiResponse.Success(it))
+                    }
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    val errorResponse =
+                        Gson().fromJson(errorBody, SchemaErrorResponse::class.java)
+                    val normalErrorResponse =
+                        Gson().fromJson(errorBody, GenericResponse::class.java)
+                    if (response.code() == 422) {
+                        emit(ApiResponse.ValidationError(errorResponse.errors))
+                        return@flow
+                    }
+                    if (response.code() != 200 || response.code() != 201) {
+                        emit(
+                            ApiResponse.Error(
+                                normalErrorResponse.meta.message,
+                                response.code()
+                            )
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 if (e is HttpException) {

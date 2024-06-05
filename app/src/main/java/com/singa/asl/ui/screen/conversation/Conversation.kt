@@ -85,7 +85,10 @@ fun ConversationScreen(
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
                     onChangeTextMessage = viewModel::setTextMessage,
-                    onNavigateVideo = onNavigateVideo
+                    onNavigateVideo = onNavigateVideo,
+                    createNewSpeech = {
+                        viewModel.createSpeechConversation(id)
+                    }
                 )
             }
 
@@ -100,7 +103,10 @@ fun ConversationScreen(
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
                     onChangeTextMessage = viewModel::setTextMessage,
-                    onNavigateVideo = onNavigateVideo
+                    onNavigateVideo = onNavigateVideo,
+                    createNewSpeech = {
+                        viewModel.createSpeechConversation(id)
+                    }
                 )
             }
 
@@ -115,7 +121,10 @@ fun ConversationScreen(
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
                     onChangeTextMessage = viewModel::setTextMessage,
-                    onNavigateVideo = onNavigateVideo
+                    onNavigateVideo = onNavigateVideo,
+                    createNewSpeech = {
+                        viewModel.createSpeechConversation(id)
+                    }
                 )
             }
 
@@ -129,7 +138,10 @@ fun ConversationScreen(
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
                     onChangeTextMessage = viewModel::setTextMessage,
-                    onNavigateVideo = onNavigateVideo
+                    onNavigateVideo = onNavigateVideo,
+                    createNewSpeech = {
+                        viewModel.createSpeechConversation(id)
+                    }
                 )
             }
 
@@ -152,7 +164,8 @@ fun ConversationContent(
     isInputFocused: Boolean,
     setInputFocus: (Boolean) -> Unit,
     onChangeTextMessage: (String) -> Unit,
-    onNavigateVideo:(Int)->Unit
+    onNavigateVideo:(Int)->Unit,
+    createNewSpeech: () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -287,7 +300,12 @@ fun ConversationContent(
                     isLoading = false,
                     isFocused = isInputFocused,
                     setInputFocus = setInputFocus,
-                    onClick = {},
+                    onClick = {
+                              MainScope().launch {
+                                  createNewSpeech()
+                                  onChangeTextMessage("")
+                              }
+                    },
                 )
 
                 if (!isInputFocused) {

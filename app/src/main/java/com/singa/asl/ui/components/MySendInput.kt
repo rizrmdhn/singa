@@ -69,6 +69,9 @@ fun MySendInput(
             cursorColor = Color.Black,
             focusedBorderColor = Color1,
             unfocusedBorderColor = Color(0xFFEFEFEF),
+            focusedTextColor = Color1,
+            unfocusedTextColor = Color1
+
         ),
         shape = RoundedCornerShape(8.dp),
         trailingIcon = {

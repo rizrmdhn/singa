@@ -38,6 +38,10 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.singa.asl.R
 import com.singa.asl.ui.screen.conversation.ConversationViewModel
 import com.singa.asl.ui.theme.Color1
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import okhttp3.internal.wait
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalPermissionsApi::class)
@@ -165,15 +169,17 @@ fun ModalNavigation(
             onValueChange = { conversationTitle = it },
             onDismissRequest = { conversationDialog = false },
             confirmButton = {
-                viewModel.createConversation(
-                    title = conversationTitle,
-                    navigateToConversation = {
-                        id ->
-                        navigateToConversation(id)
-                    }
-                )
-                conversationDialog = false
-                dismissBottomSheet()
+                MainScope().launch {
+                    viewModel.createConversation(
+                        title = conversationTitle,
+                        navigateToConversation = { id ->
+                            navigateToConversation(id)
+                        }
+                    )
+                    // These lines will only be executed after the createConversation coroutine is done
+                    conversationDialog = false
+                    dismissBottomSheet()
+                }
             }
         )
     }

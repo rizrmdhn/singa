@@ -5,6 +5,7 @@ import com.singa.core.domain.model.Articles
 import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.ConversationNode
 import com.singa.core.domain.model.RefreshToken
+import com.singa.core.domain.model.SpeechConversation
 import com.singa.core.domain.model.StaticTranslation
 import com.singa.core.domain.model.StaticTranslationDetail
 import com.singa.core.domain.model.Token
@@ -44,6 +45,10 @@ interface SingaUseCase {
 
     fun getArticles(): Flow<Resource<List<Articles>>>
 
+    fun createNewSpeechConversation(
+        text: String,
+        conversationId: Int
+    ): Flow<Resource<SpeechConversation>>
 
     fun updateToken(): Flow<Resource<RefreshToken>>
 
