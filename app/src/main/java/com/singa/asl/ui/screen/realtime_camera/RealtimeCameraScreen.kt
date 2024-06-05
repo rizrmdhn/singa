@@ -559,18 +559,31 @@ fun RealtimeCameraContent(
                     .padding(horizontal = 16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+
+                val aslResultArray = remember {
+                    mutableListOf("")
+                }
+
+                val previousResult = remember {
+                    mutableStateOf("")
+                }
+
+                previousResult.value = aslResults ?: ""
+
+                if(previousResult.value != aslResultArray[0] && previousResult.value != ""){
+                    aslResultArray.add(0,previousResult.value)
+                }
+
                 Box(
                     modifier = Modifier
                         .padding(16.dp)
                         .fillMaxWidth()
                         .fillMaxHeight(0.2f)
                         .background(
-                            color = Color1,
+                            color = Color(0x872F2E41),
                             shape = RoundedCornerShape(20.dp)
                         )
-                        .border(
-                            width = 3.dp,
-                            color = Color2,
+                        .clip(
                             shape = MaterialTheme.shapes.medium
                         )
                 ) {
@@ -578,8 +591,10 @@ fun RealtimeCameraContent(
                         modifier = Modifier
                             .padding(16.dp)
                     ) {
+                        // Display the result to combine word to paragraph
+
                         Text(
-                            text = aslResults ?: "No results",
+                            text = aslResultArray.joinToString(" "),
                             color = Color.White,
                             style = MaterialTheme.typography.bodySmall
                         )
@@ -620,6 +635,8 @@ fun RealtimeCameraContent(
 //                            recording?.stop()
 //                        }
                             isAnalyzing = false
+                            aslResultArray.clear()
+                            previousResult.value = ""
                         },
                         colors = IconButtonDefaults.iconButtonColors(
                             contentColor = Color.White
