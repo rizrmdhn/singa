@@ -33,6 +33,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun MessageScreen(
+    showDialog: (String, String) -> Unit,
     onNavigateConversation: (id: Int) -> Unit,
     viewModel: MessageScreenViewModel = koinViewModel()
 ) {
@@ -44,7 +45,10 @@ fun MessageScreen(
                     isLoading = false,
                     isError = false,
                     errorMessage = "",
-                    onNavigateConversation
+                    onNavigateConversation,
+                    onDeleteConversationNode = { id ->
+                        viewModel.deleteConversationNode(id, showDialog)
+                    }
                 )
             }
 
@@ -54,7 +58,10 @@ fun MessageScreen(
                     isLoading = false,
                     isError = true,
                     errorMessage = state.message,
-                    onNavigateConversation
+                    onNavigateConversation,
+                    onDeleteConversationNode = { id ->
+                        viewModel.deleteConversationNode(id, showDialog)
+                    }
                 )
             }
 
@@ -64,7 +71,10 @@ fun MessageScreen(
                     isLoading = true,
                     isError = false,
                     errorMessage = "",
-                    onNavigateConversation
+                    onNavigateConversation,
+                    onDeleteConversationNode = { id ->
+                        viewModel.deleteConversationNode(id, showDialog)
+                    }
                 )
             }
 
@@ -74,7 +84,10 @@ fun MessageScreen(
                     isLoading = false,
                     isError = false,
                     errorMessage = "",
-                    onNavigateConversation
+                    onNavigateConversation,
+                    onDeleteConversationNode = { id ->
+                        viewModel.deleteConversationNode(id, showDialog)
+                    }
                 )
             }
 
@@ -84,7 +97,10 @@ fun MessageScreen(
                     isLoading = false,
                     isError = true,
                     errorMessage = state.errors.joinToString { it.message },
-                    onNavigateConversation
+                    onNavigateConversation,
+                    onDeleteConversationNode = { id ->
+                        viewModel.deleteConversationNode(id, showDialog)
+                    }
                 )
             }
         }
@@ -98,6 +114,7 @@ fun MessageContent(
     isError: Boolean = false,
     errorMessage: String = "",
     onNavigateConversation: (id: Int) -> Unit,
+    onDeleteConversationNode: (id: Int) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -162,6 +179,9 @@ fun MessageContent(
                             date = conversation.createdAt,
                             onClickCard = {
                                 onNavigateConversation(conversation.id)
+                            },
+                            onDeleteItem = {
+                                onDeleteConversationNode(conversation.id)
                             }
                         )
                     }

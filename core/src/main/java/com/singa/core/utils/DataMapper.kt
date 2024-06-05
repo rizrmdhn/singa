@@ -4,6 +4,7 @@ import com.google.mediapipe.tasks.vision.facelandmarker.FaceLandmarkerResult
 import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import com.singa.core.data.source.remote.response.ArticlesItem
+import com.singa.core.data.source.remote.response.CreateNewSpeechConversation
 import com.singa.core.data.source.remote.response.GetConversationListItem
 import com.singa.core.data.source.remote.response.GetConversationNode
 import com.singa.core.data.source.remote.response.GetMeResponse
@@ -22,10 +23,12 @@ import com.singa.core.domain.model.Landmark
 import com.singa.core.domain.model.NormalizedLandmark
 import com.singa.core.domain.model.PoseLandmarker
 import com.singa.core.domain.model.RefreshToken
+import com.singa.core.domain.model.SpeechConversation
 import com.singa.core.domain.model.StaticTranscriptsItem
 import com.singa.core.domain.model.StaticTranslation
 import com.singa.core.domain.model.StaticTranslationDetail
 import com.singa.core.domain.model.Token
+import com.singa.core.domain.model.Transcript
 import com.singa.core.domain.model.User
 import com.singa.core.domain.model.ValidationErrorSchema
 
@@ -119,6 +122,35 @@ object DataMapper {
             updatedAt = it.updatedAt
         )
     }
+
+    fun mapSpeechConversationResponseToModel(data: CreateNewSpeechConversation) = SpeechConversation(
+        id = data.id,
+        conversationTranslationId = data.conversationTranslationId,
+        type = data.type,
+        createdAt = data.createdAt,
+        updatedAt = data.updatedAt,
+        userId = data.userId,
+        transcript = Transcript(
+            id = data.transcript.id,
+            userId = data.transcript.userId,
+            conversationNodeId = data.transcript.conversationNodeId,
+            text = data.transcript.text,
+            timestamp = data.transcript.timestamp,
+            createdAt = data.transcript.createdAt,
+            updatedAt = data.transcript.updatedAt
+        )
+    )
+
+    fun mapSpeechConversationToConversationNode(data: SpeechConversation) = ConversationNode(
+        id = data.id,
+        conversationTranslationId = data.conversationTranslationId,
+        type = data.type,
+        createdAt = data.createdAt,
+        updatedAt = data.updatedAt,
+        userId = data.userId,
+        transcripts = data.transcript.text,
+        videoUrl = ""
+    )
 
     fun mapFaceLandmarkResponseToModel(data: FaceLandmarkerResult) = FaceLandmarker(
         timestampMs = data.timestampMs(),

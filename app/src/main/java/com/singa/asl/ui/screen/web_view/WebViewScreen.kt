@@ -16,7 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.viewinterop.AndroidView
 import com.google.gson.Gson
 import com.singa.asl.BuildConfig
-import com.singa.core.data.source.remote.response.TestLoginResponse
+import com.singa.core.data.source.remote.response.SocialAuthResponse
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -124,7 +124,7 @@ private fun handlePageFinished(
             val cleanedResponse = response.substring(1, response.length - 1).replace("\\", "")
             try {
                 val gson = Gson()
-                val loginResponse = gson.fromJson(cleanedResponse, TestLoginResponse::class.java)
+                val loginResponse = gson.fromJson(cleanedResponse, SocialAuthResponse::class.java)
                 if (loginResponse.meta.code == 200 && loginResponse.meta.status == "success") {
                     val data = loginResponse.data
                     val token = data.token
@@ -150,7 +150,7 @@ private fun handlePageFinished(
             val cleanedResponse = response.substring(1, response.length - 1).replace("\\", "")
             try {
                 val gson = Gson()
-                val loginResponse = gson.fromJson(cleanedResponse, TestLoginResponse::class.java)
+                val loginResponse = gson.fromJson(cleanedResponse, SocialAuthResponse::class.java)
                 if (loginResponse.meta.code == 200 && loginResponse.meta.status == "success") {
                     val data = loginResponse.data
                     val token = data.token

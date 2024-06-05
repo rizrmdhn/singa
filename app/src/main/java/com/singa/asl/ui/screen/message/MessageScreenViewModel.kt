@@ -26,4 +26,28 @@ class MessageScreenViewModel(
             }
         }
     }
+
+    fun deleteConversationNode(
+        id: Int,
+        showDialog: (String, String) -> Unit,
+    ) {
+        viewModelScope.launch {
+            singaUseCase.deleteConversationNode(id).collect {
+                when (it) {
+                    is Resource.Loading -> {
+                       _state.value = Resource.Loading()
+                    }
+                    is Resource.Success -> {
+                        getConversations()
+                    }
+                    is Resource.Error -> {
+                        showDialog("Error", it.message)
+                    }
+
+                    is Resource.Empty -> TODO()
+                    is Resource.ValidationError -> TODO()
+                }
+            }
+        }
+    }
 }

@@ -9,6 +9,7 @@ import com.singa.core.domain.model.Articles
 import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.ConversationNode
 import com.singa.core.domain.model.RefreshToken
+import com.singa.core.domain.model.SpeechConversation
 import com.singa.core.domain.model.StaticTranslation
 import com.singa.core.domain.model.StaticTranslationDetail
 import com.singa.core.domain.model.Token
@@ -352,7 +353,8 @@ class SingaRepository(
             remoteDataSource.createConversation(body).collect {
                 when (it) {
                     is ApiResponse.Success -> {
-                        val conversation = DataMapper.mapConversationCreateResponseToModel(it.data.data)
+                        val conversation =
+                            DataMapper.mapConversationCreateResponseToModel(it.data.data)
                         emit(Resource.Success(conversation))
                     }
 
@@ -475,6 +477,72 @@ class SingaRepository(
                     is ApiResponse.Success -> {
                         val articles = DataMapper.mapArticlesResponseToModel(it.data.data)
                         emit(Resource.Success(articles))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
+    override fun createNewSpeechConversation(
+        text: String,
+        conversationId: Int
+    ): Flow<Resource<SpeechConversation>> {
+        return flow {
+            emit(Resource.Loading())
+            val body = JsonObject().apply {
+                addProperty("text", text)
+                addProperty("type", "speech")
+            }.toString()
+                .toRequestBody("application/json; charset=utf-8".toMediaTypeOrNull())
+            remoteDataSource.createNewSpeechConversation(conversationId, body).collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        val speechConversation =
+                            DataMapper.mapSpeechConversationResponseToModel(it.data.data)
+                        emit(Resource.Success(speechConversation))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
+    override fun deleteConversationNode(id: Int): Flow<Resource<String>> {
+        return flow {
+            emit(Resource.Loading())
+            remoteDataSource.deleteConversationNode(id).collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        emit(Resource.Success(it.data.meta.message))
                     }
 
                     is ApiResponse.Empty -> {

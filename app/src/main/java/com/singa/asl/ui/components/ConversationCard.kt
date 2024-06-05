@@ -24,8 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.singa.asl.R
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import com.singa.asl.utils.Helpers
 
 @Composable
 fun ConversationCard(
@@ -49,9 +48,7 @@ fun ConversationCard(
                 Text(text = type, fontWeight = FontWeight.SemiBold)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    LocalDateTime.parse(date, DateTimeFormatter.ISO_DATE_TIME).format(
-                        DateTimeFormatter.ofPattern("HH:mm")
-                    ),
+                    text = Helpers.convertToUserLocalTime(date),
                 )
             }
             if (type == "Video") {

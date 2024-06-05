@@ -1,6 +1,7 @@
 package com.singa.core.data.source.remote.network
 
 import com.singa.core.data.source.remote.response.ArticlesItem
+import com.singa.core.data.source.remote.response.CreateNewSpeechConversation
 import com.singa.core.data.source.remote.response.GenericResponse
 import com.singa.core.data.source.remote.response.GenericSuccessResponse
 import com.singa.core.data.source.remote.response.GetConversationListItem
@@ -15,6 +16,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Multipart
@@ -89,11 +91,21 @@ interface ApiService {
     @POST("translation/conversation")
     suspend fun createConversationNode(
         @Body body: RequestBody
-    ): GenericResponse<GetConversationListItem>
+    ): Response<GenericResponse<GetConversationListItem>>
 
     @Headers("Content-Type: application/json")
     @GET("articles")
     suspend fun getArticles(): GenericResponse<List<ArticlesItem>>
 
+    @Headers("Content-Type: application/json")
+    @POST("translation/conversation/{id}/speech")
+    suspend fun createNewSpeechConversation(
+        @Path("id") id: Int,
+        @Body body: RequestBody
+    ): Response<GenericResponse<CreateNewSpeechConversation>>
+
+    @Headers("Content-Type: application/json")
+    @DELETE("translation/conversation/{id}")
+    suspend fun deleteConversationNode(@Path("id") id: Int): GenericSuccessResponse
 }
 

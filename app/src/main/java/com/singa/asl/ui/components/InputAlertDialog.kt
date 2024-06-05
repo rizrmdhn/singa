@@ -40,9 +40,9 @@ fun PopupInputAlertDialog(
 
             },
             text = {
-                if (loading){
+                if (loading) {
                     CircularProgressIndicator()
-                }else{
+                } else {
                     OutlinedTextField(
                         value = value,
                         placeholder = { Text(text = "Enter title", color = Color.Gray) },
@@ -52,7 +52,8 @@ fun PopupInputAlertDialog(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color1,
                             unfocusedBorderColor = Color1,
-                            cursorColor = Color1
+                            cursorColor = Color1,
+                            focusedTextColor = Color1
                         ),
                     )
                 }
