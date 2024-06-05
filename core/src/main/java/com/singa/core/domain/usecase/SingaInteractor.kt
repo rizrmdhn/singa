@@ -51,6 +51,8 @@ class SingaInteractor(
         conversationId: Int
     ) = singaRepository.createNewSpeechConversation(text, conversationId)
 
+    override fun deleteConversationNode(id: Int) = singaRepository.deleteConversationNode(id)
+
     override fun updateToken() = singaRepository.updateToken()
 
     override fun getAccessToken() = singaRepository.getAccessToken()

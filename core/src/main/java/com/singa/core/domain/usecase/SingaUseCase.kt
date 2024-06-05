@@ -50,6 +50,8 @@ interface SingaUseCase {
         conversationId: Int
     ): Flow<Resource<SpeechConversation>>
 
+    fun deleteConversationNode(id: Int): Flow<Resource<String>>
+
     fun updateToken(): Flow<Resource<RefreshToken>>
 
     fun getAccessToken(): Flow<String?>

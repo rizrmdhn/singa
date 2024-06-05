@@ -280,17 +280,6 @@ fun MainApp(
                             navController.navigate(Screen.Login.route)
                         },
                         onLoginAsGuest = {
-                            // this is for testing real time camera (cameraX)
-//                            val permissionCheckResult =
-//                                ContextCompat.checkSelfPermission(
-//                                    context,
-//                                    Manifest.permission.CAMERA
-//                                )
-//                            if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-//                                navController.navigate(Screen.TestCamera.route)
-//                            } else {
-//                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-//                            }
                             viewModel.onLoginAsGuest(
                                 getAuthUser = getAuthUser,
                                 navigateToHome = {
@@ -312,6 +301,7 @@ fun MainApp(
 
                 composable(Screen.Message.route) {
                     MessageScreen(
+                        showDialog = showDialog,
                         onNavigateConversation = {
                             navController.navigate(
                                 Screen.Conversation.createRoute(it.toString())

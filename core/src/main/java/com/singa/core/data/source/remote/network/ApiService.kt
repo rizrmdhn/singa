@@ -16,6 +16,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Headers
 import retrofit2.http.Multipart
@@ -102,5 +103,9 @@ interface ApiService {
         @Path("id") id: Int,
         @Body body: RequestBody
     ): Response<GenericResponse<CreateNewSpeechConversation>>
+
+    @Headers("Content-Type: application/json")
+    @DELETE("translation/conversation/{id}")
+    suspend fun deleteConversationNode(@Path("id") id: Int): GenericSuccessResponse
 }
 

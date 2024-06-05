@@ -536,6 +536,34 @@ class SingaRepository(
         }
     }
 
+    override fun deleteConversationNode(id: Int): Flow<Resource<String>> {
+        return flow {
+            emit(Resource.Loading())
+            remoteDataSource.deleteConversationNode(id).collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        emit(Resource.Success(it.data.meta.message))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
     override fun getAccessToken(): Flow<String> {
         return localDataSource.getAccessToken()
     }

@@ -7,7 +7,6 @@ import com.singa.core.data.Resource
 import com.singa.core.domain.model.ConversationNode
 import com.singa.core.domain.usecase.SingaUseCase
 import com.singa.core.utils.DataMapper
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 

@@ -9,7 +9,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
-import android.util.Log
 import androidx.core.content.FileProvider
 import com.singa.asl.BuildConfig
 import java.io.ByteArrayInputStream
@@ -32,7 +31,7 @@ object Helpers {
     private const val MAXIMAL_SIZE = 1000000
     private val timeStamp: String = SimpleDateFormat(FILENAME_FORMAT, Locale.US).format(Date())
 
-    fun convertToUserLocalTime(utcDateTime: String): String {
+    fun convertToUserLocalTime(utcDateTime: String, pattern: String = "HH:mm"): String {
         // Parse the input UTC date-time string
         val utcFormatter = DateTimeFormatter.ISO_DATE_TIME
         val localDateTime = LocalDateTime.parse(utcDateTime, utcFormatter)
@@ -48,7 +47,7 @@ object Helpers {
         val userZonedDateTime = utcZonedDateTime.withZoneSameInstant(userZoneId)
 
         // Format the result in the desired pattern
-        val targetFormatter = DateTimeFormatter.ofPattern("HH:mm")
+        val targetFormatter = DateTimeFormatter.ofPattern(pattern)
         return userZonedDateTime.format(targetFormatter)
     }
 

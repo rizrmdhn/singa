@@ -39,9 +39,7 @@ import com.singa.asl.R
 import com.singa.asl.ui.screen.conversation.ConversationViewModel
 import com.singa.asl.ui.theme.Color1
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import okhttp3.internal.wait
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalPermissionsApi::class)

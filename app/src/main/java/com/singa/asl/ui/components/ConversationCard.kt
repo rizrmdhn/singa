@@ -1,7 +1,5 @@
 package com.singa.asl.ui.components
 
-import android.icu.util.TimeZone
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,8 +25,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.singa.asl.R
 import com.singa.asl.utils.Helpers
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun ConversationCard(
