@@ -52,7 +52,7 @@ fun ArticleCard(
                 SubcomposeAsyncImage(
                     model = data.imageUrl,
                     contentDescription = "Article Image",
-                    contentScale = ContentScale.FillBounds,
+                    contentScale = ContentScale.FillWidth,
                     modifier = Modifier.width(120.dp).height(80.dp)
                 ){
                     when (this.painter.state) {
