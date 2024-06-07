@@ -52,7 +52,7 @@ interface ApiService {
     @POST("logout")
     suspend fun logout(
         @Body body: RequestBody
-    ): GenericSuccessResponse
+    ): Response<GenericSuccessResponse>
 
     @Headers("Content-Type: application/json")
     @POST("refresh")

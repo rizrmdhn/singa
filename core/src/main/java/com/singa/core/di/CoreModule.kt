@@ -40,7 +40,7 @@ val networkModule = module {
 
         OkHttpClient.Builder()
             .addInterceptor(
-                if (BuildConfig.PRODUCTION_MODE) HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+                if (!BuildConfig.PRODUCTION_MODE) HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
                 else HttpLoggingInterceptor().setLevel(
                     HttpLoggingInterceptor.Level.NONE
                 )
