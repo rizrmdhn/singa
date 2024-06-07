@@ -22,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.singa.asl.BuildConfig
 import com.singa.asl.ui.components.ArticleCard
 import com.singa.asl.ui.components.ArticlesCardLoader
 import com.singa.asl.ui.components.Board
@@ -82,7 +83,9 @@ fun HomeContent(showModal: () -> Unit, viewModel: HomeViewModel = koinViewModel(
                                             startActivity(
                                                 Intent(
                                                     Intent.ACTION_VIEW,
-                                                    Uri.parse(articles.imageUrl)
+                                                    Uri.parse(
+                                                        BuildConfig.ARTICLE_URL + articles.id
+                                                    )
                                                 )
                                             )
                                         }
