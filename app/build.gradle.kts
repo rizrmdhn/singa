@@ -4,6 +4,7 @@ val appMode: Boolean = gradleLocalProperties(rootDir, providers).getProperty("AP
 val productionMode: Boolean = gradleLocalProperties(rootDir, providers).getProperty("PRODUCTION_MODE") == "true"
 val apiUrl: String = gradleLocalProperties(rootDir, providers).getProperty("API_URL")
 val apiUrlProd: String = gradleLocalProperties(rootDir, providers).getProperty("API_URL_PROD")
+val articleUrl: String = gradleLocalProperties(rootDir, providers).getProperty("ARTICLE_URL")
 
 plugins {
     alias(libs.plugins.android.application)
@@ -33,6 +34,7 @@ android {
         buildConfigField("String", "BASE_URL_PROD", "\"$apiUrlProd\"")
         buildConfigField("Boolean", "PRODUCTION_MODE", "$productionMode")
         buildConfigField("Boolean", "APP_MODE", "$appMode")
+        buildConfigField("String", "ARTICLE_URL", "\"$articleUrl\"")
     }
 
     buildTypes {
