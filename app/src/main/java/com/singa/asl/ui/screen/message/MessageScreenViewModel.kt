@@ -14,11 +14,14 @@ class MessageScreenViewModel(
     private val _state: MutableStateFlow<Resource<List<Conversation>>> = MutableStateFlow(Resource.Loading())
     val state: MutableStateFlow<Resource<List<Conversation>>> get() = _state
 
+    private val _isRefreshing: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isRefreshing: MutableStateFlow<Boolean> get() = _isRefreshing
+
     init {
         getConversations()
     }
 
-    private fun getConversations() {
+     private fun getConversations() {
         viewModelScope.launch {
             _state.value = Resource.Loading()
             singaUseCase.getConversations().collect {
@@ -48,6 +51,14 @@ class MessageScreenViewModel(
                     is Resource.ValidationError -> TODO()
                 }
             }
+        }
+    }
+
+    fun refreshConversations() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            getConversations()
+            _isRefreshing.value = false
         }
     }
 }

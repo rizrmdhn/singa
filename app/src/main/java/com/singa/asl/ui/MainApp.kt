@@ -49,6 +49,7 @@ import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.SingaTheme
 import com.singa.core.domain.model.User
+import kotlinx.coroutines.flow.Flow
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -386,7 +387,7 @@ fun MainApp(
                                 viewModel::clearPasswordAndConfirmPassword,
                                 setLoadingState
                             )
-                        }
+                        },
                     )
                 }
 

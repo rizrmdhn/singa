@@ -15,6 +15,9 @@ class HistoryScreenViewModel(
     private val _state: MutableStateFlow<Resource<List<StaticTranslation>>> = MutableStateFlow(Resource.Loading())
     val state: StateFlow<Resource<List<StaticTranslation>>> get() = _state
 
+    private val _isRefreshing: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isRefreshing: MutableStateFlow<Boolean> get() = _isRefreshing
+
     init {
         getStaticTranslations()
     }
@@ -25,6 +28,14 @@ class HistoryScreenViewModel(
             singaUseCase.getStaticTranslations().collect {
                 _state.value = it
             }
+        }
+    }
+
+    fun refreshStaticTranslations() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            getStaticTranslations()
+            _isRefreshing.value = false
         }
     }
 }
