@@ -92,7 +92,7 @@ class MainActivity : ComponentActivity() {
                             showDialog = viewModels::showAlert,
                             hideDialog = viewModels::hideAlert,
                             saveAccessToken = viewModels::saveAccessToken,
-                            saveRefreshToken = viewModels::saveRefreshToken
+                            saveRefreshToken = viewModels::saveRefreshToken,
                         )
                     }
 

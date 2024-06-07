@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -30,6 +31,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -38,6 +40,7 @@ import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -59,6 +62,7 @@ import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
 import com.singa.asl.R
 import com.singa.asl.ui.components.FormComp
+import com.singa.asl.ui.components.ShimmerProgress
 import com.singa.asl.ui.components.shimmerBrush
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color5
@@ -67,6 +71,7 @@ import com.singa.asl.ui.theme.ColorBluePastelBackground
 import com.singa.core.domain.model.FormItem
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -145,8 +150,9 @@ fun ProfileDetailContent(
     isSignUser: Boolean,
     onChangeIsSignUser: () -> Unit,
     onUpdate: () -> Unit,
-    isUpdateProfileLoading: Boolean
+    isUpdateProfileLoading: Boolean,
 ) {
+
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) {
@@ -167,6 +173,7 @@ fun ProfileDetailContent(
             Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
         }
     }
+
 
     val formList = listOf(
         FormItem(
@@ -309,15 +316,9 @@ fun ProfileDetailContent(
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     if (isUpdateProfileLoading) {
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    shimmerBrush(
-                                        targetValue = 1300f,
-                                        showShimmer = true
-                                    )
-                                )
-                                .fillMaxSize()
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Color.White
                         )
                     } else {
                         Text(text = "Save", fontSize = 24.sp, color = Color.White)

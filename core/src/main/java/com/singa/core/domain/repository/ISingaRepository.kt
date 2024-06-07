@@ -12,6 +12,7 @@ import com.singa.core.domain.model.StaticTranslationDetail
 import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.User
 import kotlinx.coroutines.flow.Flow
+import okhttp3.MultipartBody
 import java.io.File
 
 interface ISingaRepository {
@@ -30,7 +31,7 @@ interface ISingaRepository {
         email: String?,
         password: String?,
         confirmPassword: String?,
-        avatar: File?,
+        avatar: MultipartBody.Part?,
         isSignUser: Boolean?
     ): Flow<Resource<User>>
 

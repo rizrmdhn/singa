@@ -1,6 +1,7 @@
 package com.singa.core.domain.usecase
 
 import com.singa.core.domain.repository.ISingaRepository
+import okhttp3.MultipartBody
 import java.io.File
 
 class SingaInteractor(
@@ -22,7 +23,7 @@ class SingaInteractor(
         email: String?,
         password: String?,
         confirmPassword: String?,
-        avatar: File?,
+        avatar: MultipartBody.Part?,
         isSignUser: Boolean?
     ) = singaRepository.updateMe(
         name,

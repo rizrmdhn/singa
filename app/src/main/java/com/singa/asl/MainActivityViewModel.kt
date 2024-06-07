@@ -2,16 +2,24 @@ package com.singa.asl
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.singa.asl.common.ValidationState
 import com.singa.asl.utils.Helpers
 import com.singa.asl.utils.Helpers.reduceFileImage
+import com.singa.asl.utils.ProgressFileUpload
 import com.singa.core.data.Resource
 import com.singa.core.domain.model.User
 import com.singa.core.domain.usecase.SingaUseCase
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
 import java.io.File
 
 class MainActivityViewModel(
@@ -37,6 +45,7 @@ class MainActivityViewModel(
 
     private val _alertDialog: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val alertDialog: MutableStateFlow<Boolean> get() = _alertDialog
+
 
 
     init {
@@ -142,65 +151,57 @@ class MainActivityViewModel(
             avatar = Helpers.uriToFile(uri!!, context).reduceFileImage()
         }
 
+        val multipartBody = avatar?.let { it ->
+            val contentType = "image/*".toMediaTypeOrNull()
+            ProgressFileUpload(it, contentType) { _ ->
+
+            }.let {
+                MultipartBody.Part.createFormData("avatar", avatar.name, it)
+            }
+        }
+
         viewModelScope.launch {
             singaUseCase.updateMe(
                 name = name,
                 email = email,
                 password = password,
                 confirmPassword = confirmPassword,
-                avatar = avatar,
+                avatar = multipartBody,
                 isSignUser = isSignUser
             ).collect {
                 when (it) {
                     is Resource.Success -> {
                         setUpdateIsLoading(false)
                         _authUser.value = Resource.Success(it.data)
-
                         if (password.isNotBlank() && confirmPassword.isNotBlank()) {
                             clearChangePasswordForm()
                         }
-
                         showAlert("Success", "Update success")
                     }
-
                     is Resource.Empty -> {
                         setUpdateIsLoading(false)
                         showAlert("Error", "Something went wrong")
                     }
-
                     is Resource.Error -> {
                         setUpdateIsLoading(false)
                         showAlert("Error", it.message ?: "Something went wrong")
                     }
-
                     is Resource.Loading -> {
                         setUpdateIsLoading(true)
                     }
-
                     is Resource.ValidationError -> {
                         setUpdateIsLoading(false)
                         it.errors.forEach { (msg, _, field) ->
                             when (field) {
                                 "name" -> {
-                                    updateValidationState(
-                                        ValidationState(
-                                            nameError = msg
-                                        )
-                                    )
+                                    updateValidationState(ValidationState(nameError = msg))
                                 }
-
                                 "password" -> {
-                                    updateValidationState(
-                                        ValidationState(
-                                            passwordError = msg
-                                        )
-                                    )
+                                    updateValidationState(ValidationState(passwordError = msg))
                                 }
-
                                 "avatar" -> {
                                     showAlert("Error", msg)
                                 }
-
                                 "isSignUser" -> {
                                     showAlert("Error", msg)
                                 }
@@ -212,6 +213,7 @@ class MainActivityViewModel(
             }
         }
     }
+
 
     fun setScreenReady() {
         _isScreenReady.value = true

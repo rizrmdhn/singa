@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.text.HtmlCompat
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
@@ -43,6 +44,8 @@ fun ArticleCard(
             contentColor = Color.Black
         )
     ) {
+        val spannedText = HtmlCompat.fromHtml(data.description, HtmlCompat.FROM_HTML_MODE_LEGACY)
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -101,7 +104,7 @@ fun ArticleCard(
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = data.description,
+                text = "$spannedText",
                 fontSize = 14.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,

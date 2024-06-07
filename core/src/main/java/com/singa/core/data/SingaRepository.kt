@@ -259,7 +259,7 @@ class SingaRepository(
         email: String?,
         password: String?,
         confirmPassword: String?,
-        avatar: File?,
+        avatar: MultipartBody.Part?,
         isSignUser: Boolean?
     ): Flow<Resource<User>> {
         return flow {
@@ -269,17 +269,17 @@ class SingaRepository(
             val requestPassword = password?.toRequestBody("text/plain".toMediaTypeOrNull())
             val requestConfirmPassword =
                 confirmPassword?.toRequestBody("text/plain".toMediaTypeOrNull())
-            val requestAvatar = avatar?.asRequestBody("image/*".toMediaTypeOrNull())
+//            val requestAvatar = avatar?.asRequestBody("image/*".toMediaTypeOrNull())
             val requestIsSignUser =
                 isSignUser.toString().toRequestBody("text/plain".toMediaTypeOrNull())
 
-            val multipartBody = requestAvatar?.let {
-                MultipartBody.Part.createFormData(
-                    "avatar",
-                    avatar.name,
-                    it
-                )
-            }
+//            val multipartBody = requestAvatar?.let {
+//                MultipartBody.Part.createFormData(
+//                    "avatar",
+//                    avatar.name,
+//                    it
+//                )
+//            }
 
             remoteDataSource.updateMe(
                 requestName,
@@ -287,7 +287,7 @@ class SingaRepository(
                 requestPassword,
                 requestConfirmPassword,
                 requestIsSignUser,
-                multipartBody
+                avatar
             ).collect {
                 when (it) {
                     is ApiResponse.Success -> {
