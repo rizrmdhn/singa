@@ -116,7 +116,8 @@ class MainActivityViewModel(
                     }
 
                     is Resource.Error -> {
-                        showAlert("Error", it.message ?: "Something went wrong")
+                        Log.e("MainActivityViewModel", "Error: $it.")
+                        showAlert("Error", it.message.ifBlank { "Something went wrong" })
                         _logoutIsLoading.value = false
                     }
 

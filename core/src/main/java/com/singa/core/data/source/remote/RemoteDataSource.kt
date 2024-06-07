@@ -1,6 +1,7 @@
 package com.singa.core.data.source.remote
 
 
+import android.util.Log
 import com.google.gson.Gson
 import com.singa.core.data.source.remote.network.ApiResponse
 import com.singa.core.data.source.remote.network.ApiService
@@ -172,10 +173,22 @@ class RemoteDataSource(
         return flow {
             try {
                 val response = apiService.logout(body)
-                if (response.meta.status == "error") {
-                    emit(ApiResponse.Error(response.meta.message, response.meta.code))
+                if (response.isSuccessful) {
+                    response.body()?.let {
+                        emit(ApiResponse.Success(it))
+                    }
                 } else {
-                    emit(ApiResponse.Success(response))
+                    val errorBody = response.errorBody()?.string()
+                    val errorResponse = Gson().fromJson(errorBody, SchemaErrorResponse::class.java)
+                    val normalErrorResponse =
+                        Gson().fromJson(errorBody, GenericResponse::class.java)
+                    if (response.code() == 422) {
+                        emit(ApiResponse.ValidationError(errorResponse.errors))
+                        return@flow
+                    }
+                    if (response.code() != 200 || response.code() != 201) {
+                        emit(ApiResponse.Error(normalErrorResponse.meta.message, response.code()))
+                    }
                 }
             } catch (e: Exception) {
                 if (e is HttpException) {
@@ -326,6 +339,8 @@ class RemoteDataSource(
                 val response = apiService.getConversations()
                 if (response.meta.status == "error") {
                     emit(ApiResponse.Error(response.meta.message, response.meta.code))
+                } else if (response.data.isEmpty()) {
+                    emit(ApiResponse.Empty)
                 } else {
                     emit(ApiResponse.Success(response))
                 }
@@ -412,6 +427,8 @@ class RemoteDataSource(
                 val response = apiService.getStaticTranslations()
                 if (response.meta.status == "error") {
                     emit(ApiResponse.Error(response.meta.message, response.meta.code))
+                } else if (response.data.isEmpty()) {
+                    emit(ApiResponse.Empty)
                 } else {
                     emit(ApiResponse.Success(response))
                 }
@@ -480,6 +497,8 @@ class RemoteDataSource(
                 val response = apiService.getConversationNodes(id)
                 if (response.meta.status == "error") {
                     emit(ApiResponse.Error(response.meta.message, response.meta.code))
+                } else  if (response.data.isEmpty()) {
+                    emit(ApiResponse.Empty)
                 } else {
                     emit(ApiResponse.Success(response))
                 }
@@ -514,6 +533,8 @@ class RemoteDataSource(
                 val response = apiService.getArticles()
                 if (response.meta.status == "error") {
                     emit(ApiResponse.Error(response.meta.message, response.meta.code))
+                } else if (response.data.isEmpty()) {
+                    emit(ApiResponse.Empty)
                 } else {
                     emit(ApiResponse.Success(response))
                 }

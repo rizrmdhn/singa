@@ -191,6 +191,12 @@ class SingaRepository(
         return flow {
             emit(Resource.Loading())
             val token = getRefreshToken().first()
+
+            if (token.isEmpty()) {
+                emit(Resource.Error("Token is empty"))
+                return@flow
+            }
+
             val body = JsonObject().apply {
                 addProperty("refreshToken", token)
             }.toString()
@@ -269,17 +275,9 @@ class SingaRepository(
             val requestPassword = password?.toRequestBody("text/plain".toMediaTypeOrNull())
             val requestConfirmPassword =
                 confirmPassword?.toRequestBody("text/plain".toMediaTypeOrNull())
-//            val requestAvatar = avatar?.asRequestBody("image/*".toMediaTypeOrNull())
             val requestIsSignUser =
                 isSignUser.toString().toRequestBody("text/plain".toMediaTypeOrNull())
 
-//            val multipartBody = requestAvatar?.let {
-//                MultipartBody.Part.createFormData(
-//                    "avatar",
-//                    avatar.name,
-//                    it
-//                )
-//            }
 
             remoteDataSource.updateMe(
                 requestName,
@@ -325,7 +323,7 @@ class SingaRepository(
                     }
 
                     is ApiResponse.Empty -> {
-                        emit(Resource.Error("Empty Data"))
+                        emit(Resource.Empty())
                     }
 
                     is ApiResponse.Error -> {
@@ -391,7 +389,7 @@ class SingaRepository(
                     }
 
                     is ApiResponse.Empty -> {
-                        emit(Resource.Error("Empty Data"))
+                        emit(Resource.Empty())
                     }
 
                     is ApiResponse.Error -> {
@@ -421,7 +419,7 @@ class SingaRepository(
                     }
 
                     is ApiResponse.Empty -> {
-                        emit(Resource.Error("Empty Data"))
+                        emit(Resource.Empty())
                     }
 
                     is ApiResponse.Error -> {
@@ -480,7 +478,7 @@ class SingaRepository(
                     }
 
                     is ApiResponse.Empty -> {
-                        emit(Resource.Error("Empty Data"))
+                        emit(Resource.Empty())
                     }
 
                     is ApiResponse.Error -> {

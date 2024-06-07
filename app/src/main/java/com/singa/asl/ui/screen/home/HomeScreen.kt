@@ -57,7 +57,7 @@ fun HomeContent(showModal: () -> Unit, viewModel: HomeViewModel = koinViewModel(
                             horizontalAlignment = Alignment.CenterHorizontally,
                             verticalArrangement = Arrangement.Center
                         ) {
-                            Text("No Data", style = MaterialTheme.typography.bodySmall)
+                            Text("No Article Available", style = MaterialTheme.typography.bodySmall)
                         }
                     }
 
