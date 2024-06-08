@@ -52,6 +52,8 @@ interface SingaUseCase {
 
     fun deleteConversationNode(id: Int): Flow<Resource<String>>
 
+    fun bulkDeleteConversationNode(id: Set<Int>): Flow<Resource<String>>
+
     fun updateToken(): Flow<Resource<RefreshToken>>
 
     fun getAccessToken(): Flow<String?>

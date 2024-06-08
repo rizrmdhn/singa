@@ -38,6 +38,7 @@ fun ConversationCard(
     status: String,
     isSelected: Boolean,
     onNavigateToVideo: () -> Unit,
+    onPress: () -> Unit = {},
     onLongPress: () -> Unit
 ) {
 
@@ -109,7 +110,9 @@ fun ConversationCard(
             modifier = Modifier
                 .fillMaxWidth(0.8f)
                 .combinedClickable(
-                    onClick = {},
+                    onClick = {
+                        onPress()
+                    },
                     onLongClick = {
                         onLongPress()
                     }

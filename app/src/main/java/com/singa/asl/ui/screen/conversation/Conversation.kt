@@ -75,6 +75,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun ConversationScreen(
     id: Int,
+    showDialog: (String, String) -> Unit,
     onNavigateVideo: (Int) -> Unit,
     context: Context = LocalContext.current,
     viewModel: ConversationViewModel = koinViewModel()
@@ -107,6 +108,9 @@ fun ConversationScreen(
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
                     onEmptySelection = viewModel::emptySelection,
+                    onBulkDelete = {
+                        viewModel.bulkDeleteConversationNode(showDialog)
+                    },
                     onChangeTextMessage = viewModel::setTextMessage,
                     onNavigateVideo = onNavigateVideo,
                     onSelectNode = viewModel::toggleSelection,
@@ -133,6 +137,9 @@ fun ConversationScreen(
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
                     onEmptySelection = viewModel::emptySelection,
+                    onBulkDelete = {
+                        viewModel.bulkDeleteConversationNode(showDialog)
+                    },
                     onChangeTextMessage = viewModel::setTextMessage,
                     onNavigateVideo = onNavigateVideo,
                     onSelectNode = viewModel::toggleSelection,
@@ -159,6 +166,9 @@ fun ConversationScreen(
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
                     onEmptySelection = viewModel::emptySelection,
+                    onBulkDelete = {
+                        viewModel.bulkDeleteConversationNode(showDialog)
+                    },
                     onChangeTextMessage = viewModel::setTextMessage,
                     onNavigateVideo = onNavigateVideo,
                     onSelectNode = viewModel::toggleSelection,
@@ -184,6 +194,9 @@ fun ConversationScreen(
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
                     onEmptySelection = viewModel::emptySelection,
+                    onBulkDelete = {
+                        viewModel.bulkDeleteConversationNode(showDialog)
+                    },
                     onChangeTextMessage = viewModel::setTextMessage,
                     onNavigateVideo = onNavigateVideo,
                     onSelectNode = viewModel::toggleSelection,
@@ -215,6 +228,7 @@ fun ConversationContent(
     isInputFocused: Boolean,
     setInputFocus: (Boolean) -> Unit,
     onEmptySelection: () -> Unit,
+    onBulkDelete: () -> Unit,
     onChangeTextMessage: (String) -> Unit,
     onNavigateVideo: (Int) -> Unit,
     onSelectNode: (Int) -> Unit,
@@ -348,6 +362,11 @@ fun ConversationContent(
                                     onNavigateToVideo = {
                                         onNavigateVideo(item.conversationTranslationId)
                                     },
+                                    onPress = {
+                                        if (listOfSelectedNode.isNotEmpty()) {
+                                            onSelectNode(item.id)
+                                        }
+                                    },
                                     onLongPress = {
                                         onSelectNode(item.id)
                                     }
@@ -476,9 +495,7 @@ fun ConversationContent(
                                         Color.Red,
                                         shape = RoundedCornerShape(10.dp)
                                     ),
-                                onClick = {
-                                    Log.d("ConversationScreen", "Delete Selected")
-                                }
+                                onClick = onBulkDelete
                             ) {
                                 Text(
                                     text = "Delete",

@@ -134,8 +134,6 @@ fun MainApp(
     LaunchedEffect(socialLoginUrl) {
         if (socialLoginUrl.isNotEmpty()) {
             navController.navigate(Screen.WebView.route)
-//            uriHandler.openUri(socialLoginUrl)
-//            viewModel.clearSocialLoginUrl()
         }
     }
 
@@ -451,6 +449,7 @@ fun MainApp(
                     val id = args.arguments?.getString("id") ?: "0"
                     ConversationScreen(
                         id = id.toInt(),
+                        showDialog = showDialog,
                         onNavigateVideo = {
                             navController.navigate(Screen.HistoryDetail.createRoute(it.toString()))
                         }

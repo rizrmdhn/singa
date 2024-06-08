@@ -53,6 +53,8 @@ class SingaInteractor(
 
     override fun deleteConversationNode(id: Int) = singaRepository.deleteConversationNode(id)
 
+    override fun bulkDeleteConversationNode(id: Set<Int>) = singaRepository.bulkDeleteConversationNode(id)
+
     override fun updateToken() = singaRepository.updateToken()
 
     override fun getAccessToken() = singaRepository.getAccessToken()

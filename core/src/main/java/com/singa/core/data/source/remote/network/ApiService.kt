@@ -107,5 +107,11 @@ interface ApiService {
     @Headers("Content-Type: application/json")
     @DELETE("translation/conversation/{id}")
     suspend fun deleteConversationNode(@Path("id") id: Int): GenericSuccessResponse
+
+    @Multipart
+    @POST("translation/conversation/bulk/node")
+    suspend fun bulkDeleteConversationNode(
+        @Part("id[]") ids: List<Int>
+    ): Response<GenericSuccessResponse>
 }
 
