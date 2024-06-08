@@ -38,6 +38,7 @@ import com.singa.asl.ui.screen.history_detail.HistoryDetailScreen
 import com.singa.asl.ui.screen.home.HomeScreen
 import com.singa.asl.ui.screen.login.LoginScreen
 import com.singa.asl.ui.screen.message.MessageScreen
+import com.singa.asl.ui.screen.message_camera.MessageCameraScreen
 import com.singa.asl.ui.screen.onboarding.OnBoardingScreen
 import com.singa.asl.ui.screen.profile.ProfileScreen
 import com.singa.asl.ui.screen.profile_detail.ProfileDetailScreen
@@ -106,7 +107,8 @@ fun MainApp(
         Screen.Register.route,
         Screen.ProfileDetail.route,
         Screen.ChangePassword.route,
-        Screen.HistoryDetail.route
+        Screen.HistoryDetail.route,
+        Screen.MessageCamera.route
     )
 
     val isDisabledTopBar = navBackStackEntry?.destination?.route in listOf(
@@ -134,8 +136,6 @@ fun MainApp(
     LaunchedEffect(socialLoginUrl) {
         if (socialLoginUrl.isNotEmpty()) {
             navController.navigate(Screen.WebView.route)
-//            uriHandler.openUri(socialLoginUrl)
-//            viewModel.clearSocialLoginUrl()
         }
     }
 
@@ -451,6 +451,10 @@ fun MainApp(
                     val id = args.arguments?.getString("id") ?: "0"
                     ConversationScreen(
                         id = id.toInt(),
+                        onNavigateToCamera = {
+                            navController.navigate(Screen.MessageCamera.createRoute(it.toString()))
+                        },
+                        showDialog = showDialog,
                         onNavigateVideo = {
                             navController.navigate(Screen.HistoryDetail.createRoute(it.toString()))
                         }
@@ -461,6 +465,20 @@ fun MainApp(
                     Screen.RealtimeCamera.route
                 ) {
                     RealtimeCameraScreen()
+                }
+
+                composable(
+                    route = Screen.MessageCamera.route,
+                    arguments = listOf(navArgument("id") { type = NavType.StringType })
+                ) { args ->
+                    val id = args.arguments?.getString("id") ?: "0"
+                    MessageCameraScreen(
+                        id = id.toInt(),
+                        showDialog = showDialog,
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        }
+                    )
                 }
 
 
@@ -486,8 +504,7 @@ fun MainApp(
                             navController.navigate(Screen.RealtimeCamera.route)
                             showBottomSheet.value = false
                         },
-                        navigateToConversation = {
-                            id ->
+                        navigateToConversation = { id ->
                             navController.navigate(Screen.Conversation.createRoute(id))
                         },
                         dismissBottomSheet = {

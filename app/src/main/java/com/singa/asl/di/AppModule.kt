@@ -9,6 +9,7 @@ import com.singa.asl.ui.screen.history_detail.HistoryDetailScreenViewModel
 import com.singa.asl.ui.screen.home.HomeViewModel
 import com.singa.asl.ui.screen.login.LoginScreenViewModel
 import com.singa.asl.ui.screen.message.MessageScreenViewModel
+import com.singa.asl.ui.screen.message_camera.MessageCameraViewModel
 import com.singa.asl.ui.screen.onboarding.OnBoardingScreenViewModel
 import com.singa.asl.ui.screen.profile.ProfileScreenViewModel
 import com.singa.asl.ui.screen.profile_detail.ProfileDetailScreenViewModels
@@ -22,6 +23,7 @@ val useCaseModule = module {
 }
 
 val viewModelModule = module {
+    viewModel { MessageCameraViewModel(get()) }
     viewModel { ConversationViewModel(get()) }
     viewModel { LoginScreenViewModel(get()) }
     viewModel { HistoryScreenViewModel(get()) }

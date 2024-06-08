@@ -5,6 +5,7 @@ import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import com.singa.core.data.source.remote.response.ArticlesItem
 import com.singa.core.data.source.remote.response.CreateNewSpeechConversation
+import com.singa.core.data.source.remote.response.CreateNewVideoConversation
 import com.singa.core.data.source.remote.response.GetConversationListItem
 import com.singa.core.data.source.remote.response.GetConversationNode
 import com.singa.core.data.source.remote.response.GetMeResponse
@@ -31,6 +32,7 @@ import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.Transcript
 import com.singa.core.domain.model.User
 import com.singa.core.domain.model.ValidationErrorSchema
+import com.singa.core.domain.model.VideoConversation
 
 
 object DataMapper {
@@ -152,6 +154,17 @@ object DataMapper {
         transcripts = data.transcript.text,
         status = "success",
         videoUrl = ""
+    )
+
+    fun mapVideoConversationResponseToModel(data: CreateNewVideoConversation) = VideoConversation(
+        id = data.id,
+        conversationTranslationId = data.conversationTranslationId,
+        type = data.type,
+        createdAt = data.createdAt,
+        updatedAt = data.updatedAt,
+        userId = data.userId,
+        videoUrl = data.videoUrl,
+        video = data.video,
     )
 
     fun mapFaceLandmarkResponseToModel(data: FaceLandmarkerResult) = FaceLandmarker(

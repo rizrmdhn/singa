@@ -129,6 +129,46 @@ class ConversationViewModel(
         }
     }
 
+    fun bulkDeleteConversationNode(
+        showDialog: (String, String) -> Unit,
+    ) {
+        viewModelScope.launch {
+            singaUseCase.bulkDeleteConversationNode(selectedConversationNodes.value).collect {
+                when (it) {
+                    is Resource.Success -> {
+                        _state.value = Resource.Success(_state.value.let { resource ->
+                            if (resource is Resource.Success) {
+                                resource.data.filter { conversationNode ->
+                                    !selectedConversationNodes.value.contains(conversationNode.id)
+                                }
+                            } else {
+                                emptyList()
+                            }
+                        })
+                        emptySelection()
+                    }
+
+                    is Resource.Error -> {
+                        Log.e("ConversationViewModel", "bulkDeleteConversationNode: ${it.message}")
+                        showDialog("Error", it.message)
+                    }
+
+                    is Resource.Empty -> {
+                        Log.e("ConversationViewModel", "bulkDeleteConversationNode: empty")
+                    }
+
+                    is Resource.ValidationError -> {
+                        Log.e("ConversationViewModel", "bulkDeleteConversationNode: ${it.errors}")
+                    }
+
+                    is Resource.Loading -> {
+                        Log.e("ConversationViewModel", "bulkDeleteConversationNode: loading")
+                    }
+                }
+            }
+        }
+    }
+
     fun toggleSelection(conversationNodeId: Int) {
         val currentSelection = _selectedConversationNodes.value
         _selectedConversationNodes.value = if (currentSelection.contains(conversationNodeId)) {
