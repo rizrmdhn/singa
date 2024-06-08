@@ -5,7 +5,6 @@ sealed class Screen(val route: String) {
     data object Welcome : Screen("welcome")
     data object Login : Screen("login")
     data object Register : Screen("register")
-    data object Main : Screen("main")
     data object Home : Screen("home")
     data object Profile : Screen("profile")
     data object ProfileDetail : Screen("profile_detail")
@@ -20,5 +19,7 @@ sealed class Screen(val route: String) {
     }
     data object WebView : Screen("webview")
     data object RealtimeCamera : Screen("realtimecamera")
-    data object MessageCamera : Screen("messagecamera")
+    data object MessageCamera : Screen("messagecamera/{id}") {
+        fun createRoute(id: String) = "messagecamera/$id"
+    }
 }

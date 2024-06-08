@@ -2,6 +2,7 @@ package com.singa.core.data.source.remote.network
 
 import com.singa.core.data.source.remote.response.ArticlesItem
 import com.singa.core.data.source.remote.response.CreateNewSpeechConversation
+import com.singa.core.data.source.remote.response.CreateNewVideoConversation
 import com.singa.core.data.source.remote.response.GenericResponse
 import com.singa.core.data.source.remote.response.GenericSuccessResponse
 import com.singa.core.data.source.remote.response.GetConversationListItem
@@ -103,6 +104,15 @@ interface ApiService {
         @Path("id") id: Int,
         @Body body: RequestBody
     ): Response<GenericResponse<CreateNewSpeechConversation>>
+
+    @Multipart
+    @POST("translation/conversation/{id}/video")
+    suspend fun createNewVideoConversation(
+        @Path("id") id: Int,
+        @Part file: MultipartBody.Part,
+        @Part("type") type: RequestBody,
+    ): Response<GenericResponse<CreateNewVideoConversation>>
+
 
     @Headers("Content-Type: application/json")
     @DELETE("translation/conversation/{id}")

@@ -13,6 +13,7 @@ import com.singa.core.domain.model.StaticTranslation
 import com.singa.core.domain.model.StaticTranslationDetail
 import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.User
+import com.singa.core.domain.model.VideoConversation
 import com.singa.core.domain.repository.ISingaRepository
 import com.singa.core.utils.DataMapper
 import kotlinx.coroutines.flow.Flow
@@ -510,6 +511,40 @@ class SingaRepository(
                         val speechConversation =
                             DataMapper.mapSpeechConversationResponseToModel(it.data.data)
                         emit(Resource.Success(speechConversation))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
+    override fun createNewVideoConversation(
+        conversationId: Int,
+        file: MultipartBody.Part
+    ): Flow<Resource<VideoConversation>> {
+        return flow {
+            val body = "video".toRequestBody("text/plain".toMediaTypeOrNull())
+            emit(Resource.Loading())
+            remoteDataSource.createNewVideoConversation(conversationId, file, body).collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        val videoConversation =
+                            DataMapper.mapVideoConversationResponseToModel(it.data.data)
+                        emit(Resource.Success(videoConversation))
                     }
 
                     is ApiResponse.Empty -> {

@@ -57,6 +57,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import com.singa.asl.R
 import com.singa.asl.ui.components.ConversationCard
 import com.singa.asl.ui.components.ConversationCardLoader
@@ -77,6 +79,7 @@ fun ConversationScreen(
     id: Int,
     showDialog: (String, String) -> Unit,
     onNavigateVideo: (Int) -> Unit,
+    onNavigateToCamera: (Int) -> Unit,
     context: Context = LocalContext.current,
     viewModel: ConversationViewModel = koinViewModel()
 ) {
@@ -113,6 +116,9 @@ fun ConversationScreen(
                     },
                     onChangeTextMessage = viewModel::setTextMessage,
                     onNavigateVideo = onNavigateVideo,
+                    onNavigateToCamera = {
+                        onNavigateToCamera(id)
+                    },
                     onSelectNode = viewModel::toggleSelection,
                     createNewSpeech = {
                         viewModel.createSpeechConversation(id)
@@ -142,6 +148,9 @@ fun ConversationScreen(
                     },
                     onChangeTextMessage = viewModel::setTextMessage,
                     onNavigateVideo = onNavigateVideo,
+                    onNavigateToCamera = {
+                        onNavigateToCamera(id)
+                    },
                     onSelectNode = viewModel::toggleSelection,
                     createNewSpeech = {
                         viewModel.createSpeechConversation(id)
@@ -171,6 +180,9 @@ fun ConversationScreen(
                     },
                     onChangeTextMessage = viewModel::setTextMessage,
                     onNavigateVideo = onNavigateVideo,
+                    onNavigateToCamera = {
+                        onNavigateToCamera(id)
+                    },
                     onSelectNode = viewModel::toggleSelection,
                     createNewSpeech = {
                         viewModel.createSpeechConversation(id)
@@ -199,6 +211,9 @@ fun ConversationScreen(
                     },
                     onChangeTextMessage = viewModel::setTextMessage,
                     onNavigateVideo = onNavigateVideo,
+                    onNavigateToCamera = {
+                        onNavigateToCamera(id)
+                    },
                     onSelectNode = viewModel::toggleSelection,
                     createNewSpeech = {
                         viewModel.createSpeechConversation(id)
@@ -214,7 +229,10 @@ fun ConversationScreen(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
+@OptIn(
+    ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class,
+    ExperimentalPermissionsApi::class
+)
 @Composable
 fun ConversationContent(
     context: Context,
@@ -231,9 +249,12 @@ fun ConversationContent(
     onBulkDelete: () -> Unit,
     onChangeTextMessage: (String) -> Unit,
     onNavigateVideo: (Int) -> Unit,
+    onNavigateToCamera: () -> Unit,
     onSelectNode: (Int) -> Unit,
     createNewSpeech: () -> Unit,
 ) {
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+
     val interactionSource = remember { MutableInteractionSource() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
@@ -251,6 +272,7 @@ fun ConversationContent(
         }
     }
 
+
     val requestPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
@@ -258,6 +280,16 @@ fun ConversationContent(
             getSpeech(speechRecognizerLauncher)
         } else {
             Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (it) {
+            onNavigateToCamera()
+        } else {
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -447,7 +479,23 @@ fun ConversationContent(
                                 IconButton(
                                     enabled = true,
                                     onClick = {
-                                        /*TODO*/
+                                        when {
+                                            cameraPermissionState.hasPermission -> {
+                                                onNavigateToCamera()
+                                            }
+
+                                            cameraPermissionState.shouldShowRationale -> {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Permission denied",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
+
+                                            else -> {
+                                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                            }
+                                        }
                                     },
                                     modifier = Modifier
                                         .size(50.dp)

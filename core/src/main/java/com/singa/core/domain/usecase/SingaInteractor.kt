@@ -51,6 +51,11 @@ class SingaInteractor(
         conversationId: Int
     ) = singaRepository.createNewSpeechConversation(text, conversationId)
 
+    override fun createNewVideoConversation(
+        conversationId: Int,
+        file: MultipartBody.Part
+    ) = singaRepository.createNewVideoConversation(conversationId, file)
+
     override fun deleteConversationNode(id: Int) = singaRepository.deleteConversationNode(id)
 
     override fun bulkDeleteConversationNode(id: Set<Int>) = singaRepository.bulkDeleteConversationNode(id)

@@ -10,6 +10,7 @@ import com.singa.core.domain.model.StaticTranslation
 import com.singa.core.domain.model.StaticTranslationDetail
 import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.User
+import com.singa.core.domain.model.VideoConversation
 import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
 
@@ -49,6 +50,11 @@ interface ISingaRepository {
         text: String,
         conversationId: Int
     ): Flow<Resource<SpeechConversation>>
+
+    fun createNewVideoConversation(
+        conversationId: Int,
+        file: MultipartBody.Part
+    ): Flow<Resource<VideoConversation>>
 
     fun deleteConversationNode(id: Int): Flow<Resource<String>>
 
