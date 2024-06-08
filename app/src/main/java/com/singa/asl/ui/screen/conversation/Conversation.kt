@@ -78,7 +78,7 @@ import org.koin.androidx.compose.koinViewModel
 fun ConversationScreen(
     id: Int,
     showDialog: (String, String) -> Unit,
-    onNavigateVideo: (Int) -> Unit,
+    onNavigateVideo: (Int, Int) -> Unit,
     onNavigateToCamera: (Int) -> Unit,
     context: Context = LocalContext.current,
     viewModel: ConversationViewModel = koinViewModel()
@@ -115,7 +115,10 @@ fun ConversationScreen(
                         viewModel.bulkDeleteConversationNode(showDialog)
                     },
                     onChangeTextMessage = viewModel::setTextMessage,
-                    onNavigateVideo = onNavigateVideo,
+                    onNavigateVideo = { translationId ->
+                        onNavigateVideo(id, translationId)
+
+                    },
                     onNavigateToCamera = {
                         onNavigateToCamera(id)
                     },
@@ -147,7 +150,10 @@ fun ConversationScreen(
                         viewModel.bulkDeleteConversationNode(showDialog)
                     },
                     onChangeTextMessage = viewModel::setTextMessage,
-                    onNavigateVideo = onNavigateVideo,
+                    onNavigateVideo = { translationId ->
+                        onNavigateVideo(id, translationId)
+
+                    },
                     onNavigateToCamera = {
                         onNavigateToCamera(id)
                     },
@@ -179,7 +185,10 @@ fun ConversationScreen(
                         viewModel.bulkDeleteConversationNode(showDialog)
                     },
                     onChangeTextMessage = viewModel::setTextMessage,
-                    onNavigateVideo = onNavigateVideo,
+                    onNavigateVideo = { translationId ->
+                        onNavigateVideo(id, translationId)
+
+                    },
                     onNavigateToCamera = {
                         onNavigateToCamera(id)
                     },
@@ -210,7 +219,10 @@ fun ConversationScreen(
                         viewModel.bulkDeleteConversationNode(showDialog)
                     },
                     onChangeTextMessage = viewModel::setTextMessage,
-                    onNavigateVideo = onNavigateVideo,
+                    onNavigateVideo = { translationId ->
+                        onNavigateVideo(id, translationId)
+
+                    },
                     onNavigateToCamera = {
                         onNavigateToCamera(id)
                     },
@@ -258,7 +270,9 @@ fun ConversationContent(
     val interactionSource = remember { MutableInteractionSource() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
-    val pullToRefreshState = rememberPullToRefreshState()
+    val pullToRefreshState = rememberPullToRefreshState(
+        enabled = { true },
+    )
 
     val conversationListState = rememberLazyListState()
 
@@ -392,7 +406,7 @@ fun ConversationContent(
                                     status = item.status,
                                     isSelected = item.isSelected,
                                     onNavigateToVideo = {
-                                        onNavigateVideo(item.conversationTranslationId)
+                                        onNavigateVideo(item.id)
                                     },
                                     onPress = {
                                         if (listOfSelectedNode.isNotEmpty()) {
@@ -575,7 +589,7 @@ fun ConversationContent(
             state = pullToRefreshState,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .absoluteOffset(y = (-60).dp)
+                .absoluteOffset(y = (-80).dp)
         )
     }
 }

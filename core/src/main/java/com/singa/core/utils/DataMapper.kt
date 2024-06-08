@@ -8,6 +8,7 @@ import com.singa.core.data.source.remote.response.CreateNewSpeechConversation
 import com.singa.core.data.source.remote.response.CreateNewVideoConversation
 import com.singa.core.data.source.remote.response.GetConversationListItem
 import com.singa.core.data.source.remote.response.GetConversationNode
+import com.singa.core.data.source.remote.response.GetDetailVideoConversation
 import com.singa.core.data.source.remote.response.GetMeResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationList
@@ -18,6 +19,7 @@ import com.singa.core.data.source.remote.response.UpdateUserResponse
 import com.singa.core.domain.model.Articles
 import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.ConversationNode
+import com.singa.core.domain.model.DetailVideoConversation
 import com.singa.core.domain.model.FaceLandmarker
 import com.singa.core.domain.model.HandLandmarker
 import com.singa.core.domain.model.Landmark
@@ -126,23 +128,24 @@ object DataMapper {
         )
     }
 
-    fun mapSpeechConversationResponseToModel(data: CreateNewSpeechConversation) = SpeechConversation(
-        id = data.id,
-        conversationTranslationId = data.conversationTranslationId,
-        type = data.type,
-        createdAt = data.createdAt,
-        updatedAt = data.updatedAt,
-        userId = data.userId,
-        transcript = Transcript(
-            id = data.transcript.id,
-            userId = data.transcript.userId,
-            conversationNodeId = data.transcript.conversationNodeId,
-            text = data.transcript.text,
-            timestamp = data.transcript.timestamp,
-            createdAt = data.transcript.createdAt,
-            updatedAt = data.transcript.updatedAt
+    fun mapSpeechConversationResponseToModel(data: CreateNewSpeechConversation) =
+        SpeechConversation(
+            id = data.id,
+            conversationTranslationId = data.conversationTranslationId,
+            type = data.type,
+            createdAt = data.createdAt,
+            updatedAt = data.updatedAt,
+            userId = data.userId,
+            transcript = Transcript(
+                id = data.transcript.id,
+                userId = data.transcript.userId,
+                conversationNodeId = data.transcript.conversationNodeId,
+                text = data.transcript.text,
+                timestamp = data.transcript.timestamp,
+                createdAt = data.transcript.createdAt,
+                updatedAt = data.transcript.updatedAt
+            )
         )
-    )
 
     fun mapSpeechConversationToConversationNode(data: SpeechConversation) = ConversationNode(
         id = data.id,
@@ -166,6 +169,30 @@ object DataMapper {
         videoUrl = data.videoUrl,
         video = data.video,
     )
+
+    fun mapVideoConversationDetailResponseToModel(data: GetDetailVideoConversation) =
+        DetailVideoConversation(
+            id = data.id,
+            conversationTranslationId = data.conversationTranslationId,
+            type = data.type,
+            createdAt = data.createdAt,
+            updatedAt = data.updatedAt,
+            userId = data.userId,
+            videoUrl = data.videoUrl,
+            video = data.video,
+            transcript = data.transcripts.map {
+                Transcript(
+                    id = it.id,
+                    userId = it.userId,
+                    conversationNodeId = it.conversationNodeId,
+                    text = it.text,
+                    timestamp = it.timestamp,
+                    createdAt = it.createdAt,
+                    updatedAt = it.updatedAt
+
+                )
+            }
+        )
 
     fun mapFaceLandmarkResponseToModel(data: FaceLandmarkerResult) = FaceLandmarker(
         timestampMs = data.timestampMs(),

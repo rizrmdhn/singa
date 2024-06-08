@@ -33,6 +33,7 @@ import com.singa.asl.ui.components.TopBar
 import com.singa.asl.ui.navigation.Screen
 import com.singa.asl.ui.screen.change_password.ChangePasswordScreen
 import com.singa.asl.ui.screen.conversation.ConversationScreen
+import com.singa.asl.ui.screen.conversation_detail.ConversationDetailScreen
 import com.singa.asl.ui.screen.history.HistoryScreen
 import com.singa.asl.ui.screen.history_detail.HistoryDetailScreen
 import com.singa.asl.ui.screen.home.HomeScreen
@@ -455,11 +456,32 @@ fun MainApp(
                             navController.navigate(Screen.MessageCamera.createRoute(it.toString()))
                         },
                         showDialog = showDialog,
-                        onNavigateVideo = {
-                            navController.navigate(Screen.HistoryDetail.createRoute(it.toString()))
+                        onNavigateVideo = { conversationId, translationId ->
+                            navController.navigate(
+                                Screen.ConversationDetail.createRoute(
+                                    translationId.toString(),
+                                    conversationId.toString()
+                                )
+                            )
                         }
                     )
                 }
+
+                composable(
+                    route = Screen.ConversationDetail.route,
+                    arguments = listOf(
+                        navArgument("translationId") { type = NavType.StringType },
+                        navArgument("conversationId") { type = NavType.StringType }
+                    )
+                ) { args ->
+                    val translationId = args.arguments?.getString("translationId") ?: "0"
+                    val conversationId = args.arguments?.getString("conversationId") ?: "0"
+                    ConversationDetailScreen(
+                        translationId = translationId.toInt(),
+                        conversationId = conversationId.toInt()
+                    )
+                }
+
 
                 composable(
                     Screen.RealtimeCamera.route

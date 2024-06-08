@@ -79,7 +79,8 @@ fun TopBarLeftIcon(
         Screen.ChangePassword.route,
         Screen.WebView.route,
         Screen.HistoryDetail.route,
-        Screen.MessageCamera.route
+        Screen.MessageCamera.route,
+        Screen.ConversationDetail.route
     )
 
     val showBackButton = listOfShowBackButton.contains(route.lowercase(Locale.ROOT))
@@ -111,6 +112,15 @@ fun TopBarLeftIcon(
                 route == Screen.MessageCamera.route -> {
                     Text(
                         text = "Message Camera",
+                        fontWeight = FontWeight.Bold,
+                        color = colorPaint,
+                        fontSize = 28.sp
+                    )
+                }
+
+                route == Screen.ConversationDetail.route -> {
+                    Text(
+                        text = "Conversation Detail",
                         fontWeight = FontWeight.Bold,
                         color = colorPaint,
                         fontSize = 28.sp
