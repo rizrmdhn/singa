@@ -27,6 +27,13 @@ class ConversationViewModel(
     private val _isInputFocused: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val isInputFocused: MutableStateFlow<Boolean> get() = _isInputFocused
 
+    private val _selectedConversationNodes: MutableStateFlow<Set<Int>> =
+        MutableStateFlow(emptySet())
+    val selectedConversationNodes: MutableStateFlow<Set<Int>> get() = _selectedConversationNodes
+
+    private val _isRefreshing: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isRefreshing: MutableStateFlow<Boolean> get() = _isRefreshing
+
     fun getConversationNodes(
         id: Int,
     ) {
@@ -83,40 +90,81 @@ class ConversationViewModel(
         conversationId: Int,
     ) {
         viewModelScope.launch {
-            singaUseCase.createNewSpeechConversation(textMessageState.value, conversationId).collect {
-                _createConversationStateIsLoading.value = true
-                when (it) {
-                    is Resource.Loading -> {
-                        _createConversationStateIsLoading.value = true
-                    }
+            singaUseCase.createNewSpeechConversation(textMessageState.value, conversationId)
+                .collect {
+                    _createConversationStateIsLoading.value = true
+                    when (it) {
+                        is Resource.Loading -> {
+                            _createConversationStateIsLoading.value = true
+                        }
 
-                    is Resource.Success -> {
-                        _createConversationStateIsLoading.value = false
-                        val mapData = DataMapper.mapSpeechConversationToConversationNode(it.data)
-                        _state.value = Resource.Success(_state.value.let { resource ->
-                            if (resource is Resource.Success) {
-                                resource.data.toMutableList().apply {
-                                    add(mapData)
+                        is Resource.Success -> {
+                            _createConversationStateIsLoading.value = false
+                            val mapData =
+                                DataMapper.mapSpeechConversationToConversationNode(it.data)
+                            _state.value = Resource.Success(_state.value.let { resource ->
+                                if (resource is Resource.Success) {
+                                    resource.data.toMutableList().apply {
+                                        add(mapData)
+                                    }
+                                } else {
+                                    listOf(mapData)
                                 }
-                            } else {
-                                listOf(mapData)
-                            }
-                        })
-                    }
+                            })
+                        }
 
-                    is Resource.Error -> {
-                        _createConversationStateIsLoading.value = false
-                    }
+                        is Resource.Error -> {
+                            _createConversationStateIsLoading.value = false
+                        }
 
-                    is Resource.Empty -> {
-                        Log.e("ConversationViewModel", "createConversation: empty")
-                    }
+                        is Resource.Empty -> {
+                            Log.e("ConversationViewModel", "createConversation: empty")
+                        }
 
-                    is Resource.ValidationError -> {
-                        Log.e("ConversationViewModel", "createConversation: ${it.errors}")
+                        is Resource.ValidationError -> {
+                            Log.e("ConversationViewModel", "createConversation: ${it.errors}")
+                        }
                     }
                 }
-            }
+        }
+    }
+
+    fun toggleSelection(conversationNodeId: Int) {
+        val currentSelection = _selectedConversationNodes.value
+        _selectedConversationNodes.value = if (currentSelection.contains(conversationNodeId)) {
+            currentSelection - conversationNodeId
+        } else {
+            currentSelection + conversationNodeId
+        }
+    }
+
+    fun emptySelection() {
+        _selectedConversationNodes.value = emptySet()
+    }
+
+    fun updateConversationState() {
+        viewModelScope.launch {
+            _state.value = Resource.Success(_state.value.let { resource ->
+                if (resource is Resource.Success) {
+                    resource.data.map { conversationNode ->
+                        conversationNode.copy(
+                            isSelected = selectedConversationNodes.value.contains(
+                                conversationNode.id
+                            )
+                        )
+                    }
+                } else {
+                    emptyList()
+                }
+            })
+        }
+    }
+
+    fun refreshConversations(id: Int) {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            getConversationNodes(id)
+            _isRefreshing.value = false
         }
     }
 }

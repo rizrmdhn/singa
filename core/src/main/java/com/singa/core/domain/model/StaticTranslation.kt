@@ -1,8 +1,6 @@
 package com.singa.core.domain.model
 
 import android.os.Parcelable
-import com.google.gson.annotations.SerializedName
-import com.singa.core.data.source.remote.response.TranscriptsItem
 import kotlinx.parcelize.Parcelize
 
 @Parcelize

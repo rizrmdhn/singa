@@ -16,8 +16,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,14 +27,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -42,6 +50,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreInterceptKeyBeforeSoftKeyboard
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -66,12 +75,19 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun ConversationScreen(
     id: Int,
-    onNavigateVideo:(Int)->Unit,
+    onNavigateVideo: (Int) -> Unit,
     context: Context = LocalContext.current,
     viewModel: ConversationViewModel = koinViewModel()
 ) {
     val textMessage by viewModel.textMessageState.collectAsState()
     val isInputFocused by viewModel.isInputFocused.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val selectedConversationNode by viewModel.selectedConversationNodes.collectAsState()
+
+
+    LaunchedEffect(selectedConversationNode) {
+        viewModel.updateConversationState()
+    }
 
     viewModel.state.collectAsState(initial = Resource.Loading()).value.let {
         when (it) {
@@ -79,13 +95,21 @@ fun ConversationScreen(
                 ConversationContent(
                     context = context,
                     conversationNode = emptyList(),
+                    listOfSelectedNode = selectedConversationNode,
                     isLoading = false,
                     isError = false,
                     textMessage = textMessage,
+                    isRefreshing = isRefreshing,
+                    onRefresh = {
+                        viewModel.refreshConversations(id)
+
+                    },
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
+                    onEmptySelection = viewModel::emptySelection,
                     onChangeTextMessage = viewModel::setTextMessage,
                     onNavigateVideo = onNavigateVideo,
+                    onSelectNode = viewModel::toggleSelection,
                     createNewSpeech = {
                         viewModel.createSpeechConversation(id)
                     }
@@ -97,13 +121,21 @@ fun ConversationScreen(
                 ConversationContent(
                     context = context,
                     conversationNode = emptyList(),
+                    listOfSelectedNode = selectedConversationNode,
                     isLoading = false,
                     isError = true,
                     textMessage = textMessage,
+                    isRefreshing = isRefreshing,
+                    onRefresh = {
+                        viewModel.refreshConversations(id)
+
+                    },
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
+                    onEmptySelection = viewModel::emptySelection,
                     onChangeTextMessage = viewModel::setTextMessage,
                     onNavigateVideo = onNavigateVideo,
+                    onSelectNode = viewModel::toggleSelection,
                     createNewSpeech = {
                         viewModel.createSpeechConversation(id)
                     }
@@ -115,13 +147,21 @@ fun ConversationScreen(
                 ConversationContent(
                     context = context,
                     conversationNode = emptyList(),
+                    listOfSelectedNode = selectedConversationNode,
                     isLoading = true,
                     isError = false,
                     textMessage = textMessage,
+                    isRefreshing = isRefreshing,
+                    onRefresh = {
+                        viewModel.refreshConversations(id)
+
+                    },
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
+                    onEmptySelection = viewModel::emptySelection,
                     onChangeTextMessage = viewModel::setTextMessage,
                     onNavigateVideo = onNavigateVideo,
+                    onSelectNode = viewModel::toggleSelection,
                     createNewSpeech = {
                         viewModel.createSpeechConversation(id)
                     }
@@ -132,13 +172,21 @@ fun ConversationScreen(
                 ConversationContent(
                     context = context,
                     conversationNode = it.data,
+                    listOfSelectedNode = selectedConversationNode,
                     isLoading = false,
                     isError = false,
                     textMessage = textMessage,
+                    isRefreshing = isRefreshing,
+                    onRefresh = {
+                        viewModel.refreshConversations(id)
+
+                    },
                     isInputFocused = isInputFocused,
                     setInputFocus = viewModel::setInputFocus,
+                    onEmptySelection = viewModel::emptySelection,
                     onChangeTextMessage = viewModel::setTextMessage,
                     onNavigateVideo = onNavigateVideo,
+                    onSelectNode = viewModel::toggleSelection,
                     createNewSpeech = {
                         viewModel.createSpeechConversation(id)
                     }
@@ -153,23 +201,31 @@ fun ConversationScreen(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ConversationContent(
     context: Context,
     conversationNode: List<ConversationNode>,
+    listOfSelectedNode: Set<Int>,
     isLoading: Boolean,
     isError: Boolean,
     textMessage: String,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     isInputFocused: Boolean,
     setInputFocus: (Boolean) -> Unit,
+    onEmptySelection: () -> Unit,
     onChangeTextMessage: (String) -> Unit,
-    onNavigateVideo:(Int)->Unit,
+    onNavigateVideo: (Int) -> Unit,
+    onSelectNode: (Int) -> Unit,
     createNewSpeech: () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
+    val pullToRefreshState = rememberPullToRefreshState()
+
+    val conversationListState = rememberLazyListState()
 
     val speechRecognizerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -191,188 +247,271 @@ fun ConversationContent(
         }
     }
 
-    Card(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(20.dp)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null
-            ) {
-                MainScope().launch {
-                    focusManager.clearFocus()
-                    keyboardController?.hide()
-                    delay(100)
-                    setInputFocus(false)
-                }
-            }
-            .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
-                if (keyEvent.key.keyCode == 17179869184) {
+    LaunchedEffect(conversationNode) {
+        if (conversationNode.isNotEmpty()) {
+            conversationListState.scrollToItem(conversationNode.size - 1)
+        }
+    }
+
+    Box(
+        Modifier
+            .nestedScroll(pullToRefreshState.nestedScrollConnection)
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null
+                ) {
                     MainScope().launch {
                         focusManager.clearFocus()
                         keyboardController?.hide()
                         delay(100)
                         setInputFocus(false)
                     }
-                    true
-                } else {
-                    false
                 }
-            },
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White,
-        ),
-        shape = RoundedCornerShape(20.dp),
-    ) {
-        Column {
-            when {
-                isLoading -> {
-                    Column(
-                        Modifier
-                            .padding(16.dp)
-                            .fillMaxHeight(0.87f)
-                    ) {
-                        ConversationCardLoader("video")
-                        ConversationCardLoader("speech")
+                .onPreInterceptKeyBeforeSoftKeyboard { keyEvent ->
+                    if (keyEvent.key.keyCode == 17179869184) {
+                        MainScope().launch {
+                            focusManager.clearFocus()
+                            keyboardController?.hide()
+                            delay(100)
+                            setInputFocus(false)
+                        }
+                        true
+                    } else {
+                        false
                     }
-                }
-
-                conversationNode.isEmpty() -> {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .fillMaxSize(0.87f)
-                    ) {
-                        Text(
-                            text = "No conversation found",
-                            color = Color.Gray
-                        )
+                },
+            colors = CardDefaults.cardColors(
+                containerColor = Color.White,
+            ),
+            shape = RoundedCornerShape(20.dp),
+        ) {
+            Column {
+                when {
+                    isLoading -> {
+                        Column(
+                            Modifier
+                                .padding(16.dp)
+                                .fillMaxHeight(0.87f)
+                        ) {
+                            ConversationCardLoader("video")
+                            ConversationCardLoader("speech")
+                        }
                     }
-                }
 
-                isError -> {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                        modifier = Modifier
-                            .fillMaxSize(0.87f)
-                    ) {
-                        Text(
-                            text = "An error occurred",
-                            color = Color.Red
-                        )
-                    }
-                }
-
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .fillMaxHeight(0.87f)
-                    ) {
-                        items(conversationNode) { item ->
-                            ConversationCard(
-                                type = item.type.replaceFirstChar { it.uppercase() },
-                                date = item.createdAt,
-                                text = item.transcripts,
-                                onNavigateToVideo = {
-                                    onNavigateVideo(item.conversationTranslationId)
-                                }
+                    conversationNode.isEmpty() -> {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxSize(0.87f)
+                        ) {
+                            Text(
+                                text = "No conversation found",
+                                color = Color.Gray
                             )
+                        }
+                    }
+
+                    isError -> {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier = Modifier
+                                .fillMaxSize(0.87f)
+                        ) {
+                            Text(
+                                text = "An error occurred",
+                                color = Color.Red
+                            )
+                        }
+                    }
+
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .fillMaxHeight(0.87f),
+                            state = conversationListState
+                        ) {
+                            items(conversationNode) { item ->
+                                ConversationCard(
+                                    type = item.type.replaceFirstChar { it.uppercase() },
+                                    date = item.createdAt,
+                                    text = item.transcripts,
+                                    status = item.status,
+                                    isSelected = item.isSelected,
+                                    onNavigateToVideo = {
+                                        onNavigateVideo(item.conversationTranslationId)
+                                    },
+                                    onLongPress = {
+                                        onSelectNode(item.id)
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    when (listOfSelectedNode) {
+                        emptySet<Int>() -> {
+                            MySendInput(
+                                text = textMessage,
+                                onTextChange = onChangeTextMessage,
+                                placeHolder = "Send a message",
+                                keyboardController = keyboardController,
+                                focusManager = focusManager,
+                                isLoading = false,
+                                isFocused = isInputFocused,
+                                setInputFocus = setInputFocus,
+                                onClick = {
+                                    MainScope().launch {
+                                        createNewSpeech()
+                                        onChangeTextMessage("")
+                                    }
+                                },
+                            )
+
+                            if (!isInputFocused) {
+                                IconButton(
+                                    enabled = true,
+                                    onClick = {
+                                        if (!SpeechRecognizer.isRecognitionAvailable(context)) {
+                                            Toast.makeText(
+                                                context,
+                                                "Speech not Available",
+                                                Toast.LENGTH_SHORT
+                                            )
+                                                .show()
+                                        } else {
+                                            if (
+                                                ContextCompat.checkSelfPermission(
+                                                    context,
+                                                    Manifest.permission.RECORD_AUDIO
+                                                ) == PackageManager.PERMISSION_GRANTED
+                                            ) {
+                                                getSpeech(speechRecognizerLauncher)
+                                            } else {
+                                                requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .size(50.dp)
+                                        .background(
+                                            color = Color1,
+                                            shape = CircleShape
+                                        )
+                                        .border(
+                                            width = 4.dp,
+                                            color = Color3,
+                                            shape = CircleShape
+                                        ),
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.mdi_microphone),
+                                        contentDescription = "Favorite",
+                                        modifier = Modifier.size(30.dp),
+                                        tint = Color.White
+                                    )
+                                }
+                                IconButton(
+                                    enabled = true,
+                                    onClick = {
+                                        /*TODO*/
+                                    },
+                                    modifier = Modifier
+                                        .size(50.dp)
+                                        .background(
+                                            color = Color1,
+                                            shape = CircleShape
+                                        )
+                                        .border(
+                                            width = 4.dp,
+                                            color = Color3,
+                                            shape = CircleShape
+                                        ),
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.fluent_video_16_filled),
+                                        contentDescription = "Favorite",
+                                        modifier = Modifier.size(30.dp),
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                        }
+
+                        else -> {
+                            TextButton(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(0.5f)
+                                    .background(
+                                        Color1,
+                                        shape = RoundedCornerShape(10.dp)
+                                    ),
+                                onClick = onEmptySelection
+                            ) {
+                                Text(
+                                    text = "Cancel",
+                                    color = Color.White
+                                )
+                            }
+                            TextButton(
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .fillMaxWidth(1f)
+                                    .background(
+                                        Color.Red,
+                                        shape = RoundedCornerShape(10.dp)
+                                    ),
+                                onClick = {
+                                    Log.d("ConversationScreen", "Delete Selected")
+                                }
+                            ) {
+                                Text(
+                                    text = "Delete",
+                                    color = Color.White
+                                )
+                            }
                         }
                     }
                 }
             }
 
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-            ) {
-                MySendInput(
-                    text = textMessage,
-                    onTextChange = onChangeTextMessage,
-                    placeHolder = "Send a message",
-                    keyboardController = keyboardController,
-                    focusManager = focusManager,
-                    isLoading = false,
-                    isFocused = isInputFocused,
-                    setInputFocus = setInputFocus,
-                    onClick = {
-                              MainScope().launch {
-                                  createNewSpeech()
-                                  onChangeTextMessage("")
-                              }
-                    },
-                )
+        }
 
-                if (!isInputFocused) {
-                    IconButton(
-                        enabled = true,
-                        onClick = {
-                            if (!SpeechRecognizer.isRecognitionAvailable(context)) {
-                                Toast.makeText(context, "Speech not Available", Toast.LENGTH_SHORT).show()
-                            } else {
-                                if (
-                                    ContextCompat.checkSelfPermission(
-                                        context,
-                                        Manifest.permission.RECORD_AUDIO
-                                    ) == PackageManager.PERMISSION_GRANTED
-                                ) {
-                                    getSpeech(speechRecognizerLauncher)
-                                } else {
-                                    requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                                }
-                            }
-                        },
-                        modifier = Modifier
-                            .size(50.dp)
-                            .background(
-                                color = Color1,
-                                shape = CircleShape
-                            )
-                            .border(
-                                width = 4.dp,
-                                color = Color3,
-                                shape = CircleShape
-                            ),
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.mdi_microphone),
-                            contentDescription = "Favorite",
-                            modifier = Modifier.size(30.dp),
-                            tint = Color.White
-                        )
-                    }
-                    IconButton(
-                        enabled = true,
-                        onClick = {
-                            /*TODO*/
-                        },
-                        modifier = Modifier
-                            .size(50.dp)
-                            .background(
-                                color = Color1,
-                                shape = CircleShape
-                            )
-                            .border(
-                                width = 4.dp,
-                                color = Color3,
-                                shape = CircleShape
-                            ),
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.fluent_video_16_filled),
-                            contentDescription = "Favorite",
-                            modifier = Modifier.size(30.dp),
-                            tint = Color.White
-                        )
-                    }
-                }
+        if (pullToRefreshState.isRefreshing) {
+            LaunchedEffect(true) {
+                onRefresh()
             }
         }
+
+        LaunchedEffect(isRefreshing) {
+            if (isRefreshing) {
+                pullToRefreshState.startRefresh()
+            } else {
+                pullToRefreshState.endRefresh()
+            }
+        }
+
+        PullToRefreshContainer(
+            state = pullToRefreshState,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .absoluteOffset(y = (-60).dp)
+        )
     }
 }
 

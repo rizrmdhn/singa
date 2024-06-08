@@ -23,7 +23,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kotlin.random.Random
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -107,12 +106,11 @@ fun ConversationCardLoader(
                     .fillMaxWidth()
             ) {
                 repeat(20) {
-                    val random = Random.nextInt(35, 80)
                     Box(
                         modifier = Modifier
                             .padding(bottom = 8.dp, end = 8.dp)
                             .height(16.dp)
-                            .width(random.dp)
+                            .width(60.dp)
                             .clip(
                                 RoundedCornerShape(8.dp)
                             )

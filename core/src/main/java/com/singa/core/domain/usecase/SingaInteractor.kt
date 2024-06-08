@@ -2,7 +2,6 @@ package com.singa.core.domain.usecase
 
 import com.singa.core.domain.repository.ISingaRepository
 import okhttp3.MultipartBody
-import java.io.File
 
 class SingaInteractor(
     private val singaRepository: ISingaRepository

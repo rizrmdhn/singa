@@ -12,6 +12,8 @@ data class ConversationNode(
     val id: Int,
     val video: String? = null,
     val type: String,
+    val status: String,
     val userId: Int,
-    val updatedAt: String
+    val updatedAt: String,
+    var isSelected: Boolean = false
 ): Parcelable
