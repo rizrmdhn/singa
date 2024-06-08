@@ -12,7 +12,6 @@ import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.User
 import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
-import java.io.File
 
 interface SingaUseCase {
     fun register(name: String, email: String, password: String): Flow<Resource<String>>

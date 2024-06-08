@@ -11,7 +11,7 @@ data class GetConversationNode(
 	val conversationTranslationId: Int,
 
 	@field:SerializedName("videoUrl")
-	val videoUrl: String? = null,
+	val videoUrl: String,
 
 	@field:SerializedName("transcripts")
 	val transcripts: String,
@@ -20,7 +20,7 @@ data class GetConversationNode(
 	val id: Int,
 
 	@field:SerializedName("video")
-	val video: String? = null,
+	val video: String,
 
 	@field:SerializedName("type")
 	val type: String,
@@ -28,8 +28,9 @@ data class GetConversationNode(
 	@field:SerializedName("userId")
 	val userId: Int,
 
+	@field:SerializedName("status")
+	val status: String,
+
 	@field:SerializedName("updatedAt")
 	val updatedAt: String
 )
-
-

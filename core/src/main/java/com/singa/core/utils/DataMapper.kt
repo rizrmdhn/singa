@@ -107,6 +107,7 @@ object DataMapper {
             createdAt = it.createdAt,
             updatedAt = it.updatedAt,
             video = it.video,
+            status = it.status,
             userId = it.userId,
             transcripts = it.transcripts,
             videoUrl = it.videoUrl
@@ -149,6 +150,7 @@ object DataMapper {
         updatedAt = data.updatedAt,
         userId = data.userId,
         transcripts = data.transcript.text,
+        status = "success",
         videoUrl = ""
     )
 

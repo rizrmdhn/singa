@@ -1,7 +1,6 @@
 package com.singa.core.domain.repository
 
 import com.singa.core.data.Resource
-import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.domain.model.Articles
 import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.ConversationNode
@@ -13,7 +12,6 @@ import com.singa.core.domain.model.Token
 import com.singa.core.domain.model.User
 import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
-import java.io.File
 
 interface ISingaRepository {
     fun register(name: String, email: String, password: String): Flow<Resource<String>>

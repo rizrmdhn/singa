@@ -1,7 +1,6 @@
 package com.singa.core.data.source.remote
 
 
-import android.util.Log
 import com.google.gson.Gson
 import com.singa.core.data.source.remote.network.ApiResponse
 import com.singa.core.data.source.remote.network.ApiService

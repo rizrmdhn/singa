@@ -107,12 +107,11 @@ fun ConversationCardLoader(
                     .fillMaxWidth()
             ) {
                 repeat(20) {
-                    val random = Random.nextInt(35, 80)
                     Box(
                         modifier = Modifier
                             .padding(bottom = 8.dp, end = 8.dp)
                             .height(16.dp)
-                            .width(random.dp)
+                            .width(60.dp)
                             .clip(
                                 RoundedCornerShape(8.dp)
                             )

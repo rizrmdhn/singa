@@ -4,7 +4,6 @@ import com.google.gson.JsonObject
 import com.singa.core.data.source.local.LocalDataSource
 import com.singa.core.data.source.remote.RemoteDataSource
 import com.singa.core.data.source.remote.network.ApiResponse
-import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.domain.model.Articles
 import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.ConversationNode
@@ -21,9 +20,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.File
 
 class SingaRepository(
     private val remoteDataSource: RemoteDataSource,
