@@ -1,6 +1,5 @@
 package com.singa.asl.ui.screen.message_camera
 
-import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.singa.asl.utils.ProgressFileUpload

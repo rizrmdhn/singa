@@ -11,7 +11,7 @@ data class GetStaticTranslationDetailResponse(
 	val videoUrl: String,
 
 	@field:SerializedName("transcripts")
-	val transcripts: List<TranscriptsItem>,
+	val transcripts: List<StaticTranscriptsItem>,
 
 	@field:SerializedName("id")
 	val id: Int,
@@ -23,7 +23,7 @@ data class GetStaticTranslationDetailResponse(
 	val updatedAt: String
 )
 
-data class TranscriptsItem(
+data class StaticTranscriptsItem(
 
 	@field:SerializedName("createdAt")
 	val createdAt: String,

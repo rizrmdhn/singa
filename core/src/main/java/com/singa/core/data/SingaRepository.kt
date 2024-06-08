@@ -7,6 +7,7 @@ import com.singa.core.data.source.remote.network.ApiResponse
 import com.singa.core.domain.model.Articles
 import com.singa.core.domain.model.Conversation
 import com.singa.core.domain.model.ConversationNode
+import com.singa.core.domain.model.DetailVideoConversation
 import com.singa.core.domain.model.RefreshToken
 import com.singa.core.domain.model.SpeechConversation
 import com.singa.core.domain.model.StaticTranslation
@@ -322,6 +323,39 @@ class SingaRepository(
 
                     is ApiResponse.Empty -> {
                         emit(Resource.Empty())
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
+    override fun getVideoConversationDetails(
+        translationId: Int,
+        transcriptId: Int
+    ): Flow<Resource<DetailVideoConversation>> {
+        return flow {
+            emit(Resource.Loading())
+            remoteDataSource.getVideoConversationDetails(translationId, transcriptId).collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        val videoConversation =
+                            DataMapper.mapVideoConversationDetailResponseToModel(it.data.data)
+                        emit(Resource.Success(videoConversation))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
                     }
 
                     is ApiResponse.Error -> {

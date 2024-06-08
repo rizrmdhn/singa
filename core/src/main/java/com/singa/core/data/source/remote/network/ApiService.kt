@@ -7,6 +7,7 @@ import com.singa.core.data.source.remote.response.GenericResponse
 import com.singa.core.data.source.remote.response.GenericSuccessResponse
 import com.singa.core.data.source.remote.response.GetConversationListItem
 import com.singa.core.data.source.remote.response.GetConversationNode
+import com.singa.core.data.source.remote.response.GetDetailVideoConversation
 import com.singa.core.data.source.remote.response.GetMeResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationDetailResponse
 import com.singa.core.data.source.remote.response.GetStaticTranslationList
@@ -95,15 +96,22 @@ interface ApiService {
     ): Response<GenericResponse<GetConversationListItem>>
 
     @Headers("Content-Type: application/json")
-    @GET("articles")
-    suspend fun getArticles(): GenericResponse<List<ArticlesItem>>
-
-    @Headers("Content-Type: application/json")
     @POST("translation/conversation/{id}/speech")
     suspend fun createNewSpeechConversation(
         @Path("id") id: Int,
         @Body body: RequestBody
     ): Response<GenericResponse<CreateNewSpeechConversation>>
+
+    @Headers("Content-Type: application/json")
+    @GET("translation/conversation/{translationId}/video/{transcriptId}")
+    suspend fun getConversationVideoDetails(
+        @Path("translationId") translationId: Int,
+        @Path("transcriptId") transcriptId: Int
+    ): Response<GenericResponse<GetDetailVideoConversation>>
+
+    @Headers("Content-Type: application/json")
+    @GET("articles")
+    suspend fun getArticles(): GenericResponse<List<ArticlesItem>>
 
     @Multipart
     @POST("translation/conversation/{id}/video")

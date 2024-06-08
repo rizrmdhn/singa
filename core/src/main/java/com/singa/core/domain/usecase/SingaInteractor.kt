@@ -35,6 +35,9 @@ class SingaInteractor(
 
     override fun getConversations() = singaRepository.getConversations()
 
+    override fun getVideoConversationDetails(translationId: Int, transcriptId: Int) =
+        singaRepository.getVideoConversationDetails(translationId, transcriptId)
+
     override fun createConversation(title: String) = singaRepository.createConversation(title)
 
     override fun getConverstaionNodes(id: Int) = singaRepository.getConverstaionNodes(id)

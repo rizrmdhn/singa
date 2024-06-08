@@ -4,6 +4,7 @@ import com.singa.asl.MainActivityViewModel
 import com.singa.asl.ui.MainAppViewModel
 import com.singa.asl.ui.screen.change_password.ChangePasswordScreenViewModel
 import com.singa.asl.ui.screen.conversation.ConversationViewModel
+import com.singa.asl.ui.screen.conversation_detail.ConversationDetailScreenViewModel
 import com.singa.asl.ui.screen.history.HistoryScreenViewModel
 import com.singa.asl.ui.screen.history_detail.HistoryDetailScreenViewModel
 import com.singa.asl.ui.screen.home.HomeViewModel
@@ -23,6 +24,7 @@ val useCaseModule = module {
 }
 
 val viewModelModule = module {
+    viewModel { ConversationDetailScreenViewModel(get()) }
     viewModel { MessageCameraViewModel(get()) }
     viewModel { ConversationViewModel(get()) }
     viewModel { LoginScreenViewModel(get()) }

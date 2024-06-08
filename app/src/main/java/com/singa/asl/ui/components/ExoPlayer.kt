@@ -34,12 +34,12 @@ fun ExoPlayerView(
     videoUrl: String,
     timeStamp:(millisecond:Long)->Unit,
 ) {
-    val EXAMPLE_VIDEO_URI = "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+
     // Get the current context
 
     // Create a MediaSource
-    val mediaSource = remember(EXAMPLE_VIDEO_URI) {
-        MediaItem.fromUri(EXAMPLE_VIDEO_URI)
+    val mediaSource = remember(videoUrl) {
+        MediaItem.fromUri(videoUrl)
     }
 
     // Set MediaSource to ExoPlayer
