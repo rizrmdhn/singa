@@ -64,7 +64,7 @@ import com.singa.asl.R
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
 import com.singa.asl.utils.Helpers
-import com.singa.asl.utils.Helpers.mirrorVideo
+import com.singa.asl.utils.Helpers.applyVideoEffects
 import com.singa.asl.utils.ProgressFileUpload
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -156,6 +156,8 @@ fun MessageCameraContent(
     }
 
     var uploadProgress by remember { mutableIntStateOf(0) }
+    var isProcessingVideo by remember { mutableStateOf(false) }
+    var processingVideoProgress by remember { mutableIntStateOf(0) }
 
 
     fun takePhoto() {
@@ -196,6 +198,10 @@ fun MessageCameraContent(
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val outputFile =
             File(context.getExternalFilesDir(Environment.DIRECTORY_MOVIES), "video_$timeStamp.mp4")
+        val processedFile = File(
+            context.getExternalFilesDir(Environment.DIRECTORY_MOVIES),
+            "video_${timeStamp}_processed.mp4"
+        )
 
 
         if (ActivityCompat.checkSelfPermission(
@@ -207,14 +213,14 @@ fun MessageCameraContent(
             return
         }
 
-        val multipartBody = outputFile.let { it ->
-            val contentType = "video/*".toMediaTypeOrNull()
-            ProgressFileUpload(it, contentType) { progress ->
-                uploadProgress = progress
-            }.let {
-                MultipartBody.Part.createFormData("file", outputFile.name, it)
-            }
-        }
+//        val multipartBody = outputFile.let { it ->
+//            val contentType = "video/*".toMediaTypeOrNull()
+//            ProgressFileUpload(it, contentType) { progress ->
+//                uploadProgress = progress
+//            }.let {
+//                MultipartBody.Part.createFormData("file", outputFile.name, it)
+//            }
+//        }
 
         recording = cameraController.startRecording(
             FileOutputOptions.Builder(outputFile).build(),
@@ -228,6 +234,22 @@ fun MessageCameraContent(
                         recording = null
                     } else {
                         MainScope().launch {
+                            applyVideoEffects(outputFile, processedFile) { progress, status ->
+                                isProcessingVideo = status
+                                processingVideoProgress = progress
+                            }
+
+
+                            val multipartBody = processedFile.let { file ->
+                                val contentType = "video/*".toMediaTypeOrNull()
+                                ProgressFileUpload(file, contentType) { progress ->
+                                    uploadProgress = progress
+                                }.let { upd ->
+                                    MultipartBody.Part.createFormData("file", file.name, upd)
+                                }
+                            }
+
+
                             onUploadVideo(
                                 id,
                                 multipartBody,
@@ -277,6 +299,18 @@ fun MessageCameraContent(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            if (isProcessingVideo) {
+                Spacer(
+                    modifier = Modifier
+                        .height(16.dp)
+                        .padding(16.dp),
+                )
+                CircularProgressIndicator(
+                    progress = { processingVideoProgress / 100f },
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "Processing video...  $processingVideoProgress", color = Color.White)
+            }
             if (uploadInProgress && uploadProgress > 0) {
                 Spacer(
                     modifier = Modifier
