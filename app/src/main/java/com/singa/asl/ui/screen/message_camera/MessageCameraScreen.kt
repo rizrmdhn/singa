@@ -155,6 +155,8 @@ fun MessageCameraContent(
         mutableStateOf(false)
     }
 
+    var uploadProgress by remember { mutableIntStateOf(0) }
+
 
     fun takePhoto() {
         cameraController.takePicture(
@@ -189,8 +191,6 @@ fun MessageCameraContent(
             }
         )
     }
-
-    var uploadProgress by remember { mutableIntStateOf(0) }
 
     fun recordVideo() {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
@@ -243,8 +243,6 @@ fun MessageCameraContent(
         }
     }
 
-
-
     LaunchedEffect(isFrontCamera) {
         if (isFrontCamera) {
             cameraController.bindToLifecycle(lifecycleOwner)
@@ -255,10 +253,7 @@ fun MessageCameraContent(
             cameraController.cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
             previewView.controller = cameraController
         }
-
-
     }
-
 
     Box(
         modifier = modifier
@@ -282,7 +277,7 @@ fun MessageCameraContent(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (uploadInProgress) {
+            if (uploadInProgress && uploadProgress > 0) {
                 Spacer(
                     modifier = Modifier
                         .height(16.dp)
