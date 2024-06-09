@@ -1,22 +1,15 @@
 package com.singa.asl
 
-import android.content.Context
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.singa.asl.common.ValidationState
-import com.singa.asl.utils.Helpers
-import com.singa.asl.utils.Helpers.reduceFileImage
-import com.singa.asl.utils.ProgressFileUpload
 import com.singa.core.data.Resource
 import com.singa.core.domain.model.User
 import com.singa.core.domain.usecase.SingaUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import java.io.File
 
 class MainActivityViewModel(
     private val singaUseCase: SingaUseCase
@@ -132,8 +125,7 @@ class MainActivityViewModel(
     }
 
     fun updateUser(
-        context: Context,
-        uri: Uri?,
+        uri: MultipartBody.Part?,
         name: String,
         email: String,
         password: String,
@@ -143,27 +135,13 @@ class MainActivityViewModel(
         clearChangePasswordForm: () -> Unit,
         setUpdateIsLoading: (status: Boolean) -> Unit
     ) {
-        var avatar: File? = null
-        if (uri != Uri.EMPTY) {
-            avatar = Helpers.uriToFile(uri!!, context).reduceFileImage()
-        }
-
-        val multipartBody = avatar?.let { it ->
-            val contentType = "image/*".toMediaTypeOrNull()
-            ProgressFileUpload(it, contentType) { _ ->
-
-            }.let {
-                MultipartBody.Part.createFormData("avatar", avatar.name, it)
-            }
-        }
-
         viewModelScope.launch {
             singaUseCase.updateMe(
                 name = name,
                 email = email,
                 password = password,
                 confirmPassword = confirmPassword,
-                avatar = multipartBody,
+                avatar = uri,
                 isSignUser = isSignUser
             ).collect {
                 when (it) {
@@ -181,7 +159,7 @@ class MainActivityViewModel(
                     }
                     is Resource.Error -> {
                         setUpdateIsLoading(false)
-                        showAlert("Error", it.message ?: "Something went wrong")
+                        showAlert("Error", it.message)
                     }
                     is Resource.Loading -> {
                         setUpdateIsLoading(true)

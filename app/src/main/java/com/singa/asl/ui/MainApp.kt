@@ -51,6 +51,7 @@ import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.SingaTheme
 import com.singa.core.domain.model.User
+import okhttp3.MultipartBody
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,8 +66,7 @@ fun MainApp(
     ) -> Unit,
     logoutIsLoading: Boolean,
     onUpdateProfile: (
-        context: Context,
-        uri: Uri?,
+        uri: MultipartBody.Part?,
         name: String,
         email: String,
         password: String,
@@ -376,7 +376,6 @@ fun MainApp(
                         },
                         onUpdate = { uri, setLoadingState ->
                             onUpdateProfile(
-                                context,
                                 uri,
                                 name,
                                 email,
@@ -417,8 +416,7 @@ fun MainApp(
                             }
 
                             onUpdateProfile(
-                                context,
-                                Uri.EMPTY,
+                               null,
                                 name,
                                 email,
                                 password,
