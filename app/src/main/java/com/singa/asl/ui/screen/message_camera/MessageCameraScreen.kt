@@ -40,10 +40,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -62,8 +64,12 @@ import com.singa.asl.R
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
 import com.singa.asl.utils.Helpers
+import com.singa.asl.utils.Helpers.mirrorVideo
+import com.singa.asl.utils.ProgressFileUpload
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
 import org.koin.androidx.compose.koinViewModel
 import java.io.File
 import java.text.SimpleDateFormat
@@ -104,7 +110,7 @@ fun MessageCameraContent(
     onNavigateBack: () -> Unit,
     onUploadVideo: (
         id: Int,
-        uri: File,
+        uri: MultipartBody.Part,
         showDialog: (String, String) -> Unit,
         navigateBack: () -> Unit
     ) -> Unit
@@ -184,10 +190,13 @@ fun MessageCameraContent(
         )
     }
 
+    var uploadProgress by remember { mutableIntStateOf(0) }
+
     fun recordVideo() {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val outputFile =
             File(context.getExternalFilesDir(Environment.DIRECTORY_MOVIES), "video_$timeStamp.mp4")
+
 
         if (ActivityCompat.checkSelfPermission(
                 context,
@@ -196,6 +205,15 @@ fun MessageCameraContent(
         ) {
             recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             return
+        }
+
+        val multipartBody = outputFile.let { it ->
+            val contentType = "video/*".toMediaTypeOrNull()
+            ProgressFileUpload(it, contentType) { progress ->
+                uploadProgress = progress
+            }.let {
+                MultipartBody.Part.createFormData("file", outputFile.name, it)
+            }
         }
 
         recording = cameraController.startRecording(
@@ -212,7 +230,7 @@ fun MessageCameraContent(
                         MainScope().launch {
                             onUploadVideo(
                                 id,
-                                outputFile,
+                                multipartBody,
                                 showDialog,
                                 onNavigateBack
                             )
@@ -270,10 +288,13 @@ fun MessageCameraContent(
                         .height(16.dp)
                         .padding(16.dp),
                 )
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    progress = { uploadProgress / 100f },
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = "Uploading video...  $uploadProgress", color = Color.White)
             }
             if (isRecording) {
-
                 Row(
                     modifier = Modifier
                         .absolutePadding(bottom = 16.dp)

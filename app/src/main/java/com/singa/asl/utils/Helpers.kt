@@ -10,7 +10,11 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
+import com.arthenica.mobileffmpeg.Config
+import com.arthenica.mobileffmpeg.FFmpeg
 import com.singa.asl.BuildConfig
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -224,22 +228,32 @@ object Helpers {
         )
     }
 
-//    private fun parseJson(jsonString: String): List<Classifications> {
-//        val pattern = """<Category "([^"]+)" \(displayName= score=([^ ]+) index=(\d)\)>""".toRegex()
-//
-//        val categoriesList = mutableListOf<Category>()
-//        val headIndexList = mutableListOf<Int>()
-//
-//        pattern.findAll(jsonString).forEach { matchResult ->
-//            val (name, score, index) = matchResult.destructured
-//            categoriesList.add(Category(name, "", score.toDouble(), index.toInt()))
-//        }
-//
-//        val classificationsList = mutableListOf<Classifications>()
-//
-//        // Assuming only one Classifications object in the JSON string
-//        classificationsList.add(Classifications(categoriesList, 0))
-//
-//        return classificationsList
-//    }
+    suspend fun mirrorVideo(inputFile: File, outputFile: File, onProgress: (Int) -> Unit) {
+        withContext(Dispatchers.IO) {
+            val VIDEO_PROCESSING_TIME = 60000
+            val startTime = System.currentTimeMillis()
+
+            Config.enableStatisticsCallback {
+                val elapsedTime = System.currentTimeMillis() - startTime
+                val progress = (elapsedTime.toDouble() / VIDEO_PROCESSING_TIME) * 100
+                onProgress(progress.toInt())
+            }
+
+            val command = arrayOf(
+                "-i", inputFile.absolutePath,
+                "-vf", "hflip",
+                "-c:a", "copy",
+                outputFile.absolutePath
+            )
+
+            val rc = FFmpeg.execute(command)
+
+            Config.resetStatistics()
+
+            if (rc != 0) {
+                // Handle error
+                return@withContext
+            }
+        }
+    }
 }

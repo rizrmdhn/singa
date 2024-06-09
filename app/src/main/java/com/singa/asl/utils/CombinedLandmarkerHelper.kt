@@ -30,10 +30,10 @@ class CombinedLandmarkerHelper(
     private var minFacePresenceConfidence: Float = FaceLandmarkerHelper.DEFAULT_FACE_PRESENCE_CONFIDENCE,
     private var maxNumFaces: Int = FaceLandmarkerHelper.DEFAULT_NUM_FACES,
     private var maxNumHands: Int = HandLandmarkerHelper.DEFAULT_NUM_HANDS,
-    private var currentModelPose: String = MP_POSE_LANDMARKER_TASK,
-    private var currentModelHand: String = HandLandmarkerHelper.MP_HAND_LANDMARKER_TASK,
-    private var currentModelFace: String = FaceLandmarkerHelper.MP_FACE_LANDMARKER_TASK,
-    private var currentDelegate: Int = PoseLandmarkerHelper.DELEGATE_CPU,
+    currentModelPose: String = MP_POSE_LANDMARKER_TASK,
+    currentModelHand: String = HandLandmarkerHelper.MP_HAND_LANDMARKER_TASK,
+    currentModelFace: String = FaceLandmarkerHelper.MP_FACE_LANDMARKER_TASK,
+    currentDelegate: Int = PoseLandmarkerHelper.DELEGATE_CPU,
     private var runningMode: RunningMode = RunningMode.LIVE_STREAM,
     val context: Context,
     // this listener is only used when running in RunningMode.LIVE_STREAM
@@ -224,11 +224,14 @@ class CombinedLandmarkerHelper(
         imageProxy.close()
 
         val matrix = Matrix().apply {
-            postRotate(imageProxy.imageInfo.rotationDegrees.toFloat())
+            // Rotate the image according to its rotation degrees
+            postRotate(imageProxy.imageInfo.rotationDegrees.toFloat(), imageProxy.width / 2f, imageProxy.height / 2f)
+            // Conditionally mirror the image if it's from the front camera
             if (isFrontCamera) {
-                postScale(-1f, 1f, imageProxy.width.toFloat(), imageProxy.height.toFloat())
+                postScale(-1f, 1f, imageProxy.width / 2f, imageProxy.height / 2f)
             }
         }
+
 
         val rotatedBitmap = Bitmap.createBitmap(
             bitmapBuffer, 0, 0, bitmapBuffer.width, bitmapBuffer.height,

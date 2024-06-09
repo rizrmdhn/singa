@@ -20,21 +20,12 @@ class MessageCameraViewModel(
 
     fun uploadVideo(
         id: Int,
-        file: File,
+        file: MultipartBody.Part,
         showDialog: (String, String) -> Unit,
         navigateBack: () -> Unit
     ) {
-        val multipartBody = file.let { it ->
-            val contentType = "video/*".toMediaTypeOrNull()
-            ProgressFileUpload(it, contentType) { _ ->
-
-            }.let {
-                MultipartBody.Part.createFormData("file", file.name, it)
-            }
-        }
-
         viewModelScope.launch {
-            singaUseCase.createNewVideoConversation(id, multipartBody).collect {
+            singaUseCase.createNewVideoConversation(id, file).collect {
                 when (it) {
                     is Resource.Empty -> {
                         _uploadInProgress.value = false
