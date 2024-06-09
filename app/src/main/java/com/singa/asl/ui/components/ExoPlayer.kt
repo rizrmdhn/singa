@@ -7,7 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,7 +25,6 @@ import kotlinx.coroutines.delay
  * @OptIn annotation to UnstableApi is used to indicate that the API is still experimental and may
  * undergo changes in the future.
  *
- * @see EXAMPLE_VIDEO_URI Replace with the actual URI of the video to be played.
  */
 
 @Composable
@@ -49,26 +48,26 @@ fun ExoPlayerView(
         exoPlayer.playWhenReady = true
     }
 
-    val playbackPosition = remember { mutableStateOf(0L) }
+    val playbackPosition = remember { mutableLongStateOf(0L) }
 
     // Manage lifecycle events
     DisposableEffect(Unit) {
         val listener = object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                     // Log and update playback position while playing
-                    playbackPosition.value = exoPlayer.currentPosition
-                    Log.d("ExoPlayerView", "Playback is Playing position: ${playbackPosition.value} ms")
-                    timeStamp(playbackPosition.value)
+                    playbackPosition.longValue = exoPlayer.currentPosition
+                    Log.d("ExoPlayerView", "Playback is Playing position: ${playbackPosition.longValue} ms")
+                    timeStamp(playbackPosition.longValue)
             }
 
             override fun onPlaybackStateChanged(state: Int) {
-                playbackPosition.value = exoPlayer.currentPosition
-                Log.d("ExoPlayerView", "Playback position: ${playbackPosition.value} ms")
-                timeStamp(playbackPosition.value)
+                playbackPosition.longValue = exoPlayer.currentPosition
+                Log.d("ExoPlayerView", "Playback position: ${playbackPosition.longValue} ms")
+                timeStamp(playbackPosition.longValue)
 
                 when (state) {
                     Player.STATE_READY -> {
-                        Log.d("Player", "STATE_READY- duration: ${playbackPosition.value}") // <----- Problem 2
+                        Log.d("Player", "STATE_READY- duration: ${playbackPosition.longValue}") // <----- Problem 2
                     }
 
                     Player.STATE_ENDED -> {
@@ -95,13 +94,13 @@ fun ExoPlayerView(
         Unit
     ) {
         while(true){
-            Log.i("ExoPlayerView", "Current position: ${playbackPosition.value}")
+            Log.i("ExoPlayerView", "Current position: ${playbackPosition.longValue}")
             delay(1000)
-            if(playbackPosition.value != exoPlayer.currentPosition){
-                timeStamp(playbackPosition.value)
+            if(playbackPosition.longValue != exoPlayer.currentPosition){
+                timeStamp(playbackPosition.longValue)
             }
 
-            playbackPosition.value = exoPlayer.currentPosition
+            playbackPosition.longValue = exoPlayer.currentPosition
         }
     }
 
