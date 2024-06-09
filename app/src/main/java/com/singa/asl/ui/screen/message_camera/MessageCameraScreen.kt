@@ -3,18 +3,11 @@ package com.singa.asl.ui.screen.message_camera
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.os.Environment
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.OptIn
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
-import androidx.camera.core.ImageCapture.OnImageCapturedCallback
-import androidx.camera.core.ImageCaptureException
-import androidx.camera.core.ImageProxy
 import androidx.camera.video.FileOutputOptions
 import androidx.camera.video.Recording
 import androidx.camera.video.VideoRecordEvent
@@ -63,7 +56,6 @@ import androidx.lifecycle.LifecycleOwner
 import com.singa.asl.R
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
-import com.singa.asl.utils.Helpers
 import com.singa.asl.utils.Helpers.applyVideoEffects
 import com.singa.asl.utils.ProgressFileUpload
 import kotlinx.coroutines.MainScope
@@ -137,10 +129,6 @@ fun MessageCameraContent(
         }
     }
 
-    val bitmap = remember {
-        mutableStateOf<Bitmap?>(null)
-    }
-
     var recording by remember {
         mutableStateOf<Recording?>(null)
     }
@@ -158,41 +146,6 @@ fun MessageCameraContent(
     var uploadProgress by remember { mutableIntStateOf(0) }
     var isProcessingVideo by remember { mutableStateOf(false) }
     var processingVideoProgress by remember { mutableIntStateOf(0) }
-
-
-    fun takePhoto() {
-        cameraController.takePicture(
-            executors,
-            object : OnImageCapturedCallback() {
-                @OptIn(ExperimentalGetImage::class)
-                override fun onCaptureSuccess(image: ImageProxy) {
-                    super.onCaptureSuccess(image)
-
-                    val imageBitmap = image.image?.let {
-                        val buffer = it.planes[0].buffer
-                        val bytes = ByteArray(buffer.capacity()).also { buffer.get(it) }
-                        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-                    }
-
-                    if (imageBitmap == null) {
-                        Toast.makeText(context, "Error capturing image", Toast.LENGTH_SHORT).show()
-                        return
-                    }
-
-                    val imagePath = Helpers.createImageFromBitmap(context, imageBitmap) ?: return
-
-                    bitmap.value = imageBitmap
-
-                    image.close()
-
-                }
-
-                override fun onError(exception: ImageCaptureException) {
-                    Toast.makeText(context, "Error capturing image", Toast.LENGTH_SHORT).show()
-                }
-            }
-        )
-    }
 
     fun recordVideo() {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
