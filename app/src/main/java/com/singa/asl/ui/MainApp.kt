@@ -1,7 +1,6 @@
 package com.singa.asl.ui
 
 import android.content.Context
-import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -83,7 +82,6 @@ fun MainApp(
     hideDialog: () -> Unit,
     saveAccessToken: (String) -> Unit,
     saveRefreshToken: (String) -> Unit,
-    context: Context = LocalContext.current,
     viewModel: MainAppViewModel = koinViewModel()
 ) {
     val socialLoginUrl by viewModel.socialLoginUrl.collectAsState()
