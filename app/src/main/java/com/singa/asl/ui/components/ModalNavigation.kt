@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,8 +38,10 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
 import com.singa.asl.R
 import com.singa.asl.ui.screen.conversation.ConversationViewModel
+import com.singa.asl.ui.screen.history.HistoryScreenViewModel
 import com.singa.asl.ui.theme.Color1
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -47,9 +50,11 @@ import org.koin.androidx.compose.koinViewModel
 fun ModalNavigation(
     context: Context = LocalContext.current,
     navigateToRealtimeCamera: () -> Unit,
+    navigateToHistoryCamera: (String) -> Unit,
     navigateToConversation: (String) -> Unit,
     dismissBottomSheet: () -> Unit,
-    viewModel: ConversationViewModel = koinViewModel()
+    viewModelConversation: ConversationViewModel = koinViewModel(),
+    viewModelStatic: HistoryScreenViewModel = koinViewModel()
 ) {
     val storagePermissionState = rememberPermissionState(Manifest.permission.READ_EXTERNAL_STORAGE)
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
@@ -76,6 +81,9 @@ fun ModalNavigation(
 
     var conversationDialog by remember { mutableStateOf(false) }
     var conversationTitle by remember { mutableStateOf("") }
+    var staticDialog by remember { mutableStateOf(false) }
+    var staticTitle by remember { mutableStateOf("") }
+
 
     Column(
         Modifier
@@ -85,28 +93,29 @@ fun ModalNavigation(
     ) {
         Button(
             onClick = {
-                when {
-                    cameraPermissionState.hasPermission -> {
-                        navigateToRealtimeCamera()
-                    }
-
-                    cameraPermissionState.shouldShowRationale -> {
-                        Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
-                    }
-
-                    storagePermissionState.hasPermission -> {
-                        navigateToRealtimeCamera()
-                    }
-
-                    storagePermissionState.shouldShowRationale -> {
-                        Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
-                    }
-
-                    else -> {
-                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                        readStoragePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                    }
-                }
+//                when {
+//                    cameraPermissionState.hasPermission -> {
+//                        navigateToRealtimeCamera()
+//                    }
+//
+//                    cameraPermissionState.shouldShowRationale -> {
+//                        Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+//                    }
+//
+//                    storagePermissionState.hasPermission -> {
+//                        navigateToRealtimeCamera()
+//                    }
+//
+//                    storagePermissionState.shouldShowRationale -> {
+//                        Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+//                    }
+//
+//                    else -> {
+//                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+//                        readStoragePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+//                    }
+//                }
+                staticDialog = true
             },
             shape = RoundedCornerShape(20),
             colors = ButtonDefaults.buttonColors(
@@ -159,16 +168,33 @@ fun ModalNavigation(
         }
     }
 
-    if(conversationDialog){
+    if (staticDialog) {
+        PopupInputAlertDialog(
+            title = "Create a static translation",
+            value = staticTitle,
+            isLoading = viewModelStatic.createStaticStateIsLoading,
+            onValueChange = {
+                staticTitle = it
+            },
+            onDismissRequest = { staticDialog = false },
+            confirmButton = {
+                MainScope().launch {
+                    navigateToHistoryCamera(staticTitle)
+                }
+            }
+        )
+    }
+
+    if (conversationDialog) {
         PopupInputAlertDialog(
             title = "Create a conversation",
             value = conversationTitle,
-            isLoading = viewModel.createConversationStateIsLoading,
+            isLoading = viewModelConversation.createConversationStateIsLoading,
             onValueChange = { conversationTitle = it },
             onDismissRequest = { conversationDialog = false },
             confirmButton = {
                 MainScope().launch {
-                    viewModel.createConversation(
+                    viewModelConversation.createConversation(
                         title = conversationTitle,
                         navigateToConversation = { id ->
                             navigateToConversation(id)
@@ -181,6 +207,4 @@ fun ModalNavigation(
             }
         )
     }
-
-
 }

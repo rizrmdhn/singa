@@ -9,6 +9,7 @@ data class StaticTranslation(
     val videoUrl: String,
     val id: Int,
     val title: String,
+    val status: String,
     val updatedAt: String
 ) : Parcelable
 
@@ -23,6 +24,8 @@ data class StaticTranslationDetail(
     val id: Int,
 
     val title: String,
+
+    val status: String,
 
     val updatedAt: String
 ) : Parcelable

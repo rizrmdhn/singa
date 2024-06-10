@@ -39,6 +39,7 @@ import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun HistoryScreen(
+    showDialog: (String, String) -> Unit,
     navigateToDetail: (String) -> Unit,
     viewModel: HistoryScreenViewModel = koinViewModel()
 ) {
@@ -54,6 +55,9 @@ fun HistoryScreen(
                     errorMessage = "",
                     isRefreshing = isRefreshing,
                     onRefresh = viewModel::refreshStaticTranslations,
+                    onDelete = {
+                        viewModel.deleteStaticTranslation(it, showDialog)
+                    },
                     navigateToDetail
                 )
             }
@@ -66,6 +70,9 @@ fun HistoryScreen(
                     errorMessage = state.message,
                     isRefreshing = isRefreshing,
                     onRefresh = viewModel::refreshStaticTranslations,
+                    onDelete = {
+                        viewModel.deleteStaticTranslation(it, showDialog)
+                    },
                     navigateToDetail
                 )
             }
@@ -78,6 +85,9 @@ fun HistoryScreen(
                     errorMessage = "",
                     isRefreshing = isRefreshing,
                     onRefresh = viewModel::refreshStaticTranslations,
+                    onDelete = {
+                        viewModel.deleteStaticTranslation(it, showDialog)
+                    },
                     navigateToDetail
                 )
             }
@@ -90,6 +100,9 @@ fun HistoryScreen(
                     errorMessage = "",
                     isRefreshing = isRefreshing,
                     onRefresh = viewModel::refreshStaticTranslations,
+                    onDelete = {
+                        viewModel.deleteStaticTranslation(it, showDialog)
+                    },
                     navigateToDetail
                 )
             }
@@ -102,6 +115,9 @@ fun HistoryScreen(
                     errorMessage = state.errors.joinToString { it.message },
                     isRefreshing = isRefreshing,
                     onRefresh = viewModel::refreshStaticTranslations,
+                    onDelete = {
+                        viewModel.deleteStaticTranslation(it, showDialog)
+                    },
                     navigateToDetail
                 )
             }
@@ -119,6 +135,7 @@ fun HistoryContent(
     errorMessage: String = "",
     isRefreshing: Boolean,
     onRefresh: () -> Unit,
+    onDelete: (Int) -> Unit,
     navigateToDetail: (String) -> Unit
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
@@ -188,8 +205,12 @@ fun HistoryContent(
                                 image = R.drawable.mdi_message_badge,
                                 title = conversation.title,
                                 date = conversation.createdAt,
+                                isPending = conversation.status == "pending",
                                 onClickCard = {
                                     navigateToDetail(conversation.id.toString())
+                                },
+                                onDeleteItem = {
+                                    onDelete(conversation.id)
                                 }
                             )
                         }

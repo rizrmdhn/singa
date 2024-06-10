@@ -16,6 +16,9 @@ data class GetStaticTranslationList(
 	@field:SerializedName("title")
 	val title: String,
 
+	@field:SerializedName("status")
+	val status: String,
+
 	@field:SerializedName("updatedAt")
 	val updatedAt: String
 )

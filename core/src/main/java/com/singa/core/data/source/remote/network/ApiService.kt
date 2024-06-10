@@ -2,6 +2,7 @@ package com.singa.core.data.source.remote.network
 
 import com.singa.core.data.source.remote.response.ArticlesItem
 import com.singa.core.data.source.remote.response.CreateNewSpeechConversation
+import com.singa.core.data.source.remote.response.CreateNewStaticTranslation
 import com.singa.core.data.source.remote.response.CreateNewVideoConversation
 import com.singa.core.data.source.remote.response.GenericResponse
 import com.singa.core.data.source.remote.response.GenericSuccessResponse
@@ -109,6 +110,13 @@ interface ApiService {
         @Path("transcriptId") transcriptId: Int
     ): Response<GenericResponse<GetDetailVideoConversation>>
 
+    @Multipart
+    @POST("translation/static")
+    suspend fun createStaticTranslation(
+        @Part("title") title: RequestBody,
+        @Part file: MultipartBody.Part
+    ): Response<GenericResponse<CreateNewStaticTranslation>>
+
     @Headers("Content-Type: application/json")
     @GET("articles")
     suspend fun getArticles(): GenericResponse<List<ArticlesItem>>
@@ -120,6 +128,10 @@ interface ApiService {
         @Part file: MultipartBody.Part,
         @Part("type") type: RequestBody,
     ): Response<GenericResponse<CreateNewVideoConversation>>
+
+    @Headers("Content-Type: application/json")
+    @DELETE("translation/static/{id}")
+    suspend fun deleteStaticTranslation(@Path("id") id: Int): GenericSuccessResponse
 
 
     @Headers("Content-Type: application/json")

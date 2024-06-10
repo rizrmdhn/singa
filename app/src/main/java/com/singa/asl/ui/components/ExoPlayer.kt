@@ -1,13 +1,17 @@
 package com.singa.asl.ui.components
 
 import android.util.Log
+import androidx.annotation.OptIn
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -15,7 +19,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.VideoSize
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.media3.ui.PlayerView
 import kotlinx.coroutines.delay
 
@@ -27,11 +34,12 @@ import kotlinx.coroutines.delay
  *
  */
 
+@OptIn(UnstableApi::class)
 @Composable
 fun ExoPlayerView(
     exoPlayer: ExoPlayer,
     videoUrl: String,
-    timeStamp:(millisecond:Long)->Unit,
+    timeStamp: (millisecond: Long) -> Unit,
 ) {
 
     // Get the current context
@@ -49,15 +57,27 @@ fun ExoPlayerView(
     }
 
     val playbackPosition = remember { mutableLongStateOf(0L) }
+    // Determine the aspect ratio and calculate height dynamically
+    val aspectRatio = remember { mutableFloatStateOf(16f / 9f) } // Default aspect ratio
 
     // Manage lifecycle events
     DisposableEffect(Unit) {
         val listener = object : Player.Listener {
+            override fun onVideoSizeChanged(videoSize: VideoSize) {
+                super.onVideoSizeChanged(videoSize)
+                if ( videoSize.height > 0) {
+                    aspectRatio.floatValue = (videoSize.width / videoSize.pixelWidthHeightRatio) / videoSize.height
+                }
+            }
+
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    // Log and update playback position while playing
-                    playbackPosition.longValue = exoPlayer.currentPosition
-                    Log.d("ExoPlayerView", "Playback is Playing position: ${playbackPosition.longValue} ms")
-                    timeStamp(playbackPosition.longValue)
+                // Log and update playback position while playing
+                playbackPosition.longValue = exoPlayer.currentPosition
+                Log.d(
+                    "ExoPlayerView",
+                    "Playback is Playing position: ${playbackPosition.longValue} ms"
+                )
+                timeStamp(playbackPosition.longValue)
             }
 
             override fun onPlaybackStateChanged(state: Int) {
@@ -67,7 +87,10 @@ fun ExoPlayerView(
 
                 when (state) {
                     Player.STATE_READY -> {
-                        Log.d("Player", "STATE_READY- duration: ${playbackPosition.longValue}") // <----- Problem 2
+                        Log.d(
+                            "Player",
+                            "STATE_READY- duration: ${playbackPosition.longValue}"
+                        ) // <----- Problem 2
                     }
 
                     Player.STATE_ENDED -> {
@@ -93,10 +116,10 @@ fun ExoPlayerView(
     LaunchedEffect(
         Unit
     ) {
-        while(true){
+        while (true) {
             Log.i("ExoPlayerView", "Current position: ${playbackPosition.longValue}")
             delay(1000)
-            if(playbackPosition.longValue != exoPlayer.currentPosition){
+            if (playbackPosition.longValue != exoPlayer.currentPosition) {
                 timeStamp(playbackPosition.longValue)
             }
 
@@ -105,19 +128,24 @@ fun ExoPlayerView(
     }
 
 
+
     // Use AndroidView to embed an Android View (PlayerView) into Compose
     AndroidView(
         factory = { ctx ->
             PlayerView(ctx).apply {
                 player = exoPlayer
+                resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
             }
         },
         modifier = Modifier
             .fillMaxWidth()
+            .aspectRatio(aspectRatio.floatValue)
             .clip(
                 shape = RoundedCornerShape(16.dp)
             )
-            .height(200.dp) // Set your desired height
+            .height(
+                (360.dp * aspectRatio.floatValue)
+            )
     )
 
 }

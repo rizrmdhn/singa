@@ -47,6 +47,7 @@ interface ISingaRepository {
 
     fun getStaticTranslationDetail(staticTranslationId: Int): Flow<Resource<StaticTranslationDetail>>
 
+
     fun getArticles(): Flow<Resource<List<Articles>>>
 
     fun createNewSpeechConversation(
@@ -58,6 +59,13 @@ interface ISingaRepository {
         conversationId: Int,
         file: MultipartBody.Part
     ): Flow<Resource<VideoConversation>>
+
+    fun createNewStaticTranslation(
+        title: String,
+        file: MultipartBody.Part
+    ): Flow<Resource<StaticTranslation>>
+
+    fun deleteStaticTranslation(id: Int): Flow<Resource<String>>
 
     fun deleteConversationNode(id: Int): Flow<Resource<String>>
 

@@ -1,6 +1,5 @@
 package com.singa.asl.ui
 
-import android.content.Context
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -15,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -34,6 +32,7 @@ import com.singa.asl.ui.screen.change_password.ChangePasswordScreen
 import com.singa.asl.ui.screen.conversation.ConversationScreen
 import com.singa.asl.ui.screen.conversation_detail.ConversationDetailScreen
 import com.singa.asl.ui.screen.history.HistoryScreen
+import com.singa.asl.ui.screen.history_camera.HistoryCameraScreen
 import com.singa.asl.ui.screen.history_detail.HistoryDetailScreen
 import com.singa.asl.ui.screen.home.HomeScreen
 import com.singa.asl.ui.screen.login.LoginScreen
@@ -107,7 +106,8 @@ fun MainApp(
         Screen.ProfileDetail.route,
         Screen.ChangePassword.route,
         Screen.HistoryDetail.route,
-        Screen.MessageCamera.route
+        Screen.MessageCamera.route,
+        Screen.HistoryCamera.route
     )
 
     val isDisabledTopBar = navBackStackEntry?.destination?.route in listOf(
@@ -311,6 +311,7 @@ fun MainApp(
 
                 composable(Screen.History.route) {
                     HistoryScreen(
+                        showDialog = showDialog,
                         navigateToDetail = {
                             navController.navigate(Screen.HistoryDetail.createRoute(it))
                         }
@@ -486,6 +487,20 @@ fun MainApp(
                 }
 
                 composable(
+                   route = Screen.HistoryCamera.route,
+                    arguments = listOf(navArgument("title") { type = NavType.StringType })
+                ) {args ->
+                    val title = args.arguments?.getString("title") ?: ""
+                    HistoryCameraScreen(
+                        title = title,
+                        showDialog = showDialog,
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+                composable(
                     route = Screen.MessageCamera.route,
                     arguments = listOf(navArgument("id") { type = NavType.StringType })
                 ) { args ->
@@ -526,6 +541,12 @@ fun MainApp(
                             navController.navigate(Screen.Conversation.createRoute(id))
                         },
                         dismissBottomSheet = {
+                            showBottomSheet.value = false
+                        },
+                        navigateToHistoryCamera = { title ->
+                            navController.navigate(
+                                Screen.HistoryCamera.createRoute(title)
+                            )
                             showBottomSheet.value = false
                         }
                     )
