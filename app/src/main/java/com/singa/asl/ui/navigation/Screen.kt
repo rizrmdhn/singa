@@ -20,6 +20,9 @@ sealed class Screen(val route: String) {
     data object HistoryDetail : Screen("history_detail/{id}") {
         fun createRoute(id: String) = "history_detail/$id"
     }
+    data object HistoryCamera : Screen("historycamera/{title}") {
+        fun createRoute(title: String) = "historycamera/$title"
+    }
     data object WebView : Screen("webview")
     data object RealtimeCamera : Screen("realtimecamera")
     data object MessageCamera : Screen("messagecamera/{id}") {

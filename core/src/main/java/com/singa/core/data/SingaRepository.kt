@@ -499,6 +499,68 @@ class SingaRepository(
         }
     }
 
+    override fun createNewStaticTranslation(
+        title: String,
+        file: MultipartBody.Part
+    ): Flow<Resource<StaticTranslation>> {
+        return flow {
+            emit(Resource.Loading())
+            val requestTitle = title.toRequestBody("text/plain".toMediaTypeOrNull())
+            remoteDataSource.createStaticTranslation(requestTitle, file).collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        val staticTranslation =
+                            DataMapper.mapCreateStaticTranslationToModel(it.data.data)
+                        emit(Resource.Success(staticTranslation))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
+    override fun deleteStaticTranslation(id: Int): Flow<Resource<String>> {
+        return flow {
+            emit(Resource.Loading())
+            remoteDataSource.deleteStaticTranslation(id).collect {
+                when (it) {
+                    is ApiResponse.Success -> {
+                        emit(Resource.Success(it.data.meta.message))
+                    }
+
+                    is ApiResponse.Empty -> {
+                        emit(Resource.Error("Empty Data"))
+                    }
+
+                    is ApiResponse.Error -> {
+                        emit(Resource.Error(it.errorMessage))
+                    }
+
+                    is ApiResponse.ValidationError -> {
+                        val validationErrors = it.errors
+                        val parcelableErrors =
+                            DataMapper.mapResponseValidationErrorToModel(validationErrors)
+                        emit(Resource.ValidationError(parcelableErrors))
+                    }
+                }
+            }
+        }
+    }
+
     override fun getArticles(): Flow<Resource<List<Articles>>> {
         return flow {
             emit(Resource.Loading())

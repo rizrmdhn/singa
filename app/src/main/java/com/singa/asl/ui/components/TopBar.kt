@@ -101,6 +101,14 @@ fun TopBarLeftIcon(
         ),
         title = {
             when {
+                route == Screen.HistoryCamera.route -> {
+                    Text(
+                        text = "History Camera",
+                        fontWeight = FontWeight.Bold,
+                        color = colorPaint,
+                        fontSize = 28.sp
+                    )
+                }
                 route == Screen.HistoryDetail.route -> {
                     Text(
                         text = "History Detail",

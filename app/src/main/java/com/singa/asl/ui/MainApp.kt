@@ -1,7 +1,5 @@
 package com.singa.asl.ui
 
-import android.content.Context
-import android.net.Uri
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -16,7 +14,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -35,6 +32,7 @@ import com.singa.asl.ui.screen.change_password.ChangePasswordScreen
 import com.singa.asl.ui.screen.conversation.ConversationScreen
 import com.singa.asl.ui.screen.conversation_detail.ConversationDetailScreen
 import com.singa.asl.ui.screen.history.HistoryScreen
+import com.singa.asl.ui.screen.history_camera.HistoryCameraScreen
 import com.singa.asl.ui.screen.history_detail.HistoryDetailScreen
 import com.singa.asl.ui.screen.home.HomeScreen
 import com.singa.asl.ui.screen.login.LoginScreen
@@ -51,6 +49,7 @@ import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.SingaTheme
 import com.singa.core.domain.model.User
+import okhttp3.MultipartBody
 import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,8 +64,7 @@ fun MainApp(
     ) -> Unit,
     logoutIsLoading: Boolean,
     onUpdateProfile: (
-        context: Context,
-        uri: Uri?,
+        uri: MultipartBody.Part?,
         name: String,
         email: String,
         password: String,
@@ -83,7 +81,6 @@ fun MainApp(
     hideDialog: () -> Unit,
     saveAccessToken: (String) -> Unit,
     saveRefreshToken: (String) -> Unit,
-    context: Context = LocalContext.current,
     viewModel: MainAppViewModel = koinViewModel()
 ) {
     val socialLoginUrl by viewModel.socialLoginUrl.collectAsState()
@@ -109,7 +106,8 @@ fun MainApp(
         Screen.ProfileDetail.route,
         Screen.ChangePassword.route,
         Screen.HistoryDetail.route,
-        Screen.MessageCamera.route
+        Screen.MessageCamera.route,
+        Screen.HistoryCamera.route
     )
 
     val isDisabledTopBar = navBackStackEntry?.destination?.route in listOf(
@@ -313,6 +311,7 @@ fun MainApp(
 
                 composable(Screen.History.route) {
                     HistoryScreen(
+                        showDialog = showDialog,
                         navigateToDetail = {
                             navController.navigate(Screen.HistoryDetail.createRoute(it))
                         }
@@ -376,7 +375,6 @@ fun MainApp(
                         },
                         onUpdate = { uri, setLoadingState ->
                             onUpdateProfile(
-                                context,
                                 uri,
                                 name,
                                 email,
@@ -417,8 +415,7 @@ fun MainApp(
                             }
 
                             onUpdateProfile(
-                                context,
-                                Uri.EMPTY,
+                               null,
                                 name,
                                 email,
                                 password,
@@ -490,6 +487,20 @@ fun MainApp(
                 }
 
                 composable(
+                   route = Screen.HistoryCamera.route,
+                    arguments = listOf(navArgument("title") { type = NavType.StringType })
+                ) {args ->
+                    val title = args.arguments?.getString("title") ?: ""
+                    HistoryCameraScreen(
+                        title = title,
+                        showDialog = showDialog,
+                        onNavigateBack = {
+                            navController.popBackStack()
+                        }
+                    )
+                }
+
+                composable(
                     route = Screen.MessageCamera.route,
                     arguments = listOf(navArgument("id") { type = NavType.StringType })
                 ) { args ->
@@ -530,6 +541,12 @@ fun MainApp(
                             navController.navigate(Screen.Conversation.createRoute(id))
                         },
                         dismissBottomSheet = {
+                            showBottomSheet.value = false
+                        },
+                        navigateToHistoryCamera = { title ->
+                            navController.navigate(
+                                Screen.HistoryCamera.createRoute(title)
+                            )
                             showBottomSheet.value = false
                         }
                     )

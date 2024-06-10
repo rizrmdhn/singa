@@ -56,6 +56,7 @@ fun CardItem(
     date: String,
     swipeThreshold: Float = 150f,
     sensitivityFactor: Float = 3f,
+    isPending: Boolean = false,
     onClickCard: () -> Unit,
     onDeleteItem: () -> Unit = {}
 ) {
@@ -97,8 +98,10 @@ fun CardItem(
         // Card
         Card(
             colors = CardDefaults.cardColors(
-                containerColor = Color.Transparent
+                containerColor = Color.Transparent,
+                disabledContainerColor = Color.Transparent
             ),
+            enabled = !isPending,
             onClick = onClickCard,
             border = BorderStroke(1.dp, color = Color1),
             modifier = Modifier
@@ -154,12 +157,14 @@ fun CardItem(
                             fontWeight = FontWeight.SemiBold
                         )
                         Text(
-                            text = Helpers.convertToUserLocalTime(
+                            text = if (isPending) "Awaiting for server response..." else Helpers.convertToUserLocalTime(
                                 date,
                                 pattern = "EEEE, dd MMMM yyyy"
                             ),
                             fontSize = 16.sp,
-                            fontWeight = FontWeight.Light
+                            maxLines = 1,
+                            fontWeight = FontWeight.Light,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }

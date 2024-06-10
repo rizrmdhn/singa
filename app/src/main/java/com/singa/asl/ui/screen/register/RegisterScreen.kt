@@ -124,10 +124,15 @@ fun RegisterContent(
             visualTransformation = VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             colors = TextFieldDefaults.colors(
+                errorContainerColor = Color.White,
+                errorIndicatorColor = Color.Red,
+                errorTextColor = Color.Red,
                 focusedContainerColor = Color.White,
                 focusedIndicatorColor = Color.Transparent,
+                unfocusedTextColor = Color1,
                 unfocusedContainerColor = Color.White,
                 unfocusedIndicatorColor = Color.Transparent,
+                focusedTextColor = Color1,
             )
         ),
         FormItem(
@@ -150,10 +155,15 @@ fun RegisterContent(
             visualTransformation = VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             colors = TextFieldDefaults.colors(
+                errorContainerColor = Color.White,
+                errorIndicatorColor = Color.Red,
+                errorTextColor = Color.Red,
                 focusedContainerColor = Color.White,
                 focusedIndicatorColor = Color.Transparent,
+                unfocusedTextColor = Color1,
                 unfocusedContainerColor = Color.White,
                 unfocusedIndicatorColor = Color.Transparent,
+                focusedTextColor = Color1,
             )
         ),
         FormItem(
@@ -191,10 +201,15 @@ fun RegisterContent(
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             colors = TextFieldDefaults.colors(
+                errorContainerColor = Color.White,
+                errorIndicatorColor = Color.Red,
+                errorTextColor = Color.Red,
                 focusedContainerColor = Color.White,
                 focusedIndicatorColor = Color.Transparent,
+                unfocusedTextColor = Color1,
                 unfocusedContainerColor = Color.White,
                 unfocusedIndicatorColor = Color.Transparent,
+                focusedTextColor = Color1,
             )
         ),
     )

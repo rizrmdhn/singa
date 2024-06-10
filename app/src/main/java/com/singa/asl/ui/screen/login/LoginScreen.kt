@@ -18,6 +18,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -44,6 +45,7 @@ import com.singa.asl.R
 import com.singa.asl.ui.components.FormComp
 import com.singa.asl.ui.theme.AuthBackground
 import com.singa.asl.ui.theme.Color1
+import com.singa.asl.ui.theme.ColorBluePastelBackground
 import com.singa.core.domain.model.FormItem
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
@@ -135,10 +137,15 @@ fun LoginContent(
             visualTransformation = VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             colors = TextFieldDefaults.colors(
+                errorContainerColor = Color.White,
+                errorIndicatorColor = Color.Red,
+                errorTextColor = Color.Red,
                 focusedContainerColor = Color.White,
                 focusedIndicatorColor = Color.Transparent,
+                unfocusedTextColor = Color1,
                 unfocusedContainerColor = Color.White,
                 unfocusedIndicatorColor = Color.Transparent,
+                focusedTextColor = Color1,
             )
         ),
         FormItem(
@@ -176,10 +183,15 @@ fun LoginContent(
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             colors = TextFieldDefaults.colors(
+                errorContainerColor = Color.White,
+                errorIndicatorColor = Color.Red,
+                errorTextColor = Color.Red,
                 focusedContainerColor = Color.White,
                 focusedIndicatorColor = Color.Transparent,
+                unfocusedTextColor = Color1,
                 unfocusedContainerColor = Color.White,
                 unfocusedIndicatorColor = Color.Transparent,
+                focusedTextColor = Color1,
             )
         ),
     )
@@ -239,6 +251,9 @@ fun LoginContent(
                     .fillMaxWidth(0.5f)
                     .clip(RoundedCornerShape(10.dp))
                     .background(Color1),
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = Color.White
+                ),
                 onClick = {
                     MainScope().launch {
                         setIsGithubLoginLoading(true)

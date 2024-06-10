@@ -5,6 +5,7 @@ import com.google.mediapipe.tasks.vision.handlandmarker.HandLandmarkerResult
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import com.singa.core.data.source.remote.response.ArticlesItem
 import com.singa.core.data.source.remote.response.CreateNewSpeechConversation
+import com.singa.core.data.source.remote.response.CreateNewStaticTranslation
 import com.singa.core.data.source.remote.response.CreateNewVideoConversation
 import com.singa.core.data.source.remote.response.GetConversationListItem
 import com.singa.core.data.source.remote.response.GetConversationNode
@@ -118,13 +119,23 @@ object DataMapper {
         )
     }
 
+    fun mapCreateStaticTranslationToModel(data: CreateNewStaticTranslation) = StaticTranslation(
+        id = data.id,
+        title = data.title,
+        videoUrl = data.videoUrl,
+        createdAt = data.createdAt,
+        updatedAt = data.updatedAt,
+        status = data.status
+    )
+
     fun mapStaticTranslationResponseToModel(data: List<GetStaticTranslationList>) = data.map {
         StaticTranslation(
             id = it.id,
             title = it.title,
             videoUrl = it.videoUrl,
             createdAt = it.createdAt,
-            updatedAt = it.updatedAt
+            updatedAt = it.updatedAt,
+            status = it.status
         )
     }
 
@@ -271,7 +282,8 @@ object DataMapper {
                     updatedAt = it.updatedAt
                 )
             },
-            updatedAt = data.updatedAt
+            updatedAt = data.updatedAt,
+            status = data.status
         )
 
     fun mapArticlesResponseToModel(data: List<ArticlesItem>) = data.map {

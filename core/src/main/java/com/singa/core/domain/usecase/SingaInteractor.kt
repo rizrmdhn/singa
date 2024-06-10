@@ -1,6 +1,9 @@
 package com.singa.core.domain.usecase
 
+import com.singa.core.data.Resource
+import com.singa.core.domain.model.StaticTranslation
 import com.singa.core.domain.repository.ISingaRepository
+import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody
 
 class SingaInteractor(
@@ -58,6 +61,13 @@ class SingaInteractor(
         conversationId: Int,
         file: MultipartBody.Part
     ) = singaRepository.createNewVideoConversation(conversationId, file)
+
+    override fun createNewStaticTranslation(
+        title: String,
+        file: MultipartBody.Part
+    ): Flow<Resource<StaticTranslation>>  = singaRepository.createNewStaticTranslation(title, file)
+
+    override fun deleteStaticTranslation(id: Int) = singaRepository.deleteStaticTranslation(id)
 
     override fun deleteConversationNode(id: Int) = singaRepository.deleteConversationNode(id)
 

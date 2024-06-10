@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -41,6 +43,9 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,14 +67,21 @@ import com.singa.asl.R
 import com.singa.asl.ui.components.FormComp
 import com.singa.asl.ui.components.shimmerBrush
 import com.singa.asl.ui.theme.Color1
+import com.singa.asl.ui.theme.Color2
 import com.singa.asl.ui.theme.Color5
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.ColorBluePastelBackground
+import com.singa.asl.utils.Helpers
+import com.singa.asl.utils.Helpers.reduceFileImage
+import com.singa.asl.utils.ProgressFileUpload
 import com.singa.core.domain.model.FormItem
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
 import org.koin.androidx.compose.koinViewModel
+import java.io.File
 
 @Composable
 fun ProfileDetailScreen(
@@ -84,7 +96,7 @@ fun ProfileDetailScreen(
     emailError: String,
     onChangeEmail: (String) -> Unit,
     onUpdate: (
-        uri: Uri,
+        uri: MultipartBody.Part?,
         setIsLoading: (Boolean) -> Unit,
     ) -> Unit,
     resetForm: () -> Unit,
@@ -95,6 +107,7 @@ fun ProfileDetailScreen(
 ) {
     val uri by viewModel.uri.collectAsState()
     val isUpdateProfileLoading by viewModel.isUpdateProfileLoading.collectAsState()
+
 
     BackHandler {
         navigateBack()
@@ -119,7 +132,7 @@ fun ProfileDetailScreen(
         onChangeEmail = onChangeEmail,
         onUpdate = {
             onUpdate(
-                uri,
+                it,
                 viewModel::setIsUpdateProfileLoading
             )
         },
@@ -145,14 +158,18 @@ fun ProfileDetailContent(
     onChangeEmail: (String) -> Unit,
     isSignUser: Boolean,
     onChangeIsSignUser: () -> Unit,
-    onUpdate: () -> Unit,
+    onUpdate: (MultipartBody.Part?) -> Unit,
     isUpdateProfileLoading: Boolean,
 ) {
+    var uploadProgress by remember { mutableIntStateOf(0) }
+
+    Log.d("ProfileDetailContent", "uri: $uploadProgress")
 
     val launcher = rememberLauncherForActivityResult(
         ActivityResultContracts.GetContent()
     ) {
         if (it != null) {
+
             setUri(it)
         } else {
             Toast.makeText(context, "Image not found", Toast.LENGTH_SHORT).show()
@@ -300,22 +317,42 @@ fun ProfileDetailContent(
                 }
                 Button(
                     enabled = !isUpdateProfileLoading,
-                    onClick = onUpdate,
+                    onClick = {
+                        var avatar: File? = null
+                        if (uri != Uri.EMPTY) {
+                            avatar = Helpers.uriToFile(uri, context).reduceFileImage()
+                        }
+
+                        val multipartBody = avatar?.let { it ->
+                            val contentType = "image/*".toMediaTypeOrNull()
+                            ProgressFileUpload(it, contentType) { progress ->
+                                uploadProgress = progress
+                            }.let {
+                                MultipartBody.Part.createFormData("avatar", avatar.name, it)
+                            }
+                        }
+
+                        onUpdate(multipartBody)
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(60.dp)
                         .padding(horizontal = 16.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color1,
-                        contentColor = Color.Black
+                        containerColor = Color1
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     if (isUpdateProfileLoading) {
                         CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = Color.White
+                            progress = { uploadProgress / 100f },
+                            modifier = Modifier.size(32.dp),
+                            color = Color2
                         )
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Text(text = "$uploadProgress%", fontSize = 24.sp, color = Color2)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = "Loading...", fontSize = 24.sp, color = Color2)
                     } else {
                         Text(text = "Save", fontSize = 24.sp, color = Color.White)
                     }

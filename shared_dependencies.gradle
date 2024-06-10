@@ -48,5 +48,7 @@ dependencies {
 
     // ExoPlayer
     implementation(libs.androidx.media3.exoplayer.v120)
+    implementation(libs.androidx.media3.exoplayer.v110) // Update to the latest version
+    implementation(libs.androidx.media3.exoplayer.hls.v110) // Update to the latest version
     implementation(libs.androidx.media3.ui.v120)
 }
