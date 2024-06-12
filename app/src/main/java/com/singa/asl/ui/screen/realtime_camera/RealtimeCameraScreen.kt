@@ -2,18 +2,12 @@ package com.singa.asl.ui.screen.realtime_camera
 
 import android.content.Context
 import android.content.res.Configuration
-import android.graphics.Bitmap
 import android.util.Log
 import android.view.Surface
-import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.resolutionselector.ResolutionSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
-import androidx.camera.video.Recording
-import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,11 +23,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,7 +52,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.singa.asl.R
-import com.singa.asl.ml.AslTest
+import com.singa.asl.ml.SingaSlrV002
 import com.singa.asl.ui.components.LandmarkOverlay
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
@@ -102,29 +101,11 @@ fun RealtimeCameraContent(
     val executor = Executors.newSingleThreadExecutor()
     val preview = remember { androidx.camera.core.Preview.Builder().build() }
 
+    var needAnchor by remember { mutableStateOf(false) }
+
     var isFrontCamera by remember {
         mutableStateOf(false)
     }
-
-    val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) {
-        if (it) {
-            return@rememberLauncherForActivityResult
-        } else {
-            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    val bitmap = remember {
-        mutableStateOf<Bitmap?>(null)
-    }
-
-    var recording by remember {
-        mutableStateOf<Recording?>(null)
-    }
-
-    val executors = Executors.newSingleThreadExecutor()
 
     val isRecording by remember {
         mutableStateOf(false)
@@ -133,8 +114,6 @@ fun RealtimeCameraContent(
     var isAnalyzing by remember { mutableStateOf(false) }
 
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
-    val cameraController = remember { LifecycleCameraController(context) }
-
 
     var cameraSelector by remember {
         mutableStateOf(CameraSelector.DEFAULT_BACK_CAMERA)
@@ -142,12 +121,19 @@ fun RealtimeCameraContent(
 
     fun prepareLandmarks(
         poseResults: List<PoseLandmarker>,
-        faceResult: FaceLandmarker?,
+//        faceResult: FaceLandmarker?,
         handResults: List<HandLandmarker>?
     ): List<Float> {
+        val POSE_LANDMARKS_SIZE = 33 * 3  // 33 landmarks, 3 values each (x, y, z)
+        val ONE_HAND_LANDMARKS_SIZE = 21 * 3  // 21 landmarks each, 3 values each (x, y, z)
+        val TWO_HANDS_LANDMARKS_SIZE =
+            2 * 21 * 3  // 2 hands, 21 landmarks each, 3 values each (x, y, z)
+        val EXPECTED_SIZE =
+            POSE_LANDMARKS_SIZE + TWO_HANDS_LANDMARKS_SIZE  // Total expected size = 225
+
         val landmarks = mutableListOf<Float>()
 
-        // Pose landmarks: 33 landmarks each with 4 values (x, y, z, visibility)
+        // Pose landmarks: 33 landmarks each with 3 values (x, y, z)
         val poseLandmarks = mutableListOf<Float>()
         for (result in poseResults) {
             for (landmarkList in result.landmarks) {
@@ -155,35 +141,20 @@ fun RealtimeCameraContent(
                     poseLandmarks.add(landmark.x)
                     poseLandmarks.add(landmark.y)
                     poseLandmarks.add(landmark.z)
-                    poseLandmarks.add(landmark.visibility.orElse(0.0f))
                 }
             }
         }
-        // Pad pose landmarks to 33 * 4 = 132 values
-        while (poseLandmarks.size < 132) {
+        // Pad pose landmarks to 33 * 3 = 99 values
+        while (poseLandmarks.size < POSE_LANDMARKS_SIZE) {
             poseLandmarks.add(0.0f)
-        }
-
-        // Face landmarks: 478 landmarks each with 3 values (x, y, z)
-        val faceLandmarks = mutableListOf<Float>()
-        if (faceResult != null) {
-            for (landmarkList in faceResult.faceLandmarks) {
-                for (landmark in landmarkList) {
-                    faceLandmarks.add(landmark.x)
-                    faceLandmarks.add(landmark.y)
-                    faceLandmarks.add(landmark.z)
-                }
-            }
-        }
-        // Pad face landmarks to 478 * 3 = 1434 values
-        while (faceLandmarks.size < 1434) {
-            faceLandmarks.add(0.0f)
         }
 
         // Hand landmarks: 21 landmarks each with 3 values (x, y, z) for each hand
         val leftHandLandmarks = mutableListOf<Float>()
         val rightHandLandmarks = mutableListOf<Float>()
-        if (handResults != null) {
+
+        // Pad left and right hand landmarks to 21 * 3 = 63 values each, if detected
+        if (handResults != null && handResults.isNotEmpty()) {
             for (result in handResults) {
                 for (landmarkList in result.landmarks) {
                     for (landmark in landmarkList) {
@@ -200,26 +171,37 @@ fun RealtimeCameraContent(
                 }
             }
         }
-        // Pad left and right hand landmarks to 21 * 3 = 63 values each
-        while (leftHandLandmarks.size < 63) {
+
+        while (leftHandLandmarks.size < ONE_HAND_LANDMARKS_SIZE) {
             leftHandLandmarks.add(0.0f)
         }
-        while (rightHandLandmarks.size < 63) {
+        while (rightHandLandmarks.size < ONE_HAND_LANDMARKS_SIZE) {
             rightHandLandmarks.add(0.0f)
         }
-        landmarks.addAll(faceLandmarks)
+
+        // Combine landmarks
         landmarks.addAll(poseLandmarks)
         landmarks.addAll(rightHandLandmarks)
         landmarks.addAll(leftHandLandmarks)
+
+        // Ensure the size of the combined landmarks matches the expected size
+        if (landmarks.size != EXPECTED_SIZE) {
+            throw IllegalArgumentException("The size of the combined landmarks is incorrect. Expected: $EXPECTED_SIZE, Actual: ${landmarks.size}")
+        }
 
         return landmarks.toList()
     }
 
 
-
-
     fun convertListToByteBuffer(input: List<List<Float>>): ByteBuffer {
         val flatList = input.flatten()
+
+        // Expected size check: 60 frames * 225 values per frame
+        val expectedSize = 60 * 225
+        if (flatList.size != expectedSize) {
+            throw IllegalArgumentException("The size of the flat list and the expected size do not match. Expected: $expectedSize, Actual: ${flatList.size}")
+        }
+
         val byteBuffer = ByteBuffer.allocateDirect(flatList.size * 4)
         byteBuffer.order(ByteOrder.nativeOrder())
 
@@ -227,18 +209,12 @@ fun RealtimeCameraContent(
             byteBuffer.putFloat(value)
         }
 
-        val inputFeature = TensorBuffer.createFixedSize(
-            intArrayOf(1, 30, 1692),
-            DataType.FLOAT32
-        )
-        inputFeature.loadBuffer(byteBuffer)
-
         return byteBuffer
     }
 
 
     fun getPredictedLabel(outputArray: FloatArray): String {
-        val labels = listOf("hello", "thanks", "i-love-you", "see-you-later", "I", "Father")
+        val labels = listOf("_", "hello", "thanks", "i-love-you", "I", "Yes", "No", "Help")
 
         val maxIndex = outputArray.indices.maxByOrNull { outputArray[it] } ?: -1
 
@@ -258,21 +234,17 @@ fun RealtimeCameraContent(
         val threshold = 0.5f
         val maxSequences = 90
 
-        val landmarks = prepareLandmarks(poseResults, faceResult, handResults)
+        val landmarks = prepareLandmarks(poseResults, handResults)
 
         sequences.add(landmarks)
-        val snapshot = sequences.takeLast(30)
+        val snapshot = sequences.takeLast(60)  // Ensure 60 frames are used
 
-        val model = AslTest.newInstance(context)
-
-        var predictedLabel = ""
-        val predictions = mutableListOf<Int>()
-
-        // collect keypoints until sequence is full
-        if (snapshot.size == sequenceLength) {
+        if (snapshot.size == 60) {
             val byteBuffer = convertListToByteBuffer(snapshot)
 
-            val inputFeature0 = TensorBuffer.createFixedSize(intArrayOf(1, 30, 1692), DataType.FLOAT32)
+            val model = SingaSlrV002.newInstance(context)
+            val inputFeature0 =
+                TensorBuffer.createFixedSize(intArrayOf(1, 60, 225), DataType.FLOAT32)
             inputFeature0.loadBuffer(byteBuffer)
 
             val outputs = model.process(inputFeature0)
@@ -281,33 +253,37 @@ fun RealtimeCameraContent(
 
             val maxIndex = outputArray.indices.maxByOrNull { outputArray[it] } ?: -1
 
+            // Collect predictions
+            val predictions = mutableListOf<Int>()
             predictions.add(maxIndex)
             val last10Predictions = predictions.takeLast(10)
 
-            // get the most common element in the last 10 predictions
-            val mostCommonPrediction = last10Predictions.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
+            // Get the most common element in the last 10 predictions
+            val mostCommonPrediction =
+                last10Predictions.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key
 
-            // check if the most common prediction matches the index of the maximum value in the result array
+            // Check if the most common prediction matches the index of the maximum value in the result array
             val matches = mostCommonPrediction == maxIndex
 
+            var predictedLabel = ""
             if (matches) {
                 if (outputArray[maxIndex] > threshold) {
-                    Log.d("RealtimeCameraScreen", "Predicted label: ${getPredictedLabel(outputArray)}")
                     predictedLabel = getPredictedLabel(outputArray)
+                    Log.d("RealtimeCameraScreen", "Predicted label: $predictedLabel")
                 }
             }
+
+            model.close()
+
+            // Ensure sequences list does not exceed maximum length
+            if (sequences.size > maxSequences) {
+                sequences.removeAt(0)
+            }
+
+            return predictedLabel
         }
 
-        model.close()
-
-        // make sure sequences list does not exceed maximum length
-        // since we will only use the last 30 frame, then we can
-        // remove the older frame
-        if (sequences.size > maxSequences) {
-            sequences.removeAt(0)
-        }
-
-        return predictedLabel
+        return ""
     }
 
 
@@ -454,13 +430,13 @@ fun RealtimeCameraContent(
                 )
         )
 
-       if (isAnalyzing) {
-           LandmarkOverlay(
-               poseLandmarks = poseLandmarkResult,
-               faceLandmarks = faceLandmarkResult,
-               handLandmarks = handLandmarkResult,
-           )
-       }
+        if (needAnchor) {
+            LandmarkOverlay(
+                poseLandmarks = poseLandmarkResult,
+                faceLandmarks = faceLandmarkResult,
+                handLandmarks = handLandmarkResult,
+            )
+        }
 
         if (isAnalyzing) {
             Column(
@@ -480,8 +456,8 @@ fun RealtimeCameraContent(
 
                 previousResult.value = aslResults ?: ""
 
-                if(previousResult.value != aslResultArray[0] && previousResult.value != ""){
-                    aslResultArray.add(0,previousResult.value)
+                if (previousResult.value != "" && previousResult.value != "_" && previousResult.value !in aslResultArray) {
+                    aslResultArray.add(0, previousResult.value)
                 }
 
                 Box(
@@ -508,16 +484,6 @@ fun RealtimeCameraContent(
                             color = Color.White,
                             style = MaterialTheme.typography.bodySmall
                         )
-//                        Text(
-//                            text = analyzingResult?.joinToString("\n") { classification ->
-//                                classification.categories().joinToString("\n") { category ->
-//                                    "${category.categoryName()} " + NumberFormat.getPercentInstance()
-//                                        .format(category.score()).trim()
-//                                }
-//                            } ?: "No results",
-//                            color = Color.White,
-//                            style = MaterialTheme.typography.bodySmall
-//                        )
                     }
                 }
 
@@ -541,9 +507,29 @@ fun RealtimeCameraContent(
                         modifier = Modifier
                             .padding(10.dp),
                         onClick = {
-//                        if (recording != null) {
-//                            recording?.stop()
-//                        }
+                            needAnchor = !needAnchor
+                        },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Icon(
+                            painter = if (needAnchor) {
+                                painterResource(id = R.drawable.baseline_face_24)
+                            } else {
+                                painterResource(id = R.drawable.baseline_face_retouching_off_24)
+                            },
+                            contentDescription = "Toggle Anchor"
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+
+                    IconButton(
+                        modifier = Modifier
+                            .padding(10.dp),
+                        onClick = {
                             isAnalyzing = false
                             aslResultArray.clear()
                             previousResult.value = ""
@@ -596,6 +582,28 @@ fun RealtimeCameraContent(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
+                IconButton(
+                    modifier = Modifier
+                        .padding(10.dp),
+                    onClick = {
+                        needAnchor = !needAnchor
+                    },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = Color.White
+                    )
+                ) {
+                    Icon(
+                        painter = if (needAnchor) {
+                            painterResource(id = R.drawable.baseline_face_24)
+                        } else {
+                            painterResource(id = R.drawable.baseline_face_retouching_off_24)
+                        },
+                        contentDescription = "Toggle Anchor"
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
                 IconButton(
                     modifier = Modifier
                         .padding(10.dp),

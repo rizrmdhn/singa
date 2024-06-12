@@ -146,4 +146,7 @@ object Helpers {
         }
     }
 
+    fun bytesToMB(bytes: Long): Double {
+        return bytes / (1024.0 * 1024.0)
+    }
 }

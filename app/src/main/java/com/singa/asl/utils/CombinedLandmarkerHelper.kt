@@ -70,16 +70,36 @@ class CombinedLandmarkerHelper(
         handLandmarkerHelperListener: CombinedHandLandmarkerListener?
     ) {
         // Setup face landmarker
-        setupFaceLandmarker(currentDelegate, currentModelFace, runningMode, faceLandmarkerHelperListener)
+        setupFaceLandmarker(
+            currentDelegate,
+            currentModelFace,
+            runningMode,
+            faceLandmarkerHelperListener
+        )
 
         // Setup pose landmarker
-        setupPoseLandmarker(currentDelegate, currentModelPose, runningMode, poseLandmarkerHelperListener)
+        setupPoseLandmarker(
+            currentDelegate,
+            currentModelPose,
+            runningMode,
+            poseLandmarkerHelperListener
+        )
 
         // Setup hand landmarker
-        setupHandLandmarker(currentDelegate, currentModelHand, runningMode, handLandmarkerHelperListener)
+        setupHandLandmarker(
+            currentDelegate,
+            currentModelHand,
+            runningMode,
+            handLandmarkerHelperListener
+        )
     }
 
-    private fun setupFaceLandmarker(currentDelegate: Int, currentModelPath: String, runningMode: RunningMode, listener: CombinedFaceLandmarkerListener?) {
+    private fun setupFaceLandmarker(
+        currentDelegate: Int,
+        currentModelPath: String,
+        runningMode: RunningMode,
+        listener: CombinedFaceLandmarkerListener?
+    ) {
         val baseOptionBuilder = BaseOptions.builder()
 
         when (currentDelegate) {
@@ -90,7 +110,8 @@ class CombinedLandmarkerHelper(
         baseOptionBuilder.setModelAssetPath(currentModelPath)
 
         if (runningMode == RunningMode.LIVE_STREAM) {
-            listener ?: throw IllegalStateException("faceLandmarkerHelperListener must be set when runningMode is LIVE_STREAM.")
+            listener
+                ?: throw IllegalStateException("faceLandmarkerHelperListener must be set when runningMode is LIVE_STREAM.")
         }
 
         try {
@@ -113,14 +134,28 @@ class CombinedLandmarkerHelper(
             faceLandmarker = FaceLandmarker.createFromOptions(context, options)
         } catch (e: IllegalStateException) {
             listener?.onError("Face Landmarker failed to initialize. See error logs for details")
-            Log.e(FaceLandmarkerHelper.TAG, "MediaPipe failed to load the task with error: ${e.message}")
+            Log.e(
+                FaceLandmarkerHelper.TAG,
+                "MediaPipe failed to load the task with error: ${e.message}"
+            )
         } catch (e: RuntimeException) {
-            listener?.onError("Face Landmarker failed to initialize. See error logs for details", FaceLandmarkerHelper.GPU_ERROR)
-            Log.e(FaceLandmarkerHelper.TAG, "Face Landmarker failed to load model with error: ${e.message}")
+            listener?.onError(
+                "Face Landmarker failed to initialize. See error logs for details",
+                FaceLandmarkerHelper.GPU_ERROR
+            )
+            Log.e(
+                FaceLandmarkerHelper.TAG,
+                "Face Landmarker failed to load model with error: ${e.message}"
+            )
         }
     }
 
-    private fun setupPoseLandmarker(currentDelegate: Int, currentModelPath: String, runningMode: RunningMode, listener: CombinedPoseLandmarkerListener?) {
+    private fun setupPoseLandmarker(
+        currentDelegate: Int,
+        currentModelPath: String,
+        runningMode: RunningMode,
+        listener: CombinedPoseLandmarkerListener?
+    ) {
         val baseOptionBuilder = BaseOptions.builder()
 
         when (currentDelegate) {
@@ -131,7 +166,8 @@ class CombinedLandmarkerHelper(
         baseOptionBuilder.setModelAssetPath(currentModelPath)
 
         if (runningMode == RunningMode.LIVE_STREAM) {
-            listener ?: throw IllegalStateException("poseLandmarkerHelperListener must be set when runningMode is LIVE_STREAM.")
+            listener
+                ?: throw IllegalStateException("poseLandmarkerHelperListener must be set when runningMode is LIVE_STREAM.")
         }
 
         try {
@@ -153,25 +189,40 @@ class CombinedLandmarkerHelper(
             poseLandmarker = PoseLandmarker.createFromOptions(context, options)
         } catch (e: IllegalStateException) {
             listener?.onError("Pose Landmarker failed to initialize. See error logs for details")
-            Log.e(PoseLandmarkerHelper.TAG, "MediaPipe failed to load the task with error: ${e.message}")
+            Log.e(
+                PoseLandmarkerHelper.TAG,
+                "MediaPipe failed to load the task with error: ${e.message}"
+            )
         } catch (e: RuntimeException) {
-            listener?.onError("Pose Landmarker failed to initialize. See error logs for details", PoseLandmarkerHelper.GPU_ERROR)
-            Log.e(PoseLandmarkerHelper.TAG, "Pose Landmarker failed to load model with error: ${e.message}")
+            listener?.onError(
+                "Pose Landmarker failed to initialize. See error logs for details",
+                PoseLandmarkerHelper.GPU_ERROR
+            )
+            Log.e(
+                PoseLandmarkerHelper.TAG,
+                "Pose Landmarker failed to load model with error: ${e.message}"
+            )
         }
     }
 
-    private fun setupHandLandmarker(currentDelegate: Int, currentModelPath: String, runningMode: RunningMode, listener: CombinedHandLandmarkerListener?) {
+    private fun setupHandLandmarker(
+        currentDelegate: Int,
+        currentModelPath: String,
+        runningMode: RunningMode,
+        listener: CombinedHandLandmarkerListener?
+    ) {
         val baseOptionBuilder = BaseOptions.builder()
 
         when (currentDelegate) {
-          DELEGATE_CPU -> baseOptionBuilder.setDelegate(Delegate.CPU)
+            DELEGATE_CPU -> baseOptionBuilder.setDelegate(Delegate.CPU)
             DELEGATE_GPU -> baseOptionBuilder.setDelegate(Delegate.GPU)
         }
 
         baseOptionBuilder.setModelAssetPath(currentModelPath)
 
         if (runningMode == RunningMode.LIVE_STREAM) {
-            listener ?: throw IllegalStateException("handLandmarkerHelperListener must be set when runningMode is LIVE_STREAM.")
+            listener
+                ?: throw IllegalStateException("handLandmarkerHelperListener must be set when runningMode is LIVE_STREAM.")
         }
 
         try {
@@ -194,10 +245,19 @@ class CombinedLandmarkerHelper(
             handLandmarker = HandLandmarker.createFromOptions(context, options)
         } catch (e: IllegalStateException) {
             listener?.onError("Hand Landmarker failed to initialize. See error logs for details")
-            Log.e(HandLandmarkerHelper.TAG, "MediaPipe failed to load the task with error: ${e.message}")
+            Log.e(
+                HandLandmarkerHelper.TAG,
+                "MediaPipe failed to load the task with error: ${e.message}"
+            )
         } catch (e: RuntimeException) {
-            listener?.onError("Hand Landmarker failed to initialize. See error logs for details", HandLandmarkerHelper.GPU_ERROR)
-            Log.e(HandLandmarkerHelper.TAG, "Hand Landmarker failed to load model with error: ${e.message}")
+            listener?.onError(
+                "Hand Landmarker failed to initialize. See error logs for details",
+                HandLandmarkerHelper.GPU_ERROR
+            )
+            Log.e(
+                HandLandmarkerHelper.TAG,
+                "Hand Landmarker failed to load model with error: ${e.message}"
+            )
         }
     }
 
@@ -225,9 +285,15 @@ class CombinedLandmarkerHelper(
 
         val matrix = Matrix().apply {
             // Rotate the image according to its rotation degrees
-            postRotate(imageProxy.imageInfo.rotationDegrees.toFloat(), imageProxy.width / 2f, imageProxy.height / 2f)
+            postRotate(
+                imageProxy.imageInfo.rotationDegrees.toFloat(),
+                imageProxy.width / 2f,
+                imageProxy.height / 2f
+            )
             // Conditionally mirror the image if it's from the front camera
-               
+            if (isFrontCamera) {
+                postScale(-1f, 1f, imageProxy.width / 2f, imageProxy.height / 2f)
+            }
         }
 
 

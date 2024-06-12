@@ -23,5 +23,18 @@ data class GetMeResponse(
 	val email: String? = null,
 
 	@field:SerializedName("updatedAt")
-	val updatedAt: String
+	val updatedAt: String,
+
+	@field:SerializedName("quota")
+	val quota: Quota
+)
+
+
+data class Quota(
+
+	@field:SerializedName("used")
+	val used: Int,
+
+	@field:SerializedName("quota")
+	val quota: Int
 )

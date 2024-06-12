@@ -17,12 +17,20 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.PlainTooltip
+import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,6 +42,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageContent
@@ -44,12 +53,15 @@ import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.ui.theme.ColorBluePastelBackground
 import com.singa.asl.ui.theme.ColorDanger
+import com.singa.asl.utils.Helpers
 import org.koin.androidx.compose.koinViewModel
 
 
 @Composable
 fun ProfileScreen(
     avatarUrl: String,
+    usedQuota: Int,
+    totalQuota: Int,
     onLogout: (
             (title: String, message: String) -> Unit,
     ) -> Unit,
@@ -65,6 +77,8 @@ fun ProfileScreen(
 
     ProfileContent(
         avatarUrl = avatarUrl,
+        usedQuota = usedQuota,
+        totalQuota = totalQuota,
         onLogout = {
             onLogout(
                 viewModel::showAlert
@@ -81,9 +95,12 @@ fun ProfileScreen(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileContent(
     avatarUrl: String,
+    usedQuota: Int,
+    totalQuota: Int,
     onLogout: () -> Unit,
     logoutIsLoading: Boolean,
     alertDialog: Boolean,
@@ -94,6 +111,9 @@ fun ProfileContent(
     onNavigateToDetail: () -> Unit,
     onNavigateToPassword: () -> Unit
 ) {
+    val roundedUsedQuota = String.format("%.2f", Helpers.bytesToMB(usedQuota.toLong()))
+    val roundedTotalQuota = String.format("%.2f", Helpers.bytesToMB(totalQuota.toLong()))
+
     Box(
         Modifier.fillMaxWidth()
     ) {
@@ -129,6 +149,16 @@ fun ProfileContent(
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
+
+                ButtonAction(
+                    image = R.drawable.hugeicons_limitation,
+                    text = "$roundedUsedQuota MB / $roundedTotalQuota MB",
+                    tooltipText = "Used / Total Quota",
+                    needArrow = false
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
 
                 Button(
                     enabled = !logoutIsLoading,
@@ -236,11 +266,14 @@ fun ProfileContent(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ButtonAction(
     image: Int,
     text: String,
-    onNavigate: () -> Unit
+    tooltipText: String = "",
+    onNavigate: () -> Unit = {},
+    needArrow: Boolean = true
 ) {
     Button(
         onClick = onNavigate,
@@ -271,13 +304,35 @@ fun ButtonAction(
                 )
                 Spacer(modifier = Modifier.width(16.dp))
                 Text(text = text, fontSize = 20.sp)
+                Spacer(modifier = Modifier.width(16.dp))
+                if (tooltipText.isNotBlank()) {
+                    TooltipBox(
+                        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+                        tooltip = {
+                            PlainTooltip {
+                                Text(tooltipText, fontSize = 16.sp)
+                            }
+                        },
+                        state = rememberTooltipState()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Info,
+                            contentDescription = "Info",
+                            tint = Color1
+                        )
+                    }
+                }
             }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = "Arrow Right",
-                modifier = Modifier.size(32.dp),
-                tint = Color1
-            )
+            if (
+                needArrow
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = "Arrow Right",
+                    modifier = Modifier.size(32.dp),
+                    tint = Color1
+                )
+            }
         }
     }
 }

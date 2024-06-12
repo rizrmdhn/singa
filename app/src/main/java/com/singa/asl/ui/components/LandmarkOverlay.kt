@@ -12,10 +12,13 @@ import com.singa.core.domain.model.PoseLandmarker
 
 @Composable
 fun LandmarkOverlay(
+    modifier: Modifier = Modifier,
+    isPoseRequired: Boolean = true,
     poseLandmarks: List<PoseLandmarker>?,
+    isFaceRequired: Boolean = true,
     faceLandmarks: FaceLandmarker?,
+    isHandRequired: Boolean = true,
     handLandmarks: List<HandLandmarker>?,
-    modifier: Modifier = Modifier
 ) {
     Canvas(modifier = modifier.fillMaxSize()) {
         // Define the connections for hand landmarks
@@ -28,51 +31,57 @@ fun LandmarkOverlay(
             Pair(13, 17), Pair(0, 17), Pair(17, 18), Pair(18, 19), Pair(19, 20) // Little finger
         )
 
-        poseLandmarks?.forEach { poseLandmarker ->
-            poseLandmarker.landmarks.forEach { landmarkList ->
+        if (isPoseRequired) {
+            poseLandmarks?.forEach { poseLandmark ->
+                poseLandmark.landmarks.forEach { landmarkList ->
+                    landmarkList.forEach { landmark ->
+                        drawCircle(
+                            center = Offset(landmark.x * size.width, landmark.y * size.height),
+                            radius = 4f,
+                            color = Color.Red
+                        )
+                    }
+                }
+            }
+        }
+
+        if (isFaceRequired) {
+            faceLandmarks?.faceLandmarks?.forEach { landmarkList ->
                 landmarkList.forEach { landmark ->
                     drawCircle(
                         center = Offset(landmark.x * size.width, landmark.y * size.height),
                         radius = 4f,
-                        color = Color.Red
+                        color = Color.Blue
                     )
                 }
             }
         }
 
-        faceLandmarks?.faceLandmarks?.forEach { landmarkList ->
-            landmarkList.forEach { landmark ->
-                drawCircle(
-                    center = Offset(landmark.x * size.width, landmark.y * size.height),
-                    radius = 4f,
-                    color = Color.Blue
-                )
-            }
-        }
-
-        handLandmarks?.forEach { handLandmarker ->
-            // Draw lines between hand landmarks
-            handLandmarker.landmarks.forEach { landmarkList ->
-                handConnections.forEach { (startIdx, endIdx) ->
-                    val startLandmark = landmarkList[startIdx]
-                    val endLandmark = landmarkList[endIdx]
-                    drawLine(
-                        start = Offset(startLandmark.x * size.width, startLandmark.y * size.height),
-                        end = Offset(endLandmark.x * size.width, endLandmark.y * size.height),
-                        color = Color.Green,
-                        strokeWidth = 2f
-                    )
+        if (isHandRequired) {
+            handLandmarks?.forEach { handLandmark ->
+                // Draw lines between hand landmarks
+                handLandmark.landmarks.forEach { landmarkList ->
+                    handConnections.forEach { (startIdx, endIdx) ->
+                        val startLandmark = landmarkList[startIdx]
+                        val endLandmark = landmarkList[endIdx]
+                        drawLine(
+                            start = Offset(startLandmark.x * size.width, startLandmark.y * size.height),
+                            end = Offset(endLandmark.x * size.width, endLandmark.y * size.height),
+                            color = Color.Green,
+                            strokeWidth = 2f
+                        )
+                    }
                 }
-            }
 
-            // Draw hand landmarks
-            handLandmarker.landmarks.forEach { landmarkList ->
-                landmarkList.forEach { landmark ->
-                    drawCircle(
-                        center = Offset(landmark.x * size.width, landmark.y * size.height),
-                        radius = 4f,
-                        color = Color.Green
-                    )
+                // Draw hand landmarks
+                handLandmark.landmarks.forEach { landmarkList ->
+                    landmarkList.forEach { landmark ->
+                        drawCircle(
+                            center = Offset(landmark.x * size.width, landmark.y * size.height),
+                            radius = 4f,
+                            color = Color.Green
+                        )
+                    }
                 }
             }
         }
