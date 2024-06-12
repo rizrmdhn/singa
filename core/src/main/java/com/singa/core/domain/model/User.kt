@@ -11,5 +11,12 @@ data class User(
     val avatar: String? = null,
     val isSignUser: Boolean,
     val createdAt: String,
-    val updatedAt: String
+    val updatedAt: String,
+    val quota: Quota
+) : Parcelable
+
+@Parcelize
+data class Quota(
+    val used: Int,
+    val quota: Int
 ) : Parcelable

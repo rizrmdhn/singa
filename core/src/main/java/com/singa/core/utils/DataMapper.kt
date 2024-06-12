@@ -26,6 +26,7 @@ import com.singa.core.domain.model.HandLandmarker
 import com.singa.core.domain.model.Landmark
 import com.singa.core.domain.model.NormalizedLandmark
 import com.singa.core.domain.model.PoseLandmarker
+import com.singa.core.domain.model.Quota
 import com.singa.core.domain.model.RefreshToken
 import com.singa.core.domain.model.SpeechConversation
 import com.singa.core.domain.model.StaticTranscriptsItem
@@ -66,7 +67,11 @@ object DataMapper {
         avatar = data.avatarUrl,
         isSignUser = data.isSignUser,
         createdAt = data.createdAt,
-        updatedAt = data.updatedAt
+        updatedAt = data.updatedAt,
+        quota = Quota(
+            used = data.quota.used,
+            quota = data.quota.quota
+        )
     )
 
     fun mapRefreshTokenResponseToModel(
@@ -85,7 +90,11 @@ object DataMapper {
         avatar = data.avatarUrl,
         isSignUser = data.isSignUser,
         createdAt = data.createdAt,
-        updatedAt = data.updatedAt
+        updatedAt = data.updatedAt,
+        quota = Quota(
+            used = data.quota.used,
+            quota = data.quota.quota
+        )
     )
 
     fun mapConversationResponseToModel(data: List<GetConversationListItem>) = data.map {

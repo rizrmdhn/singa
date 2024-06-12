@@ -1,4 +1,5 @@
 [versions]
+accompanistNavigationAnimation = "0.34.0"
 accompanistPermissions = "0.23.1"
 agp = "8.4.0"
 androidxMedia3Exoplayer = "1.3.1"
@@ -51,6 +52,7 @@ tensorflowLiteTaskVisionPlayServices = "0.4.2"
 media3ExoplayerHls = "1.3.1"
 
 [libraries]
+accompanist-navigation-animation = { module = "com.google.accompanist:accompanist-navigation-animation", version.ref = "accompanistNavigationAnimation" }
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanistPermissions" }
 androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.ref = "cameraCamera2" }
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "cameraCamera2" }

@@ -1,5 +1,8 @@
 package com.singa.asl.ui
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FabPosition
@@ -190,10 +193,10 @@ fun MainApp(
                 } else {
                     Screen.Home.route
                 },
-                modifier = Modifier.padding(innerPadding)
+                modifier = Modifier.padding(innerPadding),
             ) {
                 composable(
-                    Screen.OnBoarding.route
+                    Screen.OnBoarding.route,
                 ) {
                     OnBoardingScreen(
                         onNavigateToWelcome = {
@@ -203,7 +206,7 @@ fun MainApp(
                 }
 
                 composable(
-                    Screen.Login.route
+                    Screen.Login.route,
                 ) {
                     LoginScreen(
                         email = email,
@@ -235,7 +238,7 @@ fun MainApp(
                 }
 
                 composable(
-                    Screen.Register.route
+                    Screen.Register.route,
                 ) {
                     RegisterScreen(
                         name = name,
@@ -272,7 +275,7 @@ fun MainApp(
 
 
                 composable(
-                    Screen.Welcome.route
+                    Screen.Welcome.route,
                 ) {
                     WelcomeScreen(
                         onNavigateToLogin = {
@@ -290,7 +293,9 @@ fun MainApp(
                     )
                 }
 
-                composable(Screen.Home.route) {
+                composable(
+                    Screen.Home.route,
+                ) {
                     HomeScreen(
                         showModal = {
                             showBottomSheet.value = true
@@ -298,7 +303,9 @@ fun MainApp(
                     )
                 }
 
-                composable(Screen.Message.route) {
+                composable(
+                    Screen.Message.route,
+                ) {
                     MessageScreen(
                         showDialog = showDialog,
                         onNavigateConversation = {
@@ -309,7 +316,9 @@ fun MainApp(
                     )
                 }
 
-                composable(Screen.History.route) {
+                composable(
+                    Screen.History.route,
+                ) {
                     HistoryScreen(
                         showDialog = showDialog,
                         navigateToDetail = {
@@ -320,7 +329,11 @@ fun MainApp(
 
                 composable(
                     route = Screen.HistoryDetail.route,
-                    arguments = listOf(navArgument("id") { type = NavType.StringType })
+                    arguments = listOf(navArgument("id") { type = NavType.StringType }),
+                    enterTransition = { fadeIn(animationSpec = tween(300)) },
+                    exitTransition = { fadeOut(animationSpec = tween(300)) },
+                    popExitTransition = { fadeOut(animationSpec = tween(300)) },
+                    popEnterTransition = { fadeIn(animationSpec = tween(300)) }
                 ) {
                     val id = it.arguments?.getString("id") ?: "0"
                     HistoryDetailScreen(
@@ -328,9 +341,13 @@ fun MainApp(
                     )
                 }
 
-                composable(Screen.Profile.route) {
+                composable(
+                    Screen.Profile.route,
+                ) {
                     ProfileScreen(
                         avatarUrl = authUser?.avatar ?: "",
+                        usedQuota = authUser?.quota?.used ?: 0,
+                        totalQuota = authUser?.quota?.quota ?: 0,
                         logoutIsLoading = logoutIsLoading,
                         onLogout = {
                             if (authUser?.email == null) {
@@ -356,7 +373,9 @@ fun MainApp(
                     )
                 }
 
-                composable(Screen.ProfileDetail.route) {
+                composable(
+                    Screen.ProfileDetail.route,
+                ) {
                     ProfileDetailScreen(
                         avatarUrl = authUser?.avatar ?: "",
                         name = name,
@@ -389,7 +408,9 @@ fun MainApp(
                     )
                 }
 
-                composable(Screen.ChangePassword.route) {
+                composable(
+                    Screen.ChangePassword.route,
+                ) {
                     ChangePasswordScreen(
                         password = password,
                         onChangePassword = viewModel::onChangePassword,
@@ -429,7 +450,9 @@ fun MainApp(
                     )
                 }
 
-                composable(Screen.WebView.route) {
+                composable(
+                    Screen.WebView.route,
+                ) {
                     WebViewScreen(
                         url = socialLoginUrl,
                         clearSocialLoginUrl = viewModel::clearSocialLoginUrl,
