@@ -45,6 +45,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -273,8 +275,9 @@ fun ConversationContent(
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusManager = LocalFocusManager.current
     val pullToRefreshState = rememberPullToRefreshState()
-
     val conversationListState = rememberLazyListState()
+
+    val previousNodeSize = remember { mutableIntStateOf(conversationNode.size) }
 
     val speechRecognizerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -308,15 +311,15 @@ fun ConversationContent(
     }
 
     LaunchedEffect(conversationNode) {
-        if (conversationNode.isNotEmpty()) {
+        if (conversationNode.size > previousNodeSize.intValue) {
             conversationListState.scrollToItem(conversationNode.size - 1)
         }
+        previousNodeSize.intValue = conversationNode.size
     }
 
     Box(
         Modifier
             .nestedScroll(pullToRefreshState.nestedScrollConnection)
-            .verticalScroll(rememberScrollState())
     ) {
         Card(
             modifier = Modifier
@@ -358,6 +361,7 @@ fun ConversationContent(
                             Modifier
                                 .padding(16.dp)
                                 .fillMaxHeight(0.87f)
+                                .verticalScroll(rememberScrollState()),
                         ) {
                             ConversationCardLoader("video")
                             ConversationCardLoader("speech")
@@ -370,6 +374,7 @@ fun ConversationContent(
                             verticalArrangement = Arrangement.Center,
                             modifier = Modifier
                                 .fillMaxSize(0.87f)
+                                .verticalScroll(rememberScrollState()),
                         ) {
                             Text(
                                 text = "No conversation found",
@@ -384,6 +389,7 @@ fun ConversationContent(
                             verticalArrangement = Arrangement.Center,
                             modifier = Modifier
                                 .fillMaxSize(0.87f)
+                                .verticalScroll(rememberScrollState()),
                         ) {
                             Text(
                                 text = "An error occurred",
