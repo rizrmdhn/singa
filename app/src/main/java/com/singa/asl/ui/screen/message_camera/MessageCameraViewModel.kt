@@ -2,14 +2,11 @@ package com.singa.asl.ui.screen.message_camera
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.singa.asl.utils.ProgressFileUpload
 import com.singa.core.data.Resource
 import com.singa.core.domain.usecase.SingaUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import java.io.File
 
 
 class MessageCameraViewModel(

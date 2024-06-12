@@ -12,7 +12,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -140,6 +143,7 @@ fun MessageContent(
     onDeleteConversationNode: (id: Int) -> Unit
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
+    val rememberMessageListState = rememberLazyListState()
 
     Box(
         Modifier
@@ -158,7 +162,6 @@ fun MessageContent(
                 .background(
                     color = ColorBackgroundWhite
                 )
-
         ) {
             when {
                 isLoading -> {
@@ -171,7 +174,9 @@ fun MessageContent(
 
                 conversations.isEmpty() -> {
                     Column(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -190,7 +195,9 @@ fun MessageContent(
 
                 isError -> {
                     Column(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -202,7 +209,10 @@ fun MessageContent(
                 }
 
                 else -> {
-                    LazyColumn(Modifier.padding(16.dp)) {
+                    LazyColumn(
+                        Modifier.padding(16.dp),
+                        state = rememberMessageListState
+                    ) {
                         items(conversations, key = { it.id }) { conversation ->
                             CardItem(
                                 image = R.drawable.mdi_message_badge,
@@ -239,7 +249,7 @@ fun MessageContent(
             state = pullToRefreshState,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .absoluteOffset(y = (-60).dp)
+                .absoluteOffset(y = (-90).dp)
         )
     }
 }

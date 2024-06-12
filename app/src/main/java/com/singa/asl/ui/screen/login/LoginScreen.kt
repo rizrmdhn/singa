@@ -45,7 +45,6 @@ import com.singa.asl.R
 import com.singa.asl.ui.components.FormComp
 import com.singa.asl.ui.theme.AuthBackground
 import com.singa.asl.ui.theme.Color1
-import com.singa.asl.ui.theme.ColorBluePastelBackground
 import com.singa.core.domain.model.FormItem
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay

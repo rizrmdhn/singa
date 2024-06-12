@@ -29,7 +29,6 @@ import com.singa.asl.ui.components.ExoPlayerView
 import com.singa.asl.ui.components.HistoryDetailLoader
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
-import com.singa.asl.utils.timeStringToMillis
 import com.singa.asl.utils.timeToMillis
 import com.singa.core.data.Resource
 import com.singa.core.domain.model.StaticTranslationDetail

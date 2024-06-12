@@ -62,7 +62,17 @@ fun HomeContent(showModal: () -> Unit, viewModel: HomeViewModel = koinViewModel(
                     }
 
                     is Resource.Error -> {
-                        Log.e("HomeScreen", "Error: ${state.message}")
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                "Error Occurred: ${state.message}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
 
                     is Resource.Loading -> {
