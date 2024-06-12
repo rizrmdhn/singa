@@ -227,9 +227,7 @@ class CombinedLandmarkerHelper(
             // Rotate the image according to its rotation degrees
             postRotate(imageProxy.imageInfo.rotationDegrees.toFloat(), imageProxy.width / 2f, imageProxy.height / 2f)
             // Conditionally mirror the image if it's from the front camera
-            if (isFrontCamera) {
-                postScale(-1f, 1f, imageProxy.width / 2f, imageProxy.height / 2f)
-            }
+               
         }
 
 

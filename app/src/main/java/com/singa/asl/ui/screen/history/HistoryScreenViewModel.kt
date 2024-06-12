@@ -1,6 +1,5 @@
 package com.singa.asl.ui.screen.history
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.singa.core.data.Resource

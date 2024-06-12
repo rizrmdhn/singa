@@ -12,7 +12,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -139,6 +142,7 @@ fun HistoryContent(
     navigateToDetail: (String) -> Unit
 ) {
     val pullToRefreshState = rememberPullToRefreshState()
+    val historyListState = rememberLazyListState()
 
     Box(
         Modifier
@@ -169,7 +173,9 @@ fun HistoryContent(
 
                 staticTranslations.isEmpty() -> {
                     Column(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -188,7 +194,8 @@ fun HistoryContent(
 
                 isError -> {
                     Column(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -199,7 +206,10 @@ fun HistoryContent(
                     }
                 }
                 else -> {
-                    LazyColumn(Modifier.padding(16.dp)) {
+                    LazyColumn(
+                        Modifier.padding(16.dp),
+                        state = historyListState
+                    ) {
                         items(staticTranslations, key = { it.id }) { conversation ->
                             CardItem(
                                 image = R.drawable.mdi_message_badge,
@@ -238,7 +248,7 @@ fun HistoryContent(
             state = pullToRefreshState,
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .absoluteOffset(y = (-60).dp)
+                .absoluteOffset(y = (-90).dp)
         )
     }
 }

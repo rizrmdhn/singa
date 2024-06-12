@@ -21,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,7 +40,6 @@ import com.singa.asl.ui.screen.conversation.ConversationViewModel
 import com.singa.asl.ui.screen.history.HistoryScreenViewModel
 import com.singa.asl.ui.theme.Color1
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -93,28 +91,7 @@ fun ModalNavigation(
     ) {
         Button(
             onClick = {
-//                when {
-//                    cameraPermissionState.hasPermission -> {
-//                        navigateToRealtimeCamera()
-//                    }
-//
-//                    cameraPermissionState.shouldShowRationale -> {
-//                        Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
-//                    }
-//
-//                    storagePermissionState.hasPermission -> {
-//                        navigateToRealtimeCamera()
-//                    }
-//
-//                    storagePermissionState.shouldShowRationale -> {
-//                        Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
-//                    }
-//
-//                    else -> {
-//                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-//                        readStoragePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-//                    }
-//                }
+
                 staticDialog = true
             },
             shape = RoundedCornerShape(20),
@@ -162,6 +139,64 @@ fun ModalNavigation(
             Spacer(Modifier.width(16.dp))
             Text(
                 text = stringResource(R.string.start_a_conversation),
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedButton(
+            onClick = {
+                when {
+                    cameraPermissionState.hasPermission -> {
+                        navigateToRealtimeCamera()
+                    }
+
+                    cameraPermissionState.shouldShowRationale -> {
+                        Toast.makeText(
+                            context,
+                            "Permission denied",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    storagePermissionState.hasPermission -> {
+                        navigateToRealtimeCamera()
+                    }
+
+                    storagePermissionState.shouldShowRationale -> {
+                        Toast.makeText(
+                            context,
+                            "Permission denied",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    else -> {
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        readStoragePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    }
+                }
+            },
+            shape = RoundedCornerShape(20),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.White,
+                contentColor = Color1,
+
+                ),
+            border = BorderStroke(2.dp, Color1),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_camera_enhance_24),
+                contentDescription = stringResource(id = R.string.try_our_model),
+                modifier = Modifier.size(36.dp),
+            )
+            Spacer(Modifier.width(16.dp))
+            Text(
+                text = stringResource(R.string.try_our_model),
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
