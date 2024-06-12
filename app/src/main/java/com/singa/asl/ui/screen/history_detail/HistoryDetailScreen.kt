@@ -20,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -108,6 +109,7 @@ fun HistoryDetailContent(
                     Text(
                         text = transcript.text,
                         fontSize = 16.sp,
+                        fontWeight = if(isSelected) FontWeight.Bold else FontWeight.Normal,
                         modifier = Modifier
                             .padding(4.dp)
                             .then(
@@ -115,7 +117,7 @@ fun HistoryDetailContent(
                                     isSelected
                                 ) Modifier
                                     .background(
-                                        Color1.copy(alpha = 0.1f),
+                                        Color(0xFFE4E7E8),
                                     )
                                     .padding(4.dp)
                                 else Modifier.padding(4.dp)
