@@ -31,18 +31,18 @@ import com.singa.asl.ui.theme.Color5
 @Composable
 fun WelcomeScreen(
     onNavigateToLogin: () -> Unit,
-    onNavigateToGuest: () -> Unit
+    onLoginAsGuest: () -> Unit
 ) {
     WelcomeContent(
         onNavigateToLogin = onNavigateToLogin,
-        onNavigateToGuest = onNavigateToGuest
+        onLoginAsGuest = onLoginAsGuest
     )
 }
 
 @Composable
 fun WelcomeContent(
     onNavigateToLogin: () -> Unit,
-    onNavigateToGuest: () -> Unit,
+    onLoginAsGuest: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -124,7 +124,7 @@ fun WelcomeContent(
 
             Button(
                 onClick = {
-                    onNavigateToGuest()
+                    onLoginAsGuest()
                 },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color5,
@@ -147,7 +147,7 @@ fun WelcomeContent(
 fun WelcomeScreenPreview() {
     WelcomeScreen(
         onNavigateToLogin = {},
-        onNavigateToGuest = {}
+        onLoginAsGuest = {}
     )
 }
 
@@ -156,6 +156,6 @@ fun WelcomeScreenPreview() {
 fun WelcomeScreenDarkPreview() {
     WelcomeScreen(
         onNavigateToLogin = {},
-        onNavigateToGuest = {}
+        onLoginAsGuest = {}
     )
 }

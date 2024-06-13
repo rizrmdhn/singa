@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -43,9 +45,37 @@ import com.singa.core.domain.model.FormItem
 
 @Composable
 fun RegisterScreen(
+    name: String,
+    isNameError: Boolean,
+    nameError: String,
+    onNameEmail: (String) -> Unit,
+    email: String,
+    isEmailError: Boolean,
+    emailError: String,
+    onChangeEmail: (String) -> Unit,
+    password: String,
+    isPasswordError: Boolean,
+    passwordError: String,
+    onChangePassword: (String) -> Unit,
+    isRegisterLoading: Boolean,
+    onRegister: () -> Unit,
     navigateToLogin: () -> Unit
 ) {
     RegisterContent(
+        name = name,
+        isNameError = isNameError,
+        nameError = nameError,
+        onNameEmail = onNameEmail,
+        email = email,
+        isEmailError = isEmailError,
+        emailError = emailError,
+        onChangeEmail = onChangeEmail,
+        password = password,
+        isPasswordError = isPasswordError,
+        passwordError = passwordError,
+        onChangePassword = onChangePassword,
+        isRegisterLoading = isRegisterLoading,
+        onRegister = onRegister,
         navigateToLogin = navigateToLogin
     )
 }
@@ -53,6 +83,20 @@ fun RegisterScreen(
 @Composable
 fun RegisterContent(
     modifier: Modifier = Modifier,
+    name: String,
+    isNameError: Boolean,
+    nameError: String,
+    onNameEmail: (String) -> Unit,
+    email: String,
+    isEmailError: Boolean,
+    emailError: String,
+    onChangeEmail: (String) -> Unit,
+    password: String,
+    isPasswordError: Boolean,
+    passwordError: String,
+    onChangePassword: (String) -> Unit,
+    isRegisterLoading: Boolean,
+    onRegister: () -> Unit,
     navigateToLogin: () -> Unit,
 ) {
     var showPassword by remember {
@@ -61,10 +105,42 @@ fun RegisterContent(
 
     val formList = listOf(
         FormItem(
+            title = stringResource(R.string.name),
+            placeholder = stringResource(R.string.enter_your_name),
+            value = name,
+            onValueChange = {
+                onNameEmail(it)
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Person,
+                    contentDescription = null,
+                    tint = Color1
+                )
+            },
+            isError = isNameError,
+            errorMessage = nameError,
+            shape = RoundedCornerShape(10.dp),
+            visualTransformation = VisualTransformation.None,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+            colors = TextFieldDefaults.colors(
+                errorContainerColor = Color.White,
+                errorIndicatorColor = Color.Red,
+                errorTextColor = Color.Red,
+                focusedContainerColor = Color.White,
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedTextColor = Color1,
+                unfocusedContainerColor = Color.White,
+                unfocusedIndicatorColor = Color.Transparent,
+                focusedTextColor = Color1,
+            )
+        ),
+        FormItem(
             title = stringResource(R.string.email),
             placeholder = stringResource(R.string.enter_your_email),
-            value = "",
+            value = email,
             onValueChange = {
+                onChangeEmail(it)
             },
             leadingIcon = {
                 Icon(
@@ -73,23 +149,29 @@ fun RegisterContent(
                     tint = Color1
                 )
             },
-            isError = false,
-            errorMessage = "",
+            isError = isEmailError,
+            errorMessage = emailError,
             shape = RoundedCornerShape(10.dp),
             visualTransformation = VisualTransformation.None,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             colors = TextFieldDefaults.colors(
+                errorContainerColor = Color.White,
+                errorIndicatorColor = Color.Red,
+                errorTextColor = Color.Red,
                 focusedContainerColor = Color.White,
                 focusedIndicatorColor = Color.Transparent,
+                unfocusedTextColor = Color1,
                 unfocusedContainerColor = Color.White,
                 unfocusedIndicatorColor = Color.Transparent,
+                focusedTextColor = Color1,
             )
         ),
         FormItem(
             title = stringResource(R.string.password),
             placeholder = stringResource(R.string.enter_your_password),
-            value = "",
+            value = password,
             onValueChange = {
+                onChangePassword(it)
             },
             shape = RoundedCornerShape(10.dp),
             leadingIcon = {
@@ -114,15 +196,20 @@ fun RegisterContent(
                     )
                 }
             },
-            isError = false,
-            errorMessage = "",
+            isError = isPasswordError,
+            errorMessage = passwordError,
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             colors = TextFieldDefaults.colors(
+                errorContainerColor = Color.White,
+                errorIndicatorColor = Color.Red,
+                errorTextColor = Color.Red,
                 focusedContainerColor = Color.White,
                 focusedIndicatorColor = Color.Transparent,
+                unfocusedTextColor = Color1,
                 unfocusedContainerColor = Color.White,
                 unfocusedIndicatorColor = Color.Transparent,
+                focusedTextColor = Color1,
             )
         ),
     )
@@ -138,12 +225,14 @@ fun RegisterContent(
             .padding(
                 32.dp
             )
-    ) {
 
+        ) {
         FormComp(
             formData = formList,
-            onClickButton = { /*TODO*/ },
-            isLoading = false,
+            onClickButton = {
+                onRegister()
+            },
+            isLoading = isRegisterLoading,
             buttonText = "Register",
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -175,6 +264,20 @@ fun RegisterContent(
 @Composable
 fun LoginScreenPreview() {
     RegisterScreen(
+        name = "",
+        isNameError = false,
+        nameError = "",
+        onNameEmail = {},
+        email = "",
+        isEmailError = false,
+        emailError = "",
+        onChangeEmail = {},
+        password = "",
+        isPasswordError = false,
+        passwordError = "",
+        onChangePassword = {},
+        isRegisterLoading = false,
+        onRegister = {},
         navigateToLogin = {}
     )
 }
@@ -183,6 +286,20 @@ fun LoginScreenPreview() {
 @Composable
 fun LoginScreenDarkPreview() {
     RegisterScreen(
+        name = "",
+        isNameError = false,
+        nameError = "",
+        onNameEmail = {},
+        email = "",
+        isEmailError = false,
+        emailError = "",
+        onChangeEmail = {},
+        password = "",
+        isPasswordError = false,
+        passwordError = "",
+        onChangePassword = {},
+        isRegisterLoading = false,
+        onRegister = {},
         navigateToLogin = {}
     )
 }

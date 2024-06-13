@@ -1,8 +1,17 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
+val appMode: Boolean = gradleLocalProperties(rootDir, providers).getProperty("APP_MODE") == "dev"
+val productionMode: Boolean = gradleLocalProperties(rootDir, providers).getProperty("PRODUCTION_MODE") == "true"
+val apiUrl: String = gradleLocalProperties(rootDir, providers).getProperty("API_URL")
+val apiUrlProd: String = gradleLocalProperties(rootDir, providers).getProperty("API_URL_PROD")
+val articleUrl: String = gradleLocalProperties(rootDir, providers).getProperty("ARTICLE_URL")
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
 }
 
+project.ext.set("ASSET_DIR", "$projectDir/src/main/assets")
 apply(from = "../shared_dependencies.gradle")
 
 android {
@@ -20,6 +29,12 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        buildConfigField("String", "BASE_URL", "\"$apiUrl\"")
+        buildConfigField("String", "BASE_URL_PROD", "\"$apiUrlProd\"")
+        buildConfigField("Boolean", "PRODUCTION_MODE", "$productionMode")
+        buildConfigField("Boolean", "APP_MODE", "$appMode")
+        buildConfigField("String", "ARTICLE_URL", "\"$articleUrl\"")
     }
 
     buildTypes {
@@ -41,6 +56,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
+        mlModelBinding = true
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -55,6 +71,8 @@ android {
 dependencies {
     implementation(project(":core"))
 
+    implementation(libs.mobile.ffmpeg.full.gpl)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -63,6 +81,8 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.tensorflow.lite.gpu)
+    implementation(libs.androidx.media3.exoplayer.hls)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

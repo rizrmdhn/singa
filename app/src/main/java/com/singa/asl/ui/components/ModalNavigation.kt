@@ -2,7 +2,6 @@ package com.singa.asl.ui.components
 
 import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -22,6 +21,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -30,16 +33,30 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import com.singa.asl.R
+import com.singa.asl.ui.screen.conversation.ConversationViewModel
+import com.singa.asl.ui.screen.history.HistoryScreenViewModel
 import com.singa.asl.ui.theme.Color1
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun ModalNavigation(
     context: Context = LocalContext.current,
     navigateToRealtimeCamera: () -> Unit,
-    navigateToConversation: () -> Unit
+    navigateToHistoryCamera: (String) -> Unit,
+    navigateToConversation: (String) -> Unit,
+    dismissBottomSheet: () -> Unit,
+    viewModelConversation: ConversationViewModel = koinViewModel(),
+    viewModelStatic: HistoryScreenViewModel = koinViewModel()
 ) {
+    val storagePermissionState = rememberPermissionState(Manifest.permission.READ_EXTERNAL_STORAGE)
+    val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
+
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {
@@ -50,6 +67,22 @@ fun ModalNavigation(
         }
     }
 
+    val readStoragePermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (it) {
+            navigateToRealtimeCamera()
+        } else {
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    var conversationDialog by remember { mutableStateOf(false) }
+    var conversationTitle by remember { mutableStateOf("") }
+    var staticDialog by remember { mutableStateOf(false) }
+    var staticTitle by remember { mutableStateOf("") }
+
+
     Column(
         Modifier
             .fillMaxHeight(0.3f)
@@ -58,16 +91,8 @@ fun ModalNavigation(
     ) {
         Button(
             onClick = {
-                val permissionCheckResult =
-                    ContextCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.CAMERA
-                    )
-                if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                    navigateToRealtimeCamera()
-                } else {
-                    cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                }
+
+                staticDialog = true
             },
             shape = RoundedCornerShape(20),
             colors = ButtonDefaults.buttonColors(
@@ -93,7 +118,7 @@ fun ModalNavigation(
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedButton(
             onClick = {
-                navigateToConversation()
+                conversationDialog = true
             },
             shape = RoundedCornerShape(20),
             colors = ButtonDefaults.outlinedButtonColors(
@@ -118,5 +143,103 @@ fun ModalNavigation(
                 fontSize = 20.sp
             )
         }
+
+        Spacer(modifier = Modifier.height(12.dp))
+        OutlinedButton(
+            onClick = {
+                when {
+                    cameraPermissionState.hasPermission -> {
+                        navigateToRealtimeCamera()
+                    }
+
+                    cameraPermissionState.shouldShowRationale -> {
+                        Toast.makeText(
+                            context,
+                            "Permission denied",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    storagePermissionState.hasPermission -> {
+                        navigateToRealtimeCamera()
+                    }
+
+                    storagePermissionState.shouldShowRationale -> {
+                        Toast.makeText(
+                            context,
+                            "Permission denied",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    else -> {
+                        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                        readStoragePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                    }
+                }
+            },
+            shape = RoundedCornerShape(20),
+            colors = ButtonDefaults.outlinedButtonColors(
+                containerColor = Color.White,
+                contentColor = Color1,
+
+                ),
+            border = BorderStroke(2.dp, Color1),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.baseline_camera_enhance_24),
+                contentDescription = stringResource(id = R.string.try_our_model),
+                modifier = Modifier.size(36.dp),
+            )
+            Spacer(Modifier.width(16.dp))
+            Text(
+                text = stringResource(R.string.try_our_model),
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp
+            )
+        }
+    }
+
+    if (staticDialog) {
+        PopupInputAlertDialog(
+            title = "Create a static translation",
+            value = staticTitle,
+            isLoading = viewModelStatic.createStaticStateIsLoading,
+            onValueChange = {
+                staticTitle = it
+            },
+            onDismissRequest = { staticDialog = false },
+            confirmButton = {
+                MainScope().launch {
+                    navigateToHistoryCamera(staticTitle)
+                }
+            }
+        )
+    }
+
+    if (conversationDialog) {
+        PopupInputAlertDialog(
+            title = "Create a conversation",
+            value = conversationTitle,
+            isLoading = viewModelConversation.createConversationStateIsLoading,
+            onValueChange = { conversationTitle = it },
+            onDismissRequest = { conversationDialog = false },
+            confirmButton = {
+                MainScope().launch {
+                    viewModelConversation.createConversation(
+                        title = conversationTitle,
+                        navigateToConversation = { id ->
+                            navigateToConversation(id)
+                        }
+                    )
+                    // These lines will only be executed after the createConversation coroutine is done
+                    conversationDialog = false
+                    dismissBottomSheet()
+                }
+            }
+        )
     }
 }

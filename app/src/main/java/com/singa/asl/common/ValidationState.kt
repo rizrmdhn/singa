@@ -6,5 +6,6 @@ data class ValidationState(
     val emailError: String? = null,
     val passwordError: String? = null,
     val confirmPasswordError: String? = null,
-    val avatarError: String? = null
+    val avatarError: String? = null,
+    val isSignUser: Boolean? = null
 )
