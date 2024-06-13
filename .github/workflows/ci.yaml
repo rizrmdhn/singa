@@ -75,6 +75,10 @@ jobs:
           echo "latest_tag=$latest_tag" >> $GITHUB_ENV
         shell: bash
 
+      - name: Print latest tag
+        run: |
+          echo "Latest tag is: ${{ env.latest_tag }}"
+
       - name: Generate new version
         id: generate_version
         run: |
@@ -88,6 +92,10 @@ jobs:
           echo "version=$new_version" >> $GITHUB_ENV
         shell: bash
 
+      - name: Print new version
+        run: |
+          echo "New version is: ${{ env.version }}"
+
       - name: Check if tag exists
         id: check_tag
         run: |
@@ -97,6 +105,7 @@ jobs:
           else
             echo "Tag ${{ env.version }} does not exist."
             echo "TAG_EXISTS=false" >> $GITHUB_ENV
+          fi
         shell: bash
 
       - name: Generate unique version if tag exists
