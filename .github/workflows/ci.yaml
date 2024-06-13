@@ -9,10 +9,10 @@ on:
       - main
   workflow_dispatch:
     inputs:
-      tag_name:
-        description: "Tag name for the release"
-        required: true
-        default: "v1.0.0"
+      tag_prefix:
+        description: "Tag prefix for the release"
+        required: false
+        default: "v"
 
 jobs:
   build:
@@ -76,19 +76,45 @@ jobs:
           name: apk-files
           path: .
 
-      - name: Get commit message
-        id: get_commit_message
-        run: echo "COMMIT_MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+      - name: Get latest tag
+        id: get_latest_tag
+        run: |
+          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "${{ github.event.inputs.tag_prefix }}0.0.0")
+          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Generate new version
+        id: generate_version
+        run: |
+          latest_tag=${{ env.latest_tag }}
+          IFS='.' read -r -a version_parts <<< "${latest_tag#${{ github.event.inputs.tag_prefix }}}"
+          major=${version_parts[0]}
+          minor=${version_parts[1]}
+          patch=${version_parts[2]}
+          new_patch=$((patch + 1))
+          if [ $new_patch -ge 10 ]; then
+            new_minor=$((minor + 1))
+            new_patch=0
+            new_version="${{ github.event.inputs.tag_prefix }}$major.$new_minor.$new_patch"
+          else
+            new_version="${{ github.event.inputs.tag_prefix }}$major.$minor.$new_patch"
+          fi
+          echo "new_version=$new_version" >> $GITHUB_ENV
         shell: bash
 
       - name: Create new Git tag
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
-          git tag ${{ github.event.inputs.tag_name }}
-          git push origin ${{ github.event.inputs.tag_name }}
+          git tag ${{ env.new_version }}
+          git push origin ${{ env.new_version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+
+      - name: Get commit message
+        id: get_commit_message
+        run: echo "COMMIT_MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
         shell: bash
 
       - name: Create GitHub Release
@@ -97,8 +123,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.event.inputs.tag_name }}
-          release_name: Release ${{ github.event.inputs.tag_name }}
+          tag_name: ${{ env.new_version }}
+          release_name: Release ${{ env.new_version }}
           body: ${{ env.COMMIT_MESSAGE }}
           draft: false
           prerelease: false
