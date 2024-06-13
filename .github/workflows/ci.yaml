@@ -45,7 +45,11 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew assembleRelease
 
+      - name: List output directory
+        run: ls -R app/build/outputs/apk/release
+
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v2
         with:
           name: app-release.apk
