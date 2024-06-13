@@ -12,7 +12,7 @@ on:
       tag_name:
         description: "Tag name for the release"
         required: true
-        default: "v.5.0"
+        default: "v0.5.0"
 
 jobs:
   build:
@@ -74,6 +74,11 @@ jobs:
           name: apk-files
           path: .
 
+      - name: Get commit message
+        id: get_commit_message
+        run: echo "COMMIT_MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+        shell: bash
+
       - name: Create new Git tag
         run: |
           git config --global user.email "actions@github.com"
@@ -91,6 +96,7 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.tag_name }}
           release_name: Release ${{ github.event.inputs.tag_name }}
+          body: ${{ env.COMMIT_MESSAGE }}
           draft: false
           prerelease: false
 
