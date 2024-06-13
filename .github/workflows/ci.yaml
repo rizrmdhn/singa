@@ -75,10 +75,6 @@ jobs:
           echo "latest_tag=$latest_tag" >> $GITHUB_ENV
         shell: bash
 
-      - name: Print latest tag
-        run: |
-          echo "Latest tag is: ${{ env.latest_tag }}"
-
       - name: Generate new version
         id: generate_version
         run: |
@@ -91,10 +87,6 @@ jobs:
           new_version="v$major.$minor.$new_patch"
           echo "version=$new_version" >> $GITHUB_ENV
         shell: bash
-
-      - name: Print new version
-        run: |
-          echo "New version is: ${{ env.version }}"
 
       - name: Check if tag exists
         id: check_tag
