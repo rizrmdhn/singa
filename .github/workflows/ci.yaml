@@ -72,28 +72,28 @@ jobs:
         id: get_latest_tag
         run: |
           latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
-          echo "::set-output name=latest_tag::$latest_tag"
+          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
         shell: bash
 
       - name: Generate new version
         id: generate_version
         run: |
-          latest_tag=${{ steps.get_latest_tag.outputs.latest_tag }}
+          latest_tag=${{ env.latest_tag }}
           IFS='.' read -r -a version_parts <<< "${latest_tag#v}"
           major=${version_parts[0]}
           minor=${version_parts[1]}
           patch=${version_parts[2]}
           new_patch=$((patch + 1))
           new_version="v$major.$minor.$new_patch"
-          echo "::set-output name=version::$new_version"
+          echo "version=$new_version" >> $GITHUB_ENV
         shell: bash
 
       - name: Create new Git tag
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
-          git tag ${{ steps.generate_version.outputs.version }}
-          git push origin ${{ steps.generate_version.outputs.version }}
+          git tag ${{ env.version }}
+          git push origin ${{ env.version }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -103,8 +103,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.generate_version.outputs.version }}
-          release_name: Release ${{ steps.generate_version.outputs.version }}
+          tag_name: ${{ env.version }}
+          release_name: Release ${{ env.version }}
           draft: false
           prerelease: false
 
