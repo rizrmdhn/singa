@@ -8,4 +8,5 @@ sealed class Resource<out T> {
     data class Error(val message: String) : Resource<Nothing>()
     data class ValidationError(val errors: List<ValidationErrorSchema>) : Resource<Nothing>()
     data class Loading(val data: Any? = null) : Resource<Nothing>()
+    data class Empty(val data: Any? = null) : Resource<Nothing>()
 }

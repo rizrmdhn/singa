@@ -1,5 +1,6 @@
 package com.singa.core.di
 
+import com.google.gson.GsonBuilder
 import com.singa.core.BuildConfig
 import com.singa.core.data.SingaRepository
 import com.singa.core.data.source.local.LocalDataSource
@@ -39,7 +40,7 @@ val networkModule = module {
 
         OkHttpClient.Builder()
             .addInterceptor(
-                if (BuildConfig.DEBUG) HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
+                if (!BuildConfig.PRODUCTION_MODE) HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY)
                 else HttpLoggingInterceptor().setLevel(
                     HttpLoggingInterceptor.Level.NONE
                 )
@@ -50,9 +51,16 @@ val networkModule = module {
             .build()
     }
     single {
+        val gson = GsonBuilder()
+            .setLenient()
+            .create()
+
         val retrofit = Retrofit.Builder()
-            .baseUrl(BuildConfig.BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
+            .baseUrl(
+                if (BuildConfig.PRODUCTION_MODE) BuildConfig.BASE_URL_PROD
+                else BuildConfig.BASE_URL
+            )
+            .addConverterFactory(GsonConverterFactory.create(gson))
             .client(get<OkHttpClient>())
             .build()
         retrofit.create(ApiService::class.java)

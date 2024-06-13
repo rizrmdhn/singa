@@ -2,6 +2,8 @@ package com.singa.asl.ui.components
 
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -21,10 +23,15 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImagePainter
+import coil.compose.SubcomposeAsyncImage
+import coil.compose.SubcomposeAsyncImageContent
 import com.singa.asl.R
 import com.singa.asl.ui.navigation.Screen
 import com.singa.asl.ui.theme.Color1
@@ -34,18 +41,23 @@ import java.util.Locale
 @Composable
 fun TopBar(
     currentRoute: String?,
+    name: String,
+    avatarUrl: String,
+    resetForm: () -> Unit,
     navigateToProfile: () -> Unit,
     navigateBack: () -> Unit
 ) {
     when (currentRoute) {
         Screen.Home.route -> TopBarProfile(
+            name = name,
+            avatarUrl = avatarUrl,
             navigateToProfile,
         )
 
         else -> TopBarLeftIcon(
             navigateBack = navigateBack,
+            resetForm = resetForm,
             route = currentRoute.toString()
-                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
         )
     }
 }
@@ -54,18 +66,33 @@ fun TopBar(
 @Composable
 fun TopBarLeftIcon(
     route: String,
+    resetForm: () -> Unit,
     navigateBack: () -> Unit
 ) {
-    val colorPaint: Color =
-        if (route == Screen.Login.route || route == "register") Color.Black else Color.White
+    val colorPaint: Color = Color.White
 
     val listOfShowBackButton = listOf(
         Screen.Conversation.route,
         Screen.Login.route,
         Screen.Register.route,
+        Screen.ProfileDetail.route,
+        Screen.ChangePassword.route,
+        Screen.WebView.route,
+        Screen.HistoryDetail.route,
+        Screen.MessageCamera.route,
+        Screen.ConversationDetail.route
     )
 
-    val showBackButton = listOfShowBackButton.contains(route.lowercase())
+    val showBackButton = listOfShowBackButton.contains(route.lowercase(Locale.ROOT))
+
+    val modifiedText = route
+        .replace("_", " ")
+        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+        .split(" ").joinToString(" ") {
+            it.replaceFirstChar { char -> if (char.isLowerCase()) char.titlecase(Locale.getDefault()) else char.toString() }
+        }
+
+
 
     CenterAlignedTopAppBar(
         modifier = Modifier.padding(horizontal = 16.dp),
@@ -73,17 +100,66 @@ fun TopBarLeftIcon(
             containerColor = Color.Transparent
         ),
         title = {
-            Text(
-                text = route,
-                fontWeight = FontWeight.Bold,
-                color = colorPaint,
-                fontSize = 28.sp
-            )
+            when {
+                route == Screen.HistoryCamera.route -> {
+                    Text(
+                        text = "History Camera",
+                        fontWeight = FontWeight.Bold,
+                        color = colorPaint,
+                        fontSize = 28.sp
+                    )
+                }
+                route == Screen.HistoryDetail.route -> {
+                    Text(
+                        text = "History Detail",
+                        fontWeight = FontWeight.Bold,
+                        color = colorPaint,
+                        fontSize = 28.sp
+                    )
+                }
+                route == Screen.MessageCamera.route -> {
+                    Text(
+                        text = "Message Camera",
+                        fontWeight = FontWeight.Bold,
+                        color = colorPaint,
+                        fontSize = 28.sp
+                    )
+                }
+
+                route == Screen.ConversationDetail.route -> {
+                    Text(
+                        text = "Conversation Detail",
+                        fontWeight = FontWeight.Bold,
+                        color = colorPaint,
+                        fontSize = 28.sp
+                    )
+                }
+
+                route == Screen.Conversation.route -> {
+                    Text(
+                        text = "Conversation",
+                        fontWeight = FontWeight.Bold,
+                        color = colorPaint,
+                        fontSize = 28.sp
+                    )
+                }
+                route != Screen.WebView.route -> {
+                    Text(
+                        text = modifiedText,
+                        fontWeight = FontWeight.Bold,
+                        color = colorPaint,
+                        fontSize = 28.sp
+                    )
+                }
+            }
         },
         navigationIcon = {
             if (showBackButton) {
                 IconButton(
                     onClick = {
+                        if (route == Screen.ProfileDetail.route || route == Screen.ChangePassword.route) {
+                            resetForm()
+                        }
                         navigateBack()
                     }
                 ) {
@@ -101,6 +177,8 @@ fun TopBarLeftIcon(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TopBarProfile(
+    name: String,
+    avatarUrl: String,
     navigateToProfile: () -> Unit
 ) {
     TopAppBar(
@@ -117,9 +195,11 @@ fun TopBarProfile(
                     color = Color(0xFFD5F4FC)
                 )
                 Text(
-                    text = "John Doe",
-                    fontSize = 28.sp,
+                    text = name,
+                    fontSize = 20.sp,
+                    maxLines = 1,
                     fontWeight = FontWeight.Medium,
+                    overflow = TextOverflow.Ellipsis,
                     color = Color.White
                 )
             }
@@ -136,13 +216,45 @@ fun TopBarProfile(
                     navigateToProfile()
                 }
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.boy_1),
+                SubcomposeAsyncImage(
+                    model = avatarUrl,
                     contentDescription = "profile",
-                    modifier = Modifier
-                        .size(30.dp)
-                        .padding(top = 10.dp)
-                )
+                    contentScale = ContentScale.FillBounds,
+                ) {
+                    when (this.painter.state) {
+                        is AsyncImagePainter.State.Loading -> {
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        shimmerBrush(
+                                            targetValue = 1300f,
+                                            showShimmer = true
+                                        )
+                                    )
+                                    .size(30.dp)
+                                    .padding(top = 10.dp)
+                            )
+                        }
+
+                        is AsyncImagePainter.State.Success -> {
+                            SubcomposeAsyncImageContent()
+                        }
+
+                        is AsyncImagePainter.State.Error -> {
+                            Image(
+                                painter = painterResource(id = R.drawable.boy_1),
+                                contentDescription = "profile",
+                            )
+                        }
+
+                        is AsyncImagePainter.State.Empty -> {
+                            Image(
+                                painter = painterResource(id = R.drawable.boy_1),
+                                contentDescription = "profile",
+                            )
+                        }
+                    }
+                }
             }
         }
     )

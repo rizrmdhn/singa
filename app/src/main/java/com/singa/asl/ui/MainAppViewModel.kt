@@ -1,15 +1,11 @@
 package com.singa.asl.ui
 
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.singa.asl.common.ValidationState
 import com.singa.asl.utils.FormValidators
 import com.singa.core.data.Resource
-import com.singa.core.domain.model.User
 import com.singa.core.domain.usecase.SingaUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -17,14 +13,21 @@ import kotlinx.coroutines.launch
 class MainAppViewModel(
     private val singaUseCase: SingaUseCase
 ) : ViewModel() {
-    private val _authUser: MutableStateFlow<User?> = MutableStateFlow(null)
-    val authUser: MutableStateFlow<User?> get() = _authUser
 
-    private val _isSecondLaunch: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val isSecondLaunch: MutableStateFlow<Boolean> get() = _isSecondLaunch
+    private val _socialLoginUrl: MutableStateFlow<String> = MutableStateFlow("")
+    val socialLoginUrl: MutableStateFlow<String> get() = _socialLoginUrl
+
+    private val _loginIsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val loginIsLoading get() = _loginIsLoading.value
+
+    private val _registerIsLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val registerIsLoading get() = _registerIsLoading.value
 
     private val _validationState = mutableStateOf(ValidationState().copy())
     val validationState: ValidationState get() = _validationState.value
+
+    private val _name: MutableStateFlow<String> = MutableStateFlow("")
+    val name: MutableStateFlow<String> get() = _name
 
     private val _email: MutableStateFlow<String> = MutableStateFlow("")
     val email: MutableStateFlow<String> get() = _email
@@ -32,41 +35,39 @@ class MainAppViewModel(
     private val _password: MutableStateFlow<String> = MutableStateFlow("")
     val password: MutableStateFlow<String> get() = _password
 
-    init {
-        checkSecondLaunch()
-        getAuthUser()
+    private val _confirmPassword: MutableStateFlow<String> = MutableStateFlow("")
+    val confirmPassword: MutableStateFlow<String> get() = _confirmPassword
+
+    private val _isSignUser: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val isSignUser: MutableStateFlow<Boolean> get() = _isSignUser
+
+
+    fun setSocialLoginUrl(url: String) {
+        _socialLoginUrl.value = url
     }
 
-    private fun checkSecondLaunch() {
-        viewModelScope.launch {
-            singaUseCase.getIsSecondLaunch().collect {
-                _isSecondLaunch.value = it
-            }
-        }
+    fun clearSocialLoginUrl() {
+        _socialLoginUrl.value = ""
     }
 
-    private fun getAuthUser() {
-        viewModelScope.launch {
-            singaUseCase.getMe().collect {
-                when (it) {
-                    is Resource.Success -> {
-                        _authUser.value = it.data
-                    }
-
-                    is Resource.Error -> {
-                        _authUser.value = null
-                    }
-
-                    is Resource.Loading -> {
-                        _authUser.value = null
-                    }
-
-                    is Resource.ValidationError -> {
-                        _authUser.value = null
-                    }
-                }
-            }
+    fun onChangeName(name: String) {
+        _validationState.value = if (name.isBlank()) {
+            validationState.copy(
+                nameError = "Name is required"
+            )
+        } else if (!FormValidators.nameLength(name)) {
+            validationState.copy(
+                nameError = "Name must be at least 3 characters"
+            )
+        } else if (!FormValidators.isNameValid(name)) {
+            validationState.copy(
+                nameError = "Name is invalid"
+            )
+        } else {
+            validationState.copy(nameError = null)
         }
+
+        _name.value = name
     }
 
     fun onChangeEmail(email: String) {
@@ -101,7 +102,291 @@ class MainAppViewModel(
         _password.value = password
     }
 
+    fun onChangeConfirmPassword(confirmPassword: String) {
+        _validationState.value = if (confirmPassword.isBlank()) {
+            validationState.copy(
+                confirmPasswordError = "Confirm Password is required"
+            )
+        } else if (!FormValidators.isPasswordValid(confirmPassword)) {
+            validationState.copy(
+                confirmPasswordError = "Confirm Password must be at least 8 characters"
+            )
+        } else if (confirmPassword != password.value) {
+            validationState.copy(
+                confirmPasswordError = "Confirm Password must be same as Password"
+            )
+        } else {
+            validationState.copy(confirmPasswordError = null)
+        }
+
+        _confirmPassword.value = confirmPassword
+    }
+
+    fun setSignUser(isSignUser: Boolean) {
+        _isSignUser.value = isSignUser
+    }
+
+    fun onChangeSignUser() {
+        _isSignUser.value = !_isSignUser.value
+    }
+
+    fun onLoginAsGuest(
+        getAuthUser: () -> Unit,
+        navigateToHome: () -> Unit,
+        showDialog: (String, String) -> Unit
+    ) {
+        viewModelScope.launch {
+            _loginIsLoading.value = true
+            singaUseCase.guest().collect {
+                when (it) {
+                    is Resource.Success -> {
+                        showDialog("Success", "Login as guest success make sure to update your email and password to secure your account")
+                        singaUseCase.saveAccessToken(it.data.accessToken)
+                        singaUseCase.saveRefreshToken(it.data.refreshToken)
+                        getAuthUser()
+                        navigateToHome()
+                        _loginIsLoading.value = false
+                        cleanName()
+                        cleanEmail()
+                        cleanPassword()
+                        cleanValidationState()
+                    }
+
+                    is Resource.Empty -> {
+                        showDialog("Error", "Something went wrong")
+                        _loginIsLoading.value = false
+                    }
+
+                    is Resource.Error -> {
+                        showDialog("Error", it.message)
+                        _loginIsLoading.value = false
+                    }
+
+                    is Resource.Loading -> {
+                        _loginIsLoading.value = true
+                    }
+
+                    is Resource.ValidationError -> {
+                    }
+                }
+            }
+        }
+    }
+
+    fun onLogin(
+        getAuthUser: () -> Unit,
+        navigateToHome: () -> Unit,
+        showDialog: (String, String) -> Unit
+    ) {
+        if (email.value.isBlank() || password.value.isBlank()) {
+            _validationState.value = validationState.copy(
+                emailError = "Email is required",
+                passwordError = "Password is required"
+            )
+            return
+        }
+
+        if (!FormValidators.isEmailValid(email.value)) {
+            _validationState.value = validationState.copy(
+                emailError = "Email is invalid"
+            )
+        }
+
+        if (!FormValidators.isPasswordValid(password.value)) {
+            _validationState.value = validationState.copy(
+                passwordError = "Password must be at least 8 characters"
+            )
+        }
+
+        if (validationState.emailError != null || validationState.passwordError != null) {
+            return
+        }
+
+        viewModelScope.launch {
+            _loginIsLoading.value = true
+            singaUseCase.login(email.value, password.value).collect {
+                when (it) {
+                    is Resource.Success -> {
+                        showDialog("Success", "Login success")
+                        singaUseCase.saveAccessToken(it.data.accessToken)
+                        singaUseCase.saveRefreshToken(it.data.refreshToken)
+                        getAuthUser()
+                        navigateToHome()
+                        _loginIsLoading.value = false
+                        cleanName()
+                        cleanEmail()
+                        cleanPassword()
+                        cleanValidationState()
+                    }
+
+                    is Resource.Empty -> {
+                        showDialog("Error", "Something went wrong")
+                        _loginIsLoading.value = false
+                    }
+
+                    is Resource.Error -> {
+                        showDialog("Error", it.message)
+                        _loginIsLoading.value = false
+                    }
+
+                    is Resource.Loading -> {
+                        _loginIsLoading.value = true
+                    }
+
+                    is Resource.ValidationError -> {
+                        _loginIsLoading.value = false
+                        it.errors.forEach { (msg, _, field) ->
+                            when (field) {
+                                "email" -> {
+                                    _validationState.value = validationState.copy(
+                                        emailError = msg
+                                    )
+                                }
+
+                                "password" -> {
+                                    _validationState.value = validationState.copy(
+                                        passwordError = msg
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun onRegister(
+        navigateToLogin: () -> Unit,
+        showDialog: (String, String) -> Unit
+    ) {
+        if (email.value.isBlank() || password.value.isBlank() || name.value.isBlank()) {
+            _validationState.value = validationState.copy(
+                nameError = "Name is required",
+                emailError = "Email is required",
+                passwordError = "Password is required"
+            )
+            return
+        }
+
+        if (!FormValidators.isNameValid(name.value)) {
+            _validationState.value = validationState.copy(
+                nameError = "Name is invalid"
+            )
+        }
+
+        if (!FormValidators.isEmailValid(email.value)) {
+            _validationState.value = validationState.copy(
+                emailError = "Email is invalid"
+            )
+        }
+
+        if (!FormValidators.isPasswordValid(password.value)) {
+            _validationState.value = validationState.copy(
+                passwordError = "Password must be at least 8 characters"
+            )
+        }
+
+
+        if (validationState.emailError != null || validationState.passwordError != null) {
+            return
+        }
+
+        viewModelScope.launch {
+            _registerIsLoading.value = true
+            singaUseCase.register(name.value, email.value, password.value).collect {
+                when (it) {
+                    is Resource.Success -> {
+                        navigateToLogin()
+                        _registerIsLoading.value = false
+                        showDialog("Success", "Register success")
+                        cleanName()
+                        cleanEmail()
+                        cleanPassword()
+                        cleanValidationState()
+                    }
+
+                    is Resource.Empty -> {
+                        showDialog("Error", "Something went wrong")
+                        _registerIsLoading.value = false
+                    }
+
+                    is Resource.Error -> {
+                        showDialog("Error", it.message)
+                        _registerIsLoading.value = false
+                    }
+
+                    is Resource.Loading -> {
+                        _registerIsLoading.value = true
+                    }
+
+                    is Resource.ValidationError -> {
+                        _registerIsLoading.value = false
+                        it.errors.forEach { (msg, _, field) ->
+                            when (field) {
+                                "name" -> {
+                                    _validationState.value = validationState.copy(
+                                        nameError = msg
+                                    )
+                                }
+
+                                "email" -> {
+                                    _validationState.value = validationState.copy(
+                                        emailError = msg
+                                    )
+                                }
+
+                                "password" -> {
+                                    _validationState.value = validationState.copy(
+                                        passwordError = msg
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun cleanName() {
+        _name.value = ""
+    }
+
+    fun cleanEmail() {
+        _email.value = ""
+    }
+
+    fun cleanPassword() {
+        _password.value = ""
+    }
+
+    private fun cleanConfirmPassword() {
+        _confirmPassword.value = ""
+    }
+
+    fun clearPasswordAndConfirmPassword() {
+        cleanPassword()
+        cleanConfirmPassword()
+    }
+
+    private fun cleanSignUser() {
+        _isSignUser.value = false
+    }
+
+    fun resetForm() {
+        cleanName()
+        cleanEmail()
+        cleanPassword()
+        cleanSignUser()
+        cleanValidationState()
+    }
+
     fun updateValidationState(validationState: ValidationState) {
         _validationState.value = validationState
+    }
+
+    fun cleanValidationState() {
+        _validationState.value = ValidationState().copy()
     }
 }

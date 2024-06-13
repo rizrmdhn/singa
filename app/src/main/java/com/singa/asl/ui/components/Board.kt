@@ -23,7 +23,7 @@ import com.singa.asl.R
 import com.singa.asl.ui.theme.Color1
 
 @Composable
-fun Board() {
+fun Board(showModal:()->Unit) {
     Surface(
         modifier = Modifier.padding(16.dp),
         color = Color(0x4DF1F4FF),
@@ -45,7 +45,7 @@ fun Board() {
             )
             Spacer(modifier = Modifier.height(8.dp))
             Button(
-                onClick = { /*TODO*/ },
+                onClick =showModal,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color.White,
                     contentColor = Color1

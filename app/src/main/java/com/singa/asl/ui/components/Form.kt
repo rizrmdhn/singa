@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -25,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -40,6 +42,7 @@ import com.singa.core.domain.model.FormItem
 fun FormComp(
     formData: List<FormItem>,
     buttonText: String = "Login",
+    needSubmitButton: Boolean = true,
     onClickButton: () -> Unit,
     isLoading: Boolean = false,
 ) {
@@ -54,7 +57,7 @@ fun FormComp(
                 modifier = Modifier
                     .padding(8.dp)
             )
-            (if (data.colors != null)  data.colors else TextFieldDefaults.colors())?.let { colors ->
+            (if (data.colors != null) data.colors else TextFieldDefaults.colors())?.let { colors ->
                 TextField(
                     placeholder = {
                         Text(
@@ -74,25 +77,25 @@ fun FormComp(
                         if (data.isError) {
                             Text(
                                 text = data.errorMessage,
-                                color = MaterialTheme.colorScheme.error,
+                                color = Color.Red,
                                 modifier = Modifier.testTag("error_message")
                             )
                         }
                     },
                     visualTransformation = data.visualTransformation,
                     trailingIcon = {
-                        data.trailingIcon?.invoke()
                         Row(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
                                 .padding(8.dp)
                         ) {
+                            data.trailingIcon?.invoke()
                             if (data.isError) {
                                 Icon(
                                     imageVector = Icons.Filled.Info,
                                     contentDescription = stringResource(R.string.error_icon),
-                                    tint = MaterialTheme.colorScheme.error
+                                    tint = Color.Red,
                                 )
                             }
                         }
@@ -103,33 +106,39 @@ fun FormComp(
                 )
             }
             Spacer(
-                modifier = Modifier.height(26.dp)
+                modifier = Modifier.height(16.dp)
             )
         }
     }
-    TextButton(
-        enabled = !isLoading,
-        onClick = {
-            onClickButton()
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(58.dp)
-            .clip(
-                RoundedCornerShape(12.dp)
-            )
-            .background(
-                Color1
-            )
-    ) {
-        if (isLoading) {
-            CircularProgressIndicator(
-                color = MaterialTheme.colorScheme.background,
-            )
-        } else {
+    if (needSubmitButton) {
+        TextButton(
+            enabled = !isLoading,
+            onClick = {
+                onClickButton()
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(58.dp)
+                .clip(
+                    RoundedCornerShape(12.dp)
+                )
+                .background(
+                    if (isLoading) {
+                        Color1.copy(alpha = 0.7f)
+                    } else {
+                        Color1
+                    }
+                )
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.background,
+                )
+                Spacer(modifier = Modifier.width(16.dp))
+            }
             Text(
                 text = buttonText,
-                color = MaterialTheme.colorScheme.background,
+                color = Color.White,
                 fontWeight = FontWeight.Bold,
                 style = MaterialTheme.typography.titleLarge,
             )

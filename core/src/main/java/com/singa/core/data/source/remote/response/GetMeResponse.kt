@@ -16,12 +16,25 @@ data class GetMeResponse(
 	@field:SerializedName("id")
 	val id: Int,
 
-	@field:SerializedName("avatar")
-	val avatar: String? = null,
+	@field:SerializedName("avatarUrl")
+	val avatarUrl: String? = null,
 
 	@field:SerializedName("email")
 	val email: String? = null,
 
 	@field:SerializedName("updatedAt")
-	val updatedAt: String
+	val updatedAt: String,
+
+	@field:SerializedName("quota")
+	val quota: Quota
+)
+
+
+data class Quota(
+
+	@field:SerializedName("used")
+	val used: Int,
+
+	@field:SerializedName("quota")
+	val quota: Int
 )

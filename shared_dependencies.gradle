@@ -21,11 +21,6 @@ dependencies {
     implementation(libs.androidx.core.splashscreen)
 
 
-    //room
-//    implementation("androidx.room:room-ktx:2.6.1")
-//    implementation("androidx.room:room-runtime:2.6.1")
-//    ksp("androidx.room:room-compiler:2.6.1")
-
     //dataStore
     implementation(libs.androidx.datastore.preferences)
 
@@ -35,17 +30,25 @@ dependencies {
     implementation(libs.koin.androidx.compose)
 
 
-//    // Testing
-//    testImplementation("androidx.arch.core:core-testing:2.2.0") // InstantTaskExecutorRule
-//    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0") //TestDispatcher
-//    testImplementation("org.mockito:mockito-core:5.2.0")
-//    testImplementation("org.mockito:mockito-inline:5.2.0")
-//
-//    // Test
-//    testImplementation("junit:junit:4.13.2")
-//    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
-//    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-//    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-//    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-//    androidTestImplementation("androidx.navigation:navigation-testing:2.7.7")
+    // TensorFlow Lite
+    implementation(libs.tensorflow.lite.support)
+    implementation(libs.tensorflow.lite.metadata)
+    implementation(libs.tensorflow.lite.task.vision.play.services)
+    implementation(libs.play.services.tflite.support)
+    implementation(libs.play.services.tflite.gpu)
+    implementation(libs.tensorflow.lite.gpu.v290)
+    implementation(libs.tensorflow.lite)
+    implementation(libs.tensorflow.lite.select.tf.ops)
+
+    // Permissions
+    implementation(libs.accompanist.permissions)
+
+    // Media pipe
+    implementation(libs.tasks.vision)
+
+    // ExoPlayer
+    implementation(libs.androidx.media3.exoplayer.v120)
+    implementation(libs.androidx.media3.exoplayer.v110) // Update to the latest version
+    implementation(libs.androidx.media3.exoplayer.hls.v110) // Update to the latest version
+    implementation(libs.androidx.media3.ui.v120)
 }
