@@ -14,6 +14,12 @@ on:
         required: false
         default: "v"
 
+permissions:
+  contents: write
+  packages: write
+  issues: write
+  deployments: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -120,7 +126,7 @@ jobs:
           git tag ${{ env.new_version }}
           git push origin ${{ env.new_version }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         shell: bash
 
       - name: Get commit title
@@ -134,7 +140,7 @@ jobs:
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.new_version }}
           release_name: Release ${{ env.new_version }}
@@ -150,17 +156,5 @@ jobs:
           asset_name: app-release-unsigned.apk
           asset_content_type: application/vnd.android.package-archive
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
 
-      - name: Upload Additional APKs to Release
-        run: |
-          for file in $(ls *.apk); do
-            echo "Uploading $file"
-            curl -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Content-Type: application/vnd.android.package-archive" \
-              --data-binary @$file \
-              "${{ steps.create_release.outputs.upload_url }}?name=$(basename $file)"
-          done
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
