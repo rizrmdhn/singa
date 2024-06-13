@@ -14,6 +14,12 @@ on:
         required: false
         default: "v"
 
+permissions:
+  contents: write
+  packages: write
+  issues: write
+  deployments: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -112,9 +118,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
 
-      - name: Get commit message
-        id: get_commit_message
-        run: echo "COMMIT_MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+      - name: Get commit title
+        id: get_commit_title
+        run: echo "COMMIT_TITLE=$(git log -1 --pretty=%s | tr -d '\n' | tr -d '\r')" >> $GITHUB_ENV
         shell: bash
 
       - name: Create GitHub Release
@@ -125,7 +131,7 @@ jobs:
         with:
           tag_name: ${{ env.new_version }}
           release_name: Release ${{ env.new_version }}
-          body: ${{ env.COMMIT_MESSAGE }}
+          body: ${{ env.COMMIT_TITLE }}
           draft: false
           prerelease: false
 
