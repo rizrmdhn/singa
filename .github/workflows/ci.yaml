@@ -86,7 +86,7 @@ jobs:
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
           git tag ${{ github.event.inputs.tag_name }}
-          git push origin HEAD:${{ github.event.inputs.tag_name }}
+          git push origin ${{ github.event.inputs.tag_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
