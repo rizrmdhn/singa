@@ -88,6 +88,34 @@ jobs:
           echo "version=$new_version" >> $GITHUB_ENV
         shell: bash
 
+      - name: Check if tag exists
+        id: check_tag
+        run: |
+          if git rev-parse "refs/tags/${{ env.version }}" >/dev/null 2>&1; then
+            echo "Tag ${{ env.version }} exists."
+            echo "TAG_EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "Tag ${{ env.version }} does not exist."
+            echo "TAG_EXISTS=false" >> $GITHUB_ENV
+        shell: bash
+
+      - name: Generate unique version if tag exists
+        if: env.TAG_EXISTS == 'true'
+        run: |
+          version=${{ env.version }}
+          while git rev-parse "refs/tags/$version" >/dev/null 2>&1; do
+            IFS='.' read -r -a version_parts <<< "${version#v}"
+            patch=${version_parts[2]}
+            new_patch=$((patch + 1))
+            version="v${version_parts[0]}.${version_parts[1]}.$new_patch"
+          done
+          echo "unique_version=$version" >> $GITHUB_ENV
+
+      - name: Set version to unique version if needed
+        if: env.TAG_EXISTS == 'true'
+        run: |
+          echo "version=${{ env.unique_version }}" >> $GITHUB_ENV
+
       - name: Create new Git tag
         run: |
           git config --global user.email "actions@github.com"
