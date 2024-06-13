@@ -68,9 +68,31 @@ jobs:
           name: app-release-unsigned.apk
           path: app-release-unsigned.apk
 
-      - name: Get the current version
-        id: get_version
-        run: echo ::set-output name=version::$(git describe --tags --abbrev=0)
+      - name: Get the latest tag
+        id: get_latest_tag
+        run: |
+          latest_tag=$(git describe --tags `git rev-list --tags --max-count=1`)
+          if [ -z "$latest_tag" ]; then
+            echo "v0.0.0" # Default version if no tags are found
+          else
+            echo $latest_tag
+          fi
+        shell: bash
+        continue-on-error: true
+
+      - name: Generate new version
+        id: generate_version
+        run: |
+          latest_tag=${{ steps.get_latest_tag.outputs.latest_tag }}
+          IFS='.' read -r -a version_parts <<< "${latest_tag#v}"
+          major=${version_parts[0]}
+          minor=${version_parts[1]}
+          patch=${version_parts[2]}
+          new_patch=$((patch + 1))
+          new_version="v$major.$minor.$new_patch"
+          echo "::set-output name=version::$new_version"
+        shell: bash
+        continue-on-error: true
 
       - name: Create GitHub Release
         id: create_release
@@ -78,8 +100,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          release_name: Release ${{ steps.get_version.outputs.version }}
+          tag_name: ${{ steps.generate_version.outputs.version }}
+          release_name: Release ${{ steps.generate_version.outputs.version }}
           draft: false
           prerelease: false
 
