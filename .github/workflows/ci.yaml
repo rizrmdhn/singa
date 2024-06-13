@@ -1,12 +1,12 @@
 name: Android CI
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag name for the release"
+        required: true
+        default: "v0.5.0"
 
 jobs:
   build:
@@ -52,8 +52,8 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v2
         with:
-          name: app-release.apk
-          path: app/build/outputs/apk/release/app-release.apk
+          name: app-release-unsigned.apk
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
 
   release:
     needs: build
@@ -65,30 +65,35 @@ jobs:
       - name: Download APK
         uses: actions/download-artifact@v2
         with:
-          name: app-release.apk
-          path: app-release.apk
+          name: app-release-unsigned.apk
+          path: app-release-unsigned.apk
 
-      - name: Get the current version
-        id: get_version
-        run: echo ::set-output name=version::$(git describe --tags --abbrev=0)
+      - name: Create new Git tag
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git tag ${{ github.event.inputs.tag_name }}
+          git push origin ${{ github.event.inputs.tag_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          release_name: Release ${{ steps.get_version.outputs.version }}
+          tag_name: ${{ github.event.inputs.tag_name }}
+          release_name: Release ${{ github.event.inputs.tag_name }}
           draft: false
           prerelease: false
 
       - name: Upload APK to Release
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./app-release.apk
-          asset_name: app-release.apk
+          asset_path: ./app-release-unsigned.apk
+          asset_name: app-release-unsigned.apk
           asset_content_type: application/vnd.android.package-archive
