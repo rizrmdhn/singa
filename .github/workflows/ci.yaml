@@ -1,12 +1,12 @@
 name: Android CI
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag name for the release"
+        required: true
+        default: "v0.5.0"
 
 jobs:
   build:
@@ -68,61 +68,12 @@ jobs:
           name: app-release-unsigned.apk
           path: app-release-unsigned.apk
 
-      - name: Get the latest tag
-        id: get_latest_tag
-        run: |
-          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
-          echo "latest_tag=$latest_tag" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Generate new version
-        id: generate_version
-        run: |
-          latest_tag=${{ env.latest_tag }}
-          IFS='.' read -r -a version_parts <<< "${latest_tag#v}"
-          major=${version_parts[0]}
-          minor=${version_parts[1]}
-          patch=${version_parts[2]}
-          new_patch=$((patch + 1))
-          new_version="v$major.$minor.$new_patch"
-          echo "version=$new_version" >> $GITHUB_ENV
-        shell: bash
-
-      - name: Check if tag exists
-        id: check_tag
-        run: |
-          if git rev-parse "refs/tags/${{ env.version }}" >/dev/null 2>&1; then
-            echo "Tag ${{ env.version }} exists."
-            echo "TAG_EXISTS=true" >> $GITHUB_ENV
-          else
-            echo "Tag ${{ env.version }} does not exist."
-            echo "TAG_EXISTS=false" >> $GITHUB_ENV
-          fi
-        shell: bash
-
-      - name: Generate unique version if tag exists
-        if: env.TAG_EXISTS == 'true'
-        run: |
-          version=${{ env.version }}
-          while git rev-parse "refs/tags/$version" >/dev/null 2>&1; do
-            IFS='.' read -r -a version_parts <<< "${version#v}"
-            patch=${version_parts[2]}
-            new_patch=$((patch + 1))
-            version="v${version_parts[0]}.${version_parts[1]}.$new_patch"
-          done
-          echo "unique_version=$version" >> $GITHUB_ENV
-
-      - name: Set version to unique version if needed
-        if: env.TAG_EXISTS == 'true'
-        run: |
-          echo "version=${{ env.unique_version }}" >> $GITHUB_ENV
-
       - name: Create new Git tag
         run: |
           git config --global user.email "actions@github.com"
           git config --global user.name "GitHub Actions"
-          git tag ${{ env.version }}
-          git push origin ${{ env.version }}
+          git tag ${{ github.event.inputs.tag_name }}
+          git push origin ${{ github.event.inputs.tag_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -132,8 +83,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.version }}
-          release_name: Release ${{ env.version }}
+          tag_name: ${{ github.event.inputs.tag_name }}
+          release_name: Release ${{ github.event.inputs.tag_name }}
           draft: false
           prerelease: false
 
