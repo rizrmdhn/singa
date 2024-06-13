@@ -52,8 +52,8 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v2
         with:
-          name: app-release.apk
-          path: app/build/outputs/apk/release/app-release.apk
+          name: app-release-unsigned.apk
+          path: app/build/outputs/apk/release/app-release-unsigned.apk
 
   release:
     needs: build
@@ -65,30 +65,55 @@ jobs:
       - name: Download APK
         uses: actions/download-artifact@v2
         with:
-          name: app-release.apk
-          path: app-release.apk
+          name: app-release-unsigned.apk
+          path: app-release-unsigned.apk
 
-      - name: Get the current version
-        id: get_version
-        run: echo ::set-output name=version::$(git describe --tags --abbrev=0)
+      - name: Get the latest tag
+        id: get_latest_tag
+        run: |
+          latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "v0.0.0")
+          echo "::set-output name=latest_tag::$latest_tag"
+        shell: bash
+
+      - name: Generate new version
+        id: generate_version
+        run: |
+          latest_tag=${{ steps.get_latest_tag.outputs.latest_tag }}
+          IFS='.' read -r -a version_parts <<< "${latest_tag#v}"
+          major=${version_parts[0]}
+          minor=${version_parts[1]}
+          patch=${version_parts[2]}
+          new_patch=$((patch + 1))
+          new_version="v$major.$minor.$new_patch"
+          echo "::set-output name=version::$new_version"
+        shell: bash
+
+      - name: Create new Git tag
+        run: |
+          git config --global user.email "actions@github.com"
+          git config --global user.name "GitHub Actions"
+          git tag ${{ steps.generate_version.outputs.version }}
+          git push origin ${{ steps.generate_version.outputs.version }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ steps.get_version.outputs.version }}
-          release_name: Release ${{ steps.get_version.outputs.version }}
+          tag_name: ${{ steps.generate_version.outputs.version }}
+          release_name: Release ${{ steps.generate_version.outputs.version }}
           draft: false
           prerelease: false
 
       - name: Upload APK to Release
         uses: actions/upload-release-asset@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./app-release.apk
-          asset_name: app-release.apk
+          asset_path: ./app-release-unsigned.apk
+          asset_name: app-release-unsigned.apk
           asset_content_type: application/vnd.android.package-archive
