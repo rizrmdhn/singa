@@ -149,3 +149,5 @@ jobs:
               --data-binary @$file \
               "${{ steps.create_release.outputs.upload_url }}?name=$(basename $file)"
           done
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
