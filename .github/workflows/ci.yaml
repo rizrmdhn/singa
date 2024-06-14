@@ -60,7 +60,8 @@ jobs:
           echo "ARTICLE_URL=${{ secrets.ARTICLE_URL }}" >> $GITHUB_WORKSPACE/local.properties
 
       - name: Decode and save keystore
-        run: echo ${{ secrets.KEYSTORE_BASE64 }} | base64 --decode > $GITHUB_WORKSPACE/keystore.jks
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/keystore.jks
 
       - name: Set environment variables for signing
         run: |
