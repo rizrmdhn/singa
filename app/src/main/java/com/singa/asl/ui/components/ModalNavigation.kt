@@ -54,7 +54,6 @@ fun ModalNavigation(
     viewModelConversation: ConversationViewModel = koinViewModel(),
     viewModelStatic: HistoryScreenViewModel = koinViewModel()
 ) {
-    val storagePermissionState = rememberPermissionState(Manifest.permission.READ_EXTERNAL_STORAGE)
     val cameraPermissionState = rememberPermissionState(Manifest.permission.CAMERA)
 
     val cameraPermissionLauncher = rememberLauncherForActivityResult(
@@ -67,11 +66,11 @@ fun ModalNavigation(
         }
     }
 
-    val readStoragePermissionLauncher = rememberLauncherForActivityResult(
+    val cameraPermissionLauncherWithoutRedirect = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) {
         if (it) {
-            navigateToRealtimeCamera()
+            Toast.makeText(context, "Permission granted", Toast.LENGTH_SHORT).show()
         } else {
             Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
         }
@@ -91,8 +90,24 @@ fun ModalNavigation(
     ) {
         Button(
             onClick = {
+                when {
+                    cameraPermissionState.hasPermission -> {
+                        navigateToRealtimeCamera()
+                    }
 
-                staticDialog = true
+                    cameraPermissionState.shouldShowRationale -> {
+                        Toast.makeText(
+                            context,
+                            "Permission denied",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    else -> {
+                        cameraPermissionLauncherWithoutRedirect.launch(Manifest.permission.CAMERA)
+                        staticDialog = true
+                    }
+                }
             },
             shape = RoundedCornerShape(20),
             colors = ButtonDefaults.buttonColors(
@@ -118,7 +133,24 @@ fun ModalNavigation(
         Spacer(modifier = Modifier.height(12.dp))
         OutlinedButton(
             onClick = {
-                conversationDialog = true
+                when {
+                    cameraPermissionState.hasPermission -> {
+                        navigateToRealtimeCamera()
+                    }
+
+                    cameraPermissionState.shouldShowRationale -> {
+                        Toast.makeText(
+                            context,
+                            "Permission denied",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    else -> {
+                        cameraPermissionLauncherWithoutRedirect.launch(Manifest.permission.CAMERA)
+                        conversationDialog = true
+                    }
+                }
             },
             shape = RoundedCornerShape(20),
             colors = ButtonDefaults.outlinedButtonColors(
@@ -160,21 +192,8 @@ fun ModalNavigation(
                         ).show()
                     }
 
-                    storagePermissionState.hasPermission -> {
-                        navigateToRealtimeCamera()
-                    }
-
-                    storagePermissionState.shouldShowRationale -> {
-                        Toast.makeText(
-                            context,
-                            "Permission denied",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-
                     else -> {
                         cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
-                        readStoragePermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
                     }
                 }
             },
