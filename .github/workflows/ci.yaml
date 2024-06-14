@@ -23,6 +23,11 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+      deployments: write
 
     steps:
       - name: Checkout repository
@@ -70,6 +75,12 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+      deployments: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -120,7 +131,9 @@ jobs:
 
       - name: Get commit title
         id: get_commit_title
-        run: echo "COMMIT_TITLE=$(git log -1 --pretty=%s | tr -d '\n' | tr -d '\r')" >> $GITHUB_ENV
+        run: |
+          COMMIT_TITLE=$(git log -1 --pretty=%s)
+          echo "COMMIT_TITLE=$(echo $COMMIT_TITLE | tr -d '\n' | tr -d '\r')" >> $GITHUB_ENV
         shell: bash
 
       - name: Create GitHub Release
