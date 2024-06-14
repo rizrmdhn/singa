@@ -148,21 +148,28 @@ jobs:
         shell: bash
 
       - name: Generate commit history
+        id: generate_commit_history
         run: |
           git log --oneline --decorate --no-merges | cut -d ' ' -f 2- > commit_history.txt
+          COMMIT_HISTORY=$(cat commit_history.txt)
+          echo "COMMIT_HISTORY<<EOF" >> $GITHUB_ENV
+          echo "$COMMIT_HISTORY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+        shell: bash
 
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          COMMIT_HISTORY: ${{ steps.generate_commit_history.outputs.COMMIT_HISTORY }}
         with:
           tag_name: ${{ env.new_version }}
           release_name: Release ${{ env.new_version }}
           body: |
             ${{ env.COMMIT_TITLE }}
             ## Commit History
-            $(cat commit_history.txt)
+            ${{ env.COMMIT_HISTORY }}
           draft: false
           prerelease: false
 
