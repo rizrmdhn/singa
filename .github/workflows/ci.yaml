@@ -14,9 +14,20 @@ on:
         required: false
         default: "v"
 
+permissions:
+  contents: write
+  packages: write
+  issues: write
+  deployments: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+      deployments: write
 
     steps:
       - name: Checkout repository
@@ -64,6 +75,12 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+      issues: write
+      deployments: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -109,23 +126,25 @@ jobs:
           git tag ${{ env.new_version }}
           git push origin ${{ env.new_version }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         shell: bash
 
-      - name: Get commit message
-        id: get_commit_message
-        run: echo "COMMIT_MESSAGE=$(git log -1 --pretty=%B)" >> $GITHUB_ENV
+      - name: Get commit title
+        id: get_commit_title
+        run: |
+          COMMIT_TITLE=$(git log -1 --pretty=%s)
+          echo "COMMIT_TITLE=$(echo $COMMIT_TITLE | tr -d '\n' | tr -d '\r')" >> $GITHUB_ENV
         shell: bash
 
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.new_version }}
           release_name: Release ${{ env.new_version }}
-          body: ${{ env.COMMIT_MESSAGE }}
+          body: ${{ env.COMMIT_TITLE }}
           draft: false
           prerelease: false
 
@@ -137,4 +156,4 @@ jobs:
           asset_name: app-release-unsigned.apk
           asset_content_type: application/vnd.android.package-archive
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
