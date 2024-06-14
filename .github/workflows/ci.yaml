@@ -148,11 +148,8 @@ jobs:
         shell: bash
 
       - name: Generate commit history
-        id: generate_commit_history
         run: |
           git log --oneline --decorate --no-merges | cut -d ' ' -f 2- > commit_history.txt
-          echo "COMMIT_HISTORY=$(cat commit_history.txt)" >> $GITHUB_ENV
-        shell: bash
 
       - name: Create GitHub Release
         id: create_release
@@ -165,7 +162,7 @@ jobs:
           body: |
             ${{ env.COMMIT_TITLE }}
             ## Commit History
-            ${{ env.COMMIT_HISTORY }}
+            $(cat commit_history.txt)
           draft: false
           prerelease: false
 
