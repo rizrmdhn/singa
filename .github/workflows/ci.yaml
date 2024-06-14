@@ -59,6 +59,17 @@ jobs:
           echo "API_URL_PROD=${{ secrets.API_URL_PROD }}" >> $GITHUB_WORKSPACE/local.properties
           echo "ARTICLE_URL=${{ secrets.ARTICLE_URL }}" >> $GITHUB_WORKSPACE/local.properties
 
+      - name: Decode and save keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > $GITHUB_WORKSPACE/keystore.jks
+
+      - name: Set environment variables for signing
+        run: |
+          echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/keystore.jks" >> $GITHUB_ENV
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+
       - name: Build with Gradle
         run: ./gradlew assembleRelease
 
@@ -70,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: apk-files
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/release/app-release.apk
 
   release:
     needs: build
@@ -126,7 +137,7 @@ jobs:
           git tag ${{ env.new_version }}
           git push origin ${{ env.new_version }}
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         shell: bash
 
       - name: Get commit title
@@ -136,15 +147,22 @@ jobs:
           echo "COMMIT_TITLE=$(echo $COMMIT_TITLE | tr -d '\n' | tr -d '\r')" >> $GITHUB_ENV
         shell: bash
 
+      - name: Generate commit history
+        run: |
+          git log --oneline --decorate --no-merges | cut -d ' ' -f 2- > commit_history.txt
+
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ env.new_version }}
           release_name: Release ${{ env.new_version }}
-          body: ${{ env.COMMIT_TITLE }}
+          body: |
+            ${{ env.COMMIT_TITLE }}
+            ## Commit History
+            $(cat commit_history.txt)
           draft: false
           prerelease: false
 
@@ -152,9 +170,8 @@ jobs:
         uses: actions/upload-release-asset@v1
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./app-release-unsigned.apk
-          asset_name: app-release-unsigned.apk
+          asset_path: ./app-release.apk
+          asset_name: app-release.apk
           asset_content_type: application/vnd.android.package-archive
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
