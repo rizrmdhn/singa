@@ -63,7 +63,7 @@ fun MainApp(
     getAuthUser: () -> Unit,
     isSecondLaunch: Boolean,
     onLogouts: (
-        navigateToWelcome: () -> Unit,
+        navigateToLogin: () -> Unit,
     ) -> Unit,
     logoutIsLoading: Boolean,
     onUpdateProfile: (
@@ -154,7 +154,7 @@ fun MainApp(
                         },
                         resetForm = viewModel::resetForm,
                         navigateBack = {
-                            navController.popBackStack()
+                            navController.navigateUp()
                         }
                     )
                 }
@@ -361,7 +361,7 @@ fun MainApp(
                         },
                         onConfirmLogout = {
                             onLogouts {
-                                navController.navigate(Screen.Welcome.route)
+                                navController.navigate(Screen.Login.route)
                             }
                         },
                         onNavigateToDetail = {
@@ -390,7 +390,7 @@ fun MainApp(
                         isSignUser = isSignUser,
                         onChangeIsSignUser = viewModel::onChangeSignUser,
                         navigateBack = {
-                            navController.popBackStack()
+                            navController.navigateUp()
                         },
                         onUpdate = { uri, setLoadingState ->
                             onUpdateProfile(
@@ -421,7 +421,7 @@ fun MainApp(
                         isConfirmPasswordError = viewModel.validationState.confirmPasswordError != null,
                         confirmPasswordError = viewModel.validationState.confirmPasswordError ?: "",
                         navigateBack = {
-                            navController.popBackStack()
+                            navController.navigateUp()
                         },
                         resetForm = viewModel::clearPasswordAndConfirmPassword,
                         onUpdatePassword = { setLoadingState ->
@@ -460,7 +460,7 @@ fun MainApp(
                         saveRefreshToken = saveRefreshToken,
                         getAuthUser = getAuthUser,
                         navigateBack = {
-                            navController.popBackStack()
+                            navController.navigateUp()
                         }
                     )
                 }
@@ -518,7 +518,7 @@ fun MainApp(
                         title = title,
                         showDialog = showDialog,
                         onNavigateBack = {
-                            navController.popBackStack()
+                            navController.navigateUp()
                         }
                     )
                 }
@@ -532,7 +532,7 @@ fun MainApp(
                         id = id.toInt(),
                         showDialog = showDialog,
                         onNavigateBack = {
-                            navController.popBackStack()
+                            navController.navigateUp()
                         }
                     )
                 }

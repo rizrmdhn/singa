@@ -85,7 +85,7 @@ class MainActivityViewModel(
 
 
     fun logout(
-        navigateToWelcome: () -> Unit
+        navigateToLogin: () -> Unit
     ) {
         viewModelScope.launch {
             singaUseCase.logout().collect {
@@ -96,7 +96,7 @@ class MainActivityViewModel(
                         showAlert("Success", "Logout success")
                         _logoutIsLoading.value = false
                         _authUser.value = Resource.Empty()
-                        navigateToWelcome()
+                        navigateToLogin()
                     }
 
                     is Resource.Empty -> {
