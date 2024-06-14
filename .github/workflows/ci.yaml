@@ -81,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: apk-files
-          path: app/build/outputs/apk/release/app-release.apk
+          path: app/build/outputs/apk/release/*.apk
 
   release:
     needs: build
@@ -150,8 +150,8 @@ jobs:
       - name: Generate commit history
         id: generate_commit_history
         run: |
-          COMMIT_HISTORY=$(git log --oneline --decorate --no-merges)
-          echo "COMMIT_HISTORY=$COMMIT_HISTORY" >> $GITHUB_ENV
+          git log --oneline --decorate --no-merges > commit_history.txt
+          echo "COMMIT_HISTORY=$(cat commit_history.txt)" >> $GITHUB_ENV
         shell: bash
 
       - name: Create GitHub Release
