@@ -81,7 +81,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: apk-files
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/release/app-release.apk
 
   release:
     needs: build
@@ -147,6 +147,13 @@ jobs:
           echo "COMMIT_TITLE=$(echo $COMMIT_TITLE | tr -d '\n' | tr -d '\r')" >> $GITHUB_ENV
         shell: bash
 
+      - name: Generate commit history
+        id: generate_commit_history
+        run: |
+          COMMIT_HISTORY=$(git log --oneline --decorate --no-merges)
+          echo "COMMIT_HISTORY=$COMMIT_HISTORY" >> $GITHUB_ENV
+        shell: bash
+
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -155,7 +162,10 @@ jobs:
         with:
           tag_name: ${{ env.new_version }}
           release_name: Release ${{ env.new_version }}
-          body: ${{ env.COMMIT_TITLE }}
+          body: |
+            ${{ env.COMMIT_TITLE }}
+            ## Commit History
+            ${{ env.COMMIT_HISTORY }}
           draft: false
           prerelease: false
 
@@ -168,4 +178,3 @@ jobs:
           asset_content_type: application/vnd.android.package-archive
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
