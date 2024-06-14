@@ -19,7 +19,6 @@ permissions:
   packages: write
   issues: write
   deployments: write
-  workflows: write
 
 jobs:
   build:
@@ -29,7 +28,6 @@ jobs:
       packages: write
       issues: write
       deployments: write
-      workflows: write
 
     steps:
       - name: Checkout repository
@@ -93,7 +91,6 @@ jobs:
       packages: write
       issues: write
       deployments: write
-      workflows: write
 
     steps:
       - name: Checkout repository
@@ -150,13 +147,6 @@ jobs:
           echo "COMMIT_TITLE=$(echo $COMMIT_TITLE | tr -d '\n' | tr -d '\r')" >> $GITHUB_ENV
         shell: bash
 
-      - name: Generate commit history
-        id: generate_commit_history
-        run: |
-          COMMIT_HISTORY=$(git log --oneline --decorate --no-merges)
-          echo "COMMIT_HISTORY=$COMMIT_HISTORY" >> $GITHUB_ENV
-        shell: bash
-
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
@@ -165,10 +155,7 @@ jobs:
         with:
           tag_name: ${{ env.new_version }}
           release_name: Release ${{ env.new_version }}
-          body: |
-            ${{ env.COMMIT_TITLE }}
-            ## Commit History
-            ${{ env.COMMIT_HISTORY }}
+          body: ${{ env.COMMIT_TITLE }}
           draft: false
           prerelease: false
 
