@@ -1,10 +1,19 @@
 import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+import java.io.FileInputStream
+import java.util.Properties
 
 val appMode: Boolean = gradleLocalProperties(rootDir, providers).getProperty("APP_MODE") == "dev"
 val productionMode: Boolean = gradleLocalProperties(rootDir, providers).getProperty("PRODUCTION_MODE") == "true"
 val apiUrl: String = gradleLocalProperties(rootDir, providers).getProperty("API_URL")
 val apiUrlProd: String = gradleLocalProperties(rootDir, providers).getProperty("API_URL_PROD")
 val articleUrl: String = gradleLocalProperties(rootDir, providers).getProperty("ARTICLE_URL")
+
+val keystorePropertiesFile = rootProject.file("local.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+}
+
 
 plugins {
     alias(libs.plugins.android.application)
@@ -37,9 +46,19 @@ android {
         buildConfigField("String", "ARTICLE_URL", "\"$articleUrl\"")
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("KEY_ALIAS")
+            keyPassword = System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("KEY_PASSWORD")
+            storeFile = file(System.getenv("KEYSTORE_PATH") ?: keystoreProperties.getProperty("KEYSTORE_PATH"))
+            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: keystoreProperties.getProperty("KEYSTORE_PASSWORD")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
