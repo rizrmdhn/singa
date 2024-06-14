@@ -1,6 +1,7 @@
 package com.singa.asl.ui.screen.message_camera
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Environment
@@ -53,6 +54,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LifecycleOwner
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberPermissionState
 import com.singa.asl.R
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
@@ -91,6 +94,7 @@ fun MessageCameraScreen(
     )
 }
 
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun MessageCameraContent(
     modifier: Modifier = Modifier,
@@ -118,16 +122,7 @@ fun MessageCameraContent(
         }
     }
 
-
-    val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) {
-        if (it) {
-            return@rememberLauncherForActivityResult
-        } else {
-            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
-        }
-    }
+    val recordPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
 
     var recording by remember {
         mutableStateOf<Recording?>(null)
@@ -147,6 +142,7 @@ fun MessageCameraContent(
     var isProcessingVideo by remember { mutableStateOf(false) }
     var processingVideoProgress by remember { mutableIntStateOf(0) }
 
+
     fun recordVideo() {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val outputFile =
@@ -157,24 +153,7 @@ fun MessageCameraContent(
         )
 
 
-        if (ActivityCompat.checkSelfPermission(
-                context,
-                Manifest.permission.RECORD_AUDIO
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-            return
-        }
-
-//        val multipartBody = outputFile.let { it ->
-//            val contentType = "video/*".toMediaTypeOrNull()
-//            ProgressFileUpload(it, contentType) { progress ->
-//                uploadProgress = progress
-//            }.let {
-//                MultipartBody.Part.createFormData("file", outputFile.name, it)
-//            }
-//        }
-
+        @SuppressLint("MissingPermission")
         recording = cameraController.startRecording(
             FileOutputOptions.Builder(outputFile).build(),
             AudioConfig.create(true),
@@ -215,6 +194,19 @@ fun MessageCameraContent(
                     }
                 }
             }
+        }
+    }
+
+    val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (it) {
+            Toast.makeText(context, "Permission granted", Toast.LENGTH_SHORT).show()
+            isRecording = true
+            recordVideo()
+        } else {
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+            return@rememberLauncherForActivityResult
         }
     }
 
@@ -353,8 +345,24 @@ fun MessageCameraContent(
                         modifier = Modifier
                             .padding(10.dp),
                         onClick = {
-                            isRecording = true
-                            recordVideo()
+                            when {
+                                recordPermissionState.hasPermission -> {
+                                    isRecording = true
+                                    recordVideo()
+                                }
+
+                                recordPermissionState.shouldShowRationale -> {
+                                    Toast.makeText(
+                                        context,
+                                        "Permission denied",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+
+                                else -> {
+                                    recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                }
+                            }
                         },
                         colors = IconButtonDefaults.iconButtonColors(
                             contentColor = Color.White

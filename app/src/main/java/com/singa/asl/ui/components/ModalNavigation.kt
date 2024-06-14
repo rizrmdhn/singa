@@ -92,7 +92,7 @@ fun ModalNavigation(
             onClick = {
                 when {
                     cameraPermissionState.hasPermission -> {
-                        navigateToRealtimeCamera()
+                        staticDialog = true
                     }
 
                     cameraPermissionState.shouldShowRationale -> {
@@ -135,7 +135,7 @@ fun ModalNavigation(
             onClick = {
                 when {
                     cameraPermissionState.hasPermission -> {
-                        navigateToRealtimeCamera()
+                        conversationDialog = true
                     }
 
                     cameraPermissionState.shouldShowRationale -> {
