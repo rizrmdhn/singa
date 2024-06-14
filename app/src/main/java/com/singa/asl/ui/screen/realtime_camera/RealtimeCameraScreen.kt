@@ -149,7 +149,7 @@ fun RealtimeCameraContent(
         val rightHandLandmarks = mutableListOf<Float>()
 
         // Pad left and right hand landmarks to 21 * 3 = 63 values each, if detected
-        if (handResults != null && handResults.isNotEmpty()) {
+        if (!handResults.isNullOrEmpty()) {
             for (result in handResults) {
                 for (landmarkList in result.landmarks) {
                     for (landmark in landmarkList) {
