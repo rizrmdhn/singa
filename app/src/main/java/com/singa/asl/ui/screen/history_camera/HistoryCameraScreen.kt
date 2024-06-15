@@ -3,7 +3,6 @@ package com.singa.asl.ui.screen.history_camera
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Environment
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -52,7 +51,6 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberPermissionState
@@ -60,6 +58,7 @@ import com.singa.asl.R
 import com.singa.asl.ui.screen.history.HistoryScreenViewModel
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
+import com.singa.asl.utils.Helpers
 import com.singa.asl.utils.Helpers.applyVideoEffects
 import com.singa.asl.utils.ProgressFileUpload
 import kotlinx.coroutines.MainScope
@@ -88,8 +87,6 @@ fun HistoryCameraScreen(
         context = context,
         lifecycleOwner = lifecycleOwner,
         uploadInProgress = uploadInProgress,
-        showDialog = showDialog,
-        onNavigateBack = onNavigateBack,
         onUploadVideo = { file ->
             viewModel.createNewStaticTranslation(title, file, showDialog, onNavigateBack)
         }
@@ -103,8 +100,6 @@ fun HistoryCameraContent(
     context: Context,
     lifecycleOwner: LifecycleOwner,
     uploadInProgress: Boolean,
-    showDialog: (String, String) -> Unit,
-    onNavigateBack: () -> Unit,
     onUploadVideo: (
         file: MultipartBody.Part,
     ) -> Unit
@@ -121,6 +116,7 @@ fun HistoryCameraContent(
     }
 
     val recordPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
+    val galleryPermissionState = rememberPermissionState(Manifest.permission.READ_EXTERNAL_STORAGE)
 
     var recording by remember {
         mutableStateOf<Recording?>(null)
@@ -203,6 +199,57 @@ fun HistoryCameraContent(
             return@rememberLauncherForActivityResult
         }
     }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) {
+        if (it != null) {
+            val fileData = Helpers.uriToFile(it, context)
+            val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+            val processedFile = File(
+                context.getExternalFilesDir(Environment.DIRECTORY_MOVIES),
+                "video_${timeStamp}_processed.mp4"
+            )
+
+            MainScope().launch {
+                applyVideoEffects(fileData, processedFile) { progress, status ->
+                    isProcessingVideo = status
+                    processingVideoProgress = progress
+                }
+
+                val multipartBody = processedFile.let { file ->
+                    val contentType = "video/*".toMediaTypeOrNull()
+                    ProgressFileUpload(file, contentType) { progress ->
+                        uploadProgress = progress
+                    }.let { upd ->
+                        MultipartBody.Part.createFormData("file", file.name, upd)
+                    }
+                }
+
+
+                onUploadVideo(
+                    multipartBody,
+                )
+            }
+        } else {
+            Toast.makeText(context, "Image not found", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
+    val galleryPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        if (it) {
+            Toast.makeText(context, "Permission granted", Toast.LENGTH_SHORT).show()
+            galleryLauncher.launch("video/*")
+        } else {
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+            return@rememberLauncherForActivityResult
+        }
+    }
+
+
 
     LaunchedEffect(isFrontCamera) {
         if (isFrontCamera) {
@@ -334,6 +381,40 @@ fun HistoryCameraContent(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
+                    IconButton(
+                        enabled = !uploadInProgress,
+                        modifier = Modifier
+                            .padding(10.dp),
+                        onClick = {
+                            when {
+                                galleryPermissionState.hasPermission -> {
+                                    Toast.makeText(context, "Permission granted", Toast.LENGTH_SHORT)
+                                        .show()
+                                    galleryLauncher.launch("video/*")
+                                }
+                                galleryPermissionState.shouldShowRationale -> {
+                                    Toast.makeText(
+                                        context,
+                                        "Permission denied",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                                else -> {
+                                    galleryPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                                }
+                            }
+                        },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.baseline_upload_file_24),
+                            contentDescription = "Capture Image"
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
                     IconButton(
                         enabled = !uploadInProgress,
                         modifier = Modifier
