@@ -210,12 +210,12 @@ fun ModalNavigation(
         ) {
             Icon(
                 painter = painterResource(id = R.drawable.baseline_camera_enhance_24),
-                contentDescription = stringResource(id = R.string.try_our_model),
+                contentDescription = stringResource(id = R.string.realtime),
                 modifier = Modifier.size(36.dp),
             )
             Spacer(Modifier.width(16.dp))
             Text(
-                text = stringResource(R.string.try_our_model),
+                text = stringResource(R.string.realtime),
                 fontWeight = FontWeight.Bold,
                 fontSize = 20.sp
             )
