@@ -16,7 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.exoplayer.ExoPlayer
 import com.singa.asl.ui.components.ExoPlayerView
 import com.singa.asl.ui.components.HistoryDetailLoader
-import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.ColorBackgroundWhite
 import com.singa.asl.utils.timeToMillis
 import com.singa.core.data.Resource
@@ -75,7 +74,7 @@ fun HistoryDetailContent(
 ) {
     val context = LocalContext.current
 
-    var mutableTimeStamp by remember { mutableStateOf(0L) }
+    var mutableTimeStamp by remember { mutableLongStateOf(0L) }
     val exoPlayer = ExoPlayer.Builder(context).build()
 
     Card(
