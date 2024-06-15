@@ -16,7 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -68,7 +68,7 @@ fun HistoryDetailContent(
 ) {
     val context = LocalContext.current
 
-    var mutableTimeStamp by remember { mutableStateOf(0L) }
+    var mutableTimeStamp by remember { mutableLongStateOf(0L) }
     val exoPlayer = ExoPlayer.Builder(context).build()
 
     Card(
@@ -88,11 +88,6 @@ fun HistoryDetailContent(
                 },
             )
             Spacer(modifier = Modifier.height(16.dp))
-//            Text(
-//                text = videoTranslationDetail.,
-//                fontSize = 24.sp,
-//                fontWeight = FontWeight.SemiBold
-//            )
             Spacer(modifier = Modifier.height(12.dp))
             FlowRow {
                 videoTranslationDetail.transcript?.forEach { transcript ->
