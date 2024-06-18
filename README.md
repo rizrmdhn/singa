@@ -8,7 +8,7 @@ We provide a mobile application that translates sign language into text and vice
 
 ## Demo
 
-Check out the live demo of Quiz Kit [CLICK DEMO VIDEO HERE]()
+Check out the live demo of Singa [CLICK DEMO VIDEO HERE]()
 
 ## Installation
 
@@ -24,7 +24,7 @@ Check out the live demo of Quiz Kit [CLICK DEMO VIDEO HERE]()
    ```
    git clone https://github.com/Signa-Lingua/singa-app.git
 
-   cd cd quizkit
+   cd singa-app
    ```
 
 2. Open the project in Android Studio:
