@@ -5,7 +5,6 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
-import android.os.Environment
 import com.arthenica.mobileffmpeg.Config
 import com.arthenica.mobileffmpeg.FFmpeg
 import kotlinx.coroutines.Dispatchers
@@ -47,12 +46,6 @@ object Helpers {
         // Format the result in the desired pattern
         val targetFormatter = DateTimeFormatter.ofPattern(pattern)
         return userZonedDateTime.format(targetFormatter)
-    }
-
-    private fun createVideoFile(): File {
-        val videoFileName = "MP4_$timeStamp.mp4"
-        val storageDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MOVIES)
-        return File.createTempFile(videoFileName, ".mp4", storageDir)
     }
 
     fun uriToFile(imageUri: Uri, context: Context): File {

@@ -1,5 +1,6 @@
 package com.singa.asl.ui.screen.realtime_camera
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.Configuration
 import android.util.Log
@@ -47,11 +48,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.singa.asl.R
-import com.singa.asl.ml.SingaSlrV002
+import com.singa.asl.ml.SingaSlrV010
 import com.singa.asl.ui.components.LandmarkOverlay
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
-import com.singa.asl.utils.CombinedLandmarkerHelper
+import com.singa.asl.utils.CombinedLandmarkHelper
 import com.singa.core.domain.model.FaceLandmarker
 import com.singa.core.domain.model.HandLandmarker
 import com.singa.core.domain.model.PoseLandmarker
@@ -74,6 +75,7 @@ fun RealtimeCameraScreen(
     )
 }
 
+
 @Composable
 fun RealtimeCameraContent(
     context: Context,
@@ -83,7 +85,7 @@ fun RealtimeCameraContent(
     val previewView = remember {
         PreviewView(context)
     }
-    var combinedLandmarkerHelper by remember { mutableStateOf<CombinedLandmarkerHelper?>(null) }
+    var combinedLandmarkHelper by remember { mutableStateOf<CombinedLandmarkHelper?>(null) }
 
 
     var aslResults by remember { mutableStateOf<String?>(null) }
@@ -91,6 +93,7 @@ fun RealtimeCameraContent(
     var handLandmarkResult by remember { mutableStateOf<List<HandLandmarker>?>(null) }
     var poseLandmarkResult by remember { mutableStateOf<List<PoseLandmarker>?>(null) }
 
+    @SuppressLint("MutableCollectionMutableState")
     val sequences by remember { mutableStateOf<MutableList<List<Float>>>(mutableListOf()) }
 
     val executor = Executors.newSingleThreadExecutor()
@@ -116,15 +119,14 @@ fun RealtimeCameraContent(
 
     fun prepareLandmarks(
         poseResults: List<PoseLandmarker>,
-//        faceResult: FaceLandmarker?,
         handResults: List<HandLandmarker>?
     ): List<Float> {
-        val POSE_LANDMARKS_SIZE = 33 * 3  // 33 landmarks, 3 values each (x, y, z)
-        val ONE_HAND_LANDMARKS_SIZE = 21 * 3  // 21 landmarks each, 3 values each (x, y, z)
-        val TWO_HANDS_LANDMARKS_SIZE =
+        val poseLandmarksSize = 33 * 3  // 33 landmarks, 3 values each (x, y, z)
+        val oneHandLandmarksSize = 21 * 3  // 21 landmarks each, 3 values each (x, y, z)
+        val twoHandsLandmarksSize =
             2 * 21 * 3  // 2 hands, 21 landmarks each, 3 values each (x, y, z)
-        val EXPECTED_SIZE =
-            POSE_LANDMARKS_SIZE + TWO_HANDS_LANDMARKS_SIZE  // Total expected size = 225
+        val expectedSize =
+            poseLandmarksSize + twoHandsLandmarksSize  // Total expected size = 225
 
         val landmarks = mutableListOf<Float>()
 
@@ -140,7 +142,7 @@ fun RealtimeCameraContent(
             }
         }
         // Pad pose landmarks to 33 * 3 = 99 values
-        while (poseLandmarks.size < POSE_LANDMARKS_SIZE) {
+        while (poseLandmarks.size < poseLandmarksSize) {
             poseLandmarks.add(0.0f)
         }
 
@@ -167,10 +169,10 @@ fun RealtimeCameraContent(
             }
         }
 
-        while (leftHandLandmarks.size < ONE_HAND_LANDMARKS_SIZE) {
+        while (leftHandLandmarks.size < oneHandLandmarksSize) {
             leftHandLandmarks.add(0.0f)
         }
-        while (rightHandLandmarks.size < ONE_HAND_LANDMARKS_SIZE) {
+        while (rightHandLandmarks.size < oneHandLandmarksSize) {
             rightHandLandmarks.add(0.0f)
         }
 
@@ -180,8 +182,8 @@ fun RealtimeCameraContent(
         landmarks.addAll(leftHandLandmarks)
 
         // Ensure the size of the combined landmarks matches the expected size
-        if (landmarks.size != EXPECTED_SIZE) {
-            throw IllegalArgumentException("The size of the combined landmarks is incorrect. Expected: $EXPECTED_SIZE, Actual: ${landmarks.size}")
+        if (landmarks.size != expectedSize) {
+            throw IllegalArgumentException("The size of the combined landmarks is incorrect. Expected: $expectedSize, Actual: ${landmarks.size}")
         }
 
         return landmarks.toList()
@@ -209,7 +211,13 @@ fun RealtimeCameraContent(
 
 
     fun getPredictedLabel(outputArray: FloatArray): String {
-        val labels = listOf("_", "hello", "thanks", "i-love-you", "I", "Yes", "No", "Help")
+        val labels = listOf(
+            "_", "hello", "what's up", "how",
+            "thanks", "you", "morning", "afternoon",
+            "night", "me", "name", "fine",
+            "happy", "yes", "no", "repeat",
+            "please", "want", "good bye", "learn"
+        )
 
         val maxIndex = outputArray.indices.maxByOrNull { outputArray[it] } ?: -1
 
@@ -222,22 +230,21 @@ fun RealtimeCameraContent(
     fun runAslModel(
         context: Context,
         poseResults: List<PoseLandmarker>,
-        faceResult: FaceLandmarker?,
         handResults: List<HandLandmarker>?
     ): String {
-        val sequenceLength = 30
+        val sequenceLength = 60
         val threshold = 0.5f
         val maxSequences = 90
 
         val landmarks = prepareLandmarks(poseResults, handResults)
 
         sequences.add(landmarks)
-        val snapshot = sequences.takeLast(60)  // Ensure 60 frames are used
+        val snapshot = sequences.takeLast(sequenceLength)  // Ensure 60 frames are used
 
         if (snapshot.size == 60) {
             val byteBuffer = convertListToByteBuffer(snapshot)
 
-            val model = SingaSlrV002.newInstance(context)
+            val model = SingaSlrV010.newInstance(context)
             val inputFeature0 =
                 TensorBuffer.createFixedSize(intArrayOf(1, 60, 225), DataType.FLOAT32)
             inputFeature0.loadBuffer(byteBuffer)
@@ -314,11 +321,11 @@ fun RealtimeCameraContent(
 
             val imageAnalyzer = createImageAnalysis()
 
-            combinedLandmarkerHelper = CombinedLandmarkerHelper(
+            combinedLandmarkHelper = CombinedLandmarkHelper(
                 context = context,
-                faceLandmarkerHelperListener = object :
-                    CombinedLandmarkerHelper.CombinedFaceLandmarkerListener {
-                    override fun onResultsFaceLandmarker(result: CombinedLandmarkerHelper.ResultFaceLandmarkerBundle) {
+                faceLandmarkHelperListener = object :
+                    CombinedLandmarkHelper.CombinedFaceLandmarkListener {
+                    override fun onResultsFaceLandmark(result: CombinedLandmarkHelper.ResultFaceLandmarkBundle) {
                         val mappedData = DataMapper.mapFaceLandmarkResponseToModel(result.results)
                         faceLandmarkResult = mappedData
                     }
@@ -328,9 +335,9 @@ fun RealtimeCameraContent(
                         Log.e("RealtimeCameraScreen", "Error: $error, code: $errorCode")
                     }
                 },
-                handLandmarkerHelperListener = object :
-                    CombinedLandmarkerHelper.CombinedHandLandmarkerListener {
-                    override fun onResultsHandLandmarker(result: CombinedLandmarkerHelper.ResultHandLandmarkerBundle) {
+                handLandmarkHelperListener = object :
+                    CombinedLandmarkHelper.CombinedHandLandmarkListener {
+                    override fun onResultsHandLandmark(result: CombinedLandmarkHelper.ResultHandLandmarkBundle) {
                         val mappedData = DataMapper.mapHandLandmarkResponseToModel(result.results)
                         handLandmarkResult = mappedData
                     }
@@ -339,9 +346,9 @@ fun RealtimeCameraContent(
                         Log.e("RealtimeCameraScreen", "Error: $error, code: $errorCode")
                     }
                 },
-                poseLandmarkerHelperListener = object :
-                    CombinedLandmarkerHelper.CombinedPoseLandmarkerListener {
-                    override fun onResultsPoseLandmarker(result: CombinedLandmarkerHelper.ResultPoseLandmarkerBundle) {
+                poseLandmarkHelperListener = object :
+                    CombinedLandmarkHelper.CombinedPoseLandmarkListener {
+                    override fun onResultsPoseLandmark(result: CombinedLandmarkHelper.ResultPoseLandmarkBundle) {
                         val mappedData = DataMapper.mapPoseLandmarkResponseToModel(result.results)
                         poseLandmarkResult = mappedData
                     }
@@ -355,7 +362,7 @@ fun RealtimeCameraContent(
             // Set analyzers with image closure handling
             imageAnalyzer.setAnalyzer(executor) { image ->
                 image.use {
-                    combinedLandmarkerHelper?.detectLiveStream(it, isFrontCamera)
+                    combinedLandmarkHelper?.detectLiveStream(it, isFrontCamera)
                 }
             }
 
@@ -398,7 +405,6 @@ fun RealtimeCameraContent(
             val result = runAslModel(
                 context,
                 poseLandmarkResult!!,
-                faceLandmarkResult!!,
                 handLandmarkResult!!
             )
 
