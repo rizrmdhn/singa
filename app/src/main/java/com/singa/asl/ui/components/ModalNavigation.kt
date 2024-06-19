@@ -224,7 +224,7 @@ fun ModalNavigation(
 
     if (staticDialog) {
         PopupInputAlertDialog(
-            title = "Create a static translation",
+            title = "Create a translation",
             value = staticTitle,
             isLoading = viewModelStatic.createStaticStateIsLoading,
             onValueChange = {

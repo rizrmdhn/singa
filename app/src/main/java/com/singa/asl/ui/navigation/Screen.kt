@@ -9,14 +9,14 @@ sealed class Screen(val route: String) {
     data object Profile : Screen("profile")
     data object ProfileDetail : Screen("profile_detail")
     data object ChangePassword : Screen("change_password")
-    data object Message : Screen("message")
+    data object Message : Screen("conversation")
     data object Conversation : Screen("conversation/{id}") {
         fun createRoute(id: String) = "conversation/$id"
     }
     data object ConversationDetail : Screen("conversation_detail/{translationId}/{conversationId}") {
         fun createRoute(translationId: String, conversationId: String) = "conversation_detail/$translationId/$conversationId"
     }
-    data object History : Screen("history")
+    data object History : Screen("translation")
     data object HistoryDetail : Screen("history_detail/{id}") {
         fun createRoute(id: String) = "history_detail/$id"
     }
