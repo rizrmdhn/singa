@@ -1,9 +1,15 @@
 package com.singa.asl.ui.screen.history_camera
 
 import android.Manifest
+import android.Manifest.permission.READ_EXTERNAL_STORAGE
+import android.Manifest.permission.READ_MEDIA_IMAGES
+import android.Manifest.permission.READ_MEDIA_VIDEO
+import android.Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.os.Environment
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -53,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.singa.asl.R
 import com.singa.asl.ui.screen.history.HistoryScreenViewModel
@@ -116,7 +123,6 @@ fun HistoryCameraContent(
     }
 
     val recordPermissionState = rememberPermissionState(Manifest.permission.RECORD_AUDIO)
-    val galleryPermissionState = rememberPermissionState(Manifest.permission.READ_EXTERNAL_STORAGE)
 
     var recording by remember {
         mutableStateOf<Recording?>(null)
@@ -236,11 +242,16 @@ fun HistoryCameraContent(
         }
     }
 
-
-    val galleryPermissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()
+    val testGalleryLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
     ) {
-        if (it) {
+        if (it[READ_EXTERNAL_STORAGE] == true) {
+            Toast.makeText(context, "Permission granted", Toast.LENGTH_SHORT).show()
+            galleryLauncher.launch("video/*")
+        } else if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE &&
+            it[READ_MEDIA_VIDEO] == true && it[READ_MEDIA_VISUAL_USER_SELECTED] == true
+        ) {
             Toast.makeText(context, "Permission granted", Toast.LENGTH_SHORT).show()
             galleryLauncher.launch("video/*")
         } else {
@@ -248,7 +259,6 @@ fun HistoryCameraContent(
             return@rememberLauncherForActivityResult
         }
     }
-
 
 
     LaunchedEffect(isFrontCamera) {
@@ -386,23 +396,55 @@ fun HistoryCameraContent(
                         modifier = Modifier
                             .padding(10.dp),
                         onClick = {
-                            when {
-                                galleryPermissionState.hasPermission -> {
-                                    Toast.makeText(context, "Permission granted", Toast.LENGTH_SHORT)
-                                        .show()
-                                    galleryLauncher.launch("video/*")
-                                }
-                                galleryPermissionState.shouldShowRationale -> {
-                                    Toast.makeText(
-                                        context,
-                                        "Permission denied",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                                else -> {
-                                    galleryPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                                }
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                                testGalleryLauncher.launch(
+                                    arrayOf(
+                                        READ_MEDIA_VIDEO,
+                                        READ_MEDIA_VISUAL_USER_SELECTED
+                                    )
+                                )
+                            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                testGalleryLauncher.launch(
+                                    arrayOf(
+                                        READ_MEDIA_IMAGES,
+                                        READ_MEDIA_VIDEO
+                                    )
+                                )
+                            } else {
+                                testGalleryLauncher.launch(arrayOf(READ_EXTERNAL_STORAGE))
                             }
+
+//                            when {
+//                                galleryPermissionState.hasPermission -> {
+//                                    Toast.makeText(
+//                                        context,
+//                                        "Permission granted",
+//                                        Toast.LENGTH_SHORT
+//                                    )
+//                                        .show()
+//                                    galleryLauncher.launch("video/*")
+//                                }
+//
+//                                galleryPermissionState.shouldShowRationale -> {
+//                                    Toast.makeText(
+//                                        context,
+//                                        "Permission denied",
+//                                        Toast.LENGTH_SHORT
+//                                    ).show()
+//                                }
+//
+//                                else -> {
+//                                    Log.d(
+//                                        "HistoryCameraContent",
+//                                        "HistoryCameraContent: request permission"
+//                                    )
+//                                    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+//                                        galleryPermissionLauncher.launch(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
+//                                    } else {
+//                                        galleryPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+//                                    }
+//                                }
+//                            }
                         },
                         colors = IconButtonDefaults.iconButtonColors(
                             contentColor = Color.White
@@ -425,6 +467,7 @@ fun HistoryCameraContent(
                                     isRecording = true
                                     recordVideo()
                                 }
+
                                 recordPermissionState.shouldShowRationale -> {
                                     Toast.makeText(
                                         context,
@@ -432,6 +475,7 @@ fun HistoryCameraContent(
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
+
                                 else -> {
                                     recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                                 }
