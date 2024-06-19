@@ -117,6 +117,7 @@ fun MainApp(
         Screen.OnBoarding.route,
         Screen.Welcome.route,
         Screen.RealtimeCamera.route,
+        Screen.HistoryCamera.route
     )
 
     //modal sheet
