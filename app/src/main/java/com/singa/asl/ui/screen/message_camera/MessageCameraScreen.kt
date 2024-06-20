@@ -57,7 +57,6 @@ import com.google.accompanist.permissions.rememberPermissionState
 import com.singa.asl.R
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
-import com.singa.asl.utils.Helpers.applyVideoEffects
 import com.singa.asl.utils.ProgressFileUpload
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -164,12 +163,6 @@ fun MessageCameraContent(
                         recording = null
                     } else {
                         MainScope().launch {
-//                            applyVideoEffects(outputFile, processedFile) { progress, status ->
-//                                isProcessingVideo = status
-//                                processingVideoProgress = progress
-//                            }
-
-
                             val multipartBody = outputFile.let { file ->
                                 val contentType = "video/*".toMediaTypeOrNull()
                                 ProgressFileUpload(file, contentType) { progress ->

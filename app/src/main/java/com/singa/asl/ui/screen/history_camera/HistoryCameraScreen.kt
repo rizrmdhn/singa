@@ -9,7 +9,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.os.Build
 import android.os.Environment
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -59,7 +58,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.LifecycleOwner
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
 import com.singa.asl.R
 import com.singa.asl.ui.screen.history.HistoryScreenViewModel
@@ -165,12 +163,6 @@ fun HistoryCameraContent(
                         recording = null
                     } else {
                         MainScope().launch {
-//                            applyVideoEffects(outputFile, processedFile) { progress, status ->
-//                                isProcessingVideo = status
-//                                processingVideoProgress = progress
-//                            }
-
-
                             val multipartBody = outputFile.let { file ->
                                 val contentType = "video/*".toMediaTypeOrNull()
                                 ProgressFileUpload(file, contentType) { progress ->
