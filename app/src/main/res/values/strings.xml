@@ -3,9 +3,11 @@
     <string name="onboarding_1_title">Welcome to SINGA</string>
     <string name="onboarding_1_desc">Learn American Sign Language with ease</string>
     <string name="onboarding_2_title">Learn at your own pace</string>
-    <string name="onboarding_2_desc">Learn ASL at your own pace with our interactive lessons</string>
-    <string name="onboarding_3_title">Practice makes perfect</string>
-    <string name="onboarding_3_desc">Practice your ASL skills with our interactive quizzes</string>
+    <string name="onboarding_2_desc">Learn ASL at your own pace with our transcript feature</string>
+    <string name="onboarding_3_title">Realtime Recognizer</string>
+    <string name="onboarding_3_desc">
+    Learn ASL with our realtime recognizer, which will help you to learn ASL faster
+    </string>
     <string name="get_started">Get Started</string>
     <string name="board">Let\'s embark together on a journey to overcome challenges, enriching communication for all</string>
     <string name="articles_tittle">Google to pay 700 million in case of cancer</string>
