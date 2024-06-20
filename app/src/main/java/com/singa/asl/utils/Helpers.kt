@@ -117,7 +117,7 @@ object Helpers {
             // FFmpeg command for mirroring the video
             val command = arrayOf(
                 "-i", inputFile.absolutePath,                // Input file
-                "-vf", "hflip",                              // Mirror effect (horizontal flip)
+                                              // Mirror effect (horizontal flip)
                 "-c:v", "libx264",                           // Compress using H.264 codec
                 "-preset", "fast",                           // Compression preset
                 "-crf", "28",                                // Compression quality
