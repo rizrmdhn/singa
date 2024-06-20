@@ -111,7 +111,7 @@ fun TopBarLeftIcon(
                 }
                 route == Screen.HistoryDetail.route -> {
                     Text(
-                        text = "History Detail",
+                        text = "Translation Detail",
                         fontWeight = FontWeight.Bold,
                         color = colorPaint,
                         fontSize = 28.sp
@@ -119,7 +119,7 @@ fun TopBarLeftIcon(
                 }
                 route == Screen.MessageCamera.route -> {
                     Text(
-                        text = "Message Camera",
+                        text = "Conversation Camera",
                         fontWeight = FontWeight.Bold,
                         color = colorPaint,
                         fontSize = 28.sp
