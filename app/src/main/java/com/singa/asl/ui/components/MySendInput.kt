@@ -41,7 +41,7 @@ fun MySendInput(
         enabled = !isLoading,
         modifier = modifier
             .fillMaxWidth(
-                if (!isFocused) 0.65f else 1f
+               if (!isFocused) 0.65f else 1f
             )
             .onFocusChanged {
                 setInputFocus(it.isFocused)

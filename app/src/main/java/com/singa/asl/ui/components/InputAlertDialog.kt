@@ -45,6 +45,7 @@ fun PopupInputAlertDialog(
                 } else {
                     OutlinedTextField(
                         value = value,
+                        modifier = Modifier.fillMaxWidth(),
                         placeholder = { Text(text = "Enter title", color = Color.Gray) },
                         onValueChange = {
                             onValueChange(it)

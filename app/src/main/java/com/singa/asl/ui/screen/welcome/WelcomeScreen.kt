@@ -21,9 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.singa.asl.R
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color5
@@ -84,7 +86,9 @@ fun WelcomeContent(
             Text(
                 text = "Welcome",
                 style = MaterialTheme.typography.bodyLarge,
-                color = Color.Black
+                color = Color.Black,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Black
             )
 
             Spacer(
@@ -92,14 +96,14 @@ fun WelcomeContent(
             )
 
             Text(
-                text = "Login or Guest account to take apps, take part in challenge, and more.",
+                text = "Login or Guest account",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Black,
                 textAlign = TextAlign.Center
             )
 
             Spacer(
-                modifier = Modifier.fillMaxHeight(0.1f)
+                modifier = Modifier.height(8.dp)
             )
 
             Button(
