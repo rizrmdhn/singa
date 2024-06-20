@@ -165,13 +165,13 @@ fun HistoryCameraContent(
                         recording = null
                     } else {
                         MainScope().launch {
-                            applyVideoEffects(outputFile, processedFile) { progress, status ->
-                                isProcessingVideo = status
-                                processingVideoProgress = progress
-                            }
+//                            applyVideoEffects(outputFile, processedFile) { progress, status ->
+//                                isProcessingVideo = status
+//                                processingVideoProgress = progress
+//                            }
 
 
-                            val multipartBody = processedFile.let { file ->
+                            val multipartBody = outputFile.let { file ->
                                 val contentType = "video/*".toMediaTypeOrNull()
                                 ProgressFileUpload(file, contentType) { progress ->
                                     uploadProgress = progress
