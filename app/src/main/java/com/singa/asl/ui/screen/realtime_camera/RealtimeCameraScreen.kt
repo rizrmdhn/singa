@@ -48,7 +48,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.singa.asl.R
-import com.singa.asl.ml.SingaSlrV010
+import com.singa.asl.ml.SingaSlrV003
 import com.singa.asl.ui.components.LandmarkOverlay
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
@@ -233,7 +233,7 @@ fun RealtimeCameraContent(
         handResults: List<HandLandmarker>?
     ): String {
         val sequenceLength = 60
-        val threshold = 0.5f
+        val threshold = 0.99f
         val maxSequences = 90
 
         val landmarks = prepareLandmarks(poseResults, handResults)
@@ -244,7 +244,7 @@ fun RealtimeCameraContent(
         if (snapshot.size == 60) {
             val byteBuffer = convertListToByteBuffer(snapshot)
 
-            val model = SingaSlrV010.newInstance(context)
+            val model = SingaSlrV003.newInstance(context)
             val inputFeature0 =
                 TensorBuffer.createFixedSize(intArrayOf(1, 60, 225), DataType.FLOAT32)
             inputFeature0.loadBuffer(byteBuffer)
