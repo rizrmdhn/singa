@@ -64,7 +64,6 @@ import com.singa.asl.ui.screen.history.HistoryScreenViewModel
 import com.singa.asl.ui.theme.Color1
 import com.singa.asl.ui.theme.Color2
 import com.singa.asl.utils.Helpers
-import com.singa.asl.utils.Helpers.applyVideoEffects
 import com.singa.asl.utils.ProgressFileUpload
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -137,18 +136,11 @@ fun HistoryCameraContent(
     }
 
     var uploadProgress by remember { mutableIntStateOf(0) }
-    var isProcessingVideo by remember { mutableStateOf(false) }
-    var processingVideoProgress by remember { mutableIntStateOf(0) }
-
 
     fun recordVideo() {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val outputFile =
             File(context.getExternalFilesDir(Environment.DIRECTORY_MOVIES), "video_$timeStamp.mp4")
-        val processedFile = File(
-            context.getExternalFilesDir(Environment.DIRECTORY_MOVIES),
-            "video_${timeStamp}_processed.mp4"
-        )
 
         @SuppressLint("MissingPermission")
         recording = cameraController.startRecording(
@@ -203,19 +195,9 @@ fun HistoryCameraContent(
     ) {
         if (it != null) {
             val fileData = Helpers.uriToFile(it, context)
-            val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-            val processedFile = File(
-                context.getExternalFilesDir(Environment.DIRECTORY_MOVIES),
-                "video_${timeStamp}_processed.mp4"
-            )
 
             MainScope().launch {
-                applyVideoEffects(fileData, processedFile) { progress, status ->
-                    isProcessingVideo = status
-                    processingVideoProgress = progress
-                }
-
-                val multipartBody = processedFile.let { file ->
+                val multipartBody = fileData.let { file ->
                     val contentType = "video/*".toMediaTypeOrNull()
                     ProgressFileUpload(file, contentType) { progress ->
                         uploadProgress = progress
@@ -287,18 +269,6 @@ fun HistoryCameraContent(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (isProcessingVideo) {
-                Spacer(
-                    modifier = Modifier
-                        .height(16.dp)
-                        .padding(16.dp),
-                )
-                CircularProgressIndicator(
-                    progress = { processingVideoProgress / 100f },
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = "Processing video...  $processingVideoProgress", color = Color.White)
-            }
             if (uploadInProgress && uploadProgress > 0) {
                 Spacer(
                     modifier = Modifier

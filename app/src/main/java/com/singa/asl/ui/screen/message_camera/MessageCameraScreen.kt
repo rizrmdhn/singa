@@ -136,18 +136,12 @@ fun MessageCameraContent(
     }
 
     var uploadProgress by remember { mutableIntStateOf(0) }
-    var isProcessingVideo by remember { mutableStateOf(false) }
-    var processingVideoProgress by remember { mutableIntStateOf(0) }
 
 
     fun recordVideo() {
         val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val outputFile =
             File(context.getExternalFilesDir(Environment.DIRECTORY_MOVIES), "video_$timeStamp.mp4")
-        val processedFile = File(
-            context.getExternalFilesDir(Environment.DIRECTORY_MOVIES),
-            "video_${timeStamp}_processed.mp4"
-        )
 
 
         @SuppressLint("MissingPermission")
@@ -235,18 +229,6 @@ fun MessageCameraContent(
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (isProcessingVideo) {
-                Spacer(
-                    modifier = Modifier
-                        .height(16.dp)
-                        .padding(16.dp),
-                )
-                CircularProgressIndicator(
-                    progress = { processingVideoProgress / 100f },
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = "Processing video...  $processingVideoProgress", color = Color.White)
-            }
             if (uploadInProgress && uploadProgress > 0) {
                 Spacer(
                     modifier = Modifier
